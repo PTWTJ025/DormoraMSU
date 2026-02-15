@@ -7,25 +7,6 @@ import { RouterModule, ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ComparePopupComponent } from '../shared/compare-popup/compare-popup.component';
 
-// Click outside directive
-@Directive({
-  selector: '[clickOutside]',
-  standalone: true
-})
-export class ClickOutsideDirective {
-  @Output() clickOutside = new EventEmitter<void>();
-
-  constructor(private elementRef: ElementRef) {}
-
-  @HostListener('document:click', ['$event.target'])
-  onClick(target: any) {
-    const clickedInside = this.elementRef.nativeElement.contains(target);
-    if (!clickedInside) {
-      this.clickOutside.emit();
-    }
-  }
-}
-
 // UI model used in template (all required)
 interface UIDorm {
   id: number;
@@ -43,7 +24,7 @@ interface UIDorm {
 @Component({
   selector: 'app-dorm-list',
   standalone: true,
-  imports: [CommonModule, NavbarComponent, FormsModule, ClickOutsideDirective, RouterModule, ComparePopupComponent],
+  imports: [CommonModule, NavbarComponent, FormsModule, RouterModule, ComparePopupComponent],
   templateUrl: './dorm-list.component.html',
   styleUrls: ['./dorm-list.component.css']
 })
@@ -85,32 +66,8 @@ export class DormListComponent implements OnInit {
     amenityMatch: 'any' as 'any' | 'all'
   };
 
-  // Amenities array สำหรับแสดงสิ่งอำนวยความสะดวกในตัวกรอง (อัปเดตตาม API specification)
-  amenities = [
-    { id: 1, name: 'แอร์', available: true, checked: false },
-    { id: 2, name: 'พัดลม', available: true, checked: false },
-    { id: 3, name: 'TV', available: false, checked: false },
-    { id: 10, name: 'เครื่องทำน้ำอุ่น', available: true, checked: false },
-    { id: 4, name: 'ตู้เย็น', available: true, checked: false },
-    { id: 7, name: 'ตู้เสื้อผ้า', available: true, checked: false },
-    { id: 5, name: 'เตียงนอน', available: true, checked: false },
-    { id: 8, name: 'โต๊ะทำงาน', available: true, checked: false },
-    { id: 12, name: 'โต๊ะเครื่องแป้ง', available: false, checked: false },
-    { id: 11, name: 'ซิงค์ล้างจาน', available: true, checked: false },
-    { id: 9, name: 'ไมโครเวฟ', available: true, checked: false },
-    { id: 24, name: 'เครื่องซักผ้า', available: true, checked: false },
-    { id: 23, name: 'คีย์การ์ด', available: true, checked: false },
-    { id: 13, name: 'กล้องวงจรปิด', available: false, checked: false },
-    { id: 15, name: 'ลิฟต์', available: false, checked: false },
-    { id: 6, name: 'WIFI', available: true, checked: false },
-    { id: 14, name: 'รปภ.', available: false, checked: false },
-    { id: 17, name: 'ฟิตเนส', available: false, checked: false },
-    { id: 19, name: 'ตู้กดน้ำหยอดเหรียญ', available: false, checked: false },
-    { id: 20, name: 'สระว่ายน้ำ', available: false, checked: false },
-    { id: 16, name: 'ที่จอดรถ', available: false, checked: false },
-    { id: 18, name: 'Lobby', available: false, checked: false },
-    { id: 22, name: 'อนุญาตให้เลี้ยงสัตว์', available: false, checked: false }
-  ];
+  // Amenities array - จะถูกโหลดจาก API
+  amenities: { id: number; name: string; available: boolean; checked: boolean }[] = [];
 
   // Zone options
   zones: Zone[] = [];
@@ -139,6 +96,7 @@ export class DormListComponent implements OnInit {
     private route: ActivatedRoute
   ) {
     this.loadZones();
+    this.loadAmenities();
   }
 
   ngOnInit() {
@@ -192,6 +150,26 @@ export class DormListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error fetching zones:', error);
+      }
+    });
+  }
+
+  loadAmenities() {
+    // เรียก API ที่ถูกต้อง: GET /api/dormitories/amenities
+    this.dormitoryService.getAmenitiesList().subscribe({
+      next: (amenityNames: string[]) => {
+        // Backend ส่งมาเป็น array ของชื่อ: ["แอร์", "พัดลม", "WIFI", ...]
+        // แปลงเป็นรูปแบบที่ component ใช้
+        this.amenities = amenityNames.map((name, index) => ({
+          id: index + 1, // ใช้ index เป็น ID ชั่วคราว (ไม่สำคัญเพราะเราส่งชื่อไปหลังบ้าน)
+          name: name,
+          available: true,
+          checked: false
+        }));
+      },
+      error: (error) => {
+        console.error('Error fetching amenities:', error);
+        this.amenities = [];
       }
     });
   }
@@ -425,7 +403,7 @@ export class DormListComponent implements OnInit {
     return true;
   }
 
-  applyFilters() {
+  applyFilters(closePopup: boolean = true) {
     this.isFiltering = true;
     
     // ถ้าเป็นการค้นหาหอพักที่คล้ายกัน ให้ใช้ similar search
@@ -434,39 +412,29 @@ export class DormListComponent implements OnInit {
       return;
     }
 
-    // อัปเดต currentFilters จากค่าที่เลือกใน popup
-    // 1. อัปเดต amenities
-    const selectedAmenities = this.amenities
+    // เก็บ amenity IDs ที่ user เลือก
+    this.currentFilters.amenityIds = this.amenities
       .filter(amenity => amenity.checked)
       .map(amenity => amenity.id);
-    this.currentFilters.amenityIds = selectedAmenities;
-    
-    // 2. อัปเดตราคา
-    this.currentFilters.minPrice = this.filterMinPrice;
-    this.currentFilters.maxPrice = this.filterMaxPrice;
-    
-    // 3. อัปเดต rent type
-    this.currentFilters.daily = this.filters.daily;
-    this.currentFilters.monthly = this.filters.monthly;
-    
-    // 4. อัปเดตดาว
-    const selectedStars: number[] = [];
-    if (this.filters.rating5) selectedStars.push(5);
-    if (this.filters.rating4) selectedStars.push(4);
-    if (this.filters.rating3) selectedStars.push(3);
-    if (this.filters.rating2) selectedStars.push(2);
-    if (this.filters.rating1) selectedStars.push(1);
-    this.currentFilters.stars = selectedStars;
-    
-    // ตั้งค่าการเรียงลำดับตามดาวถ้ามีการกรองดาว
-    if (selectedStars.length > 0) {
-      this.sortOrder = 'rating-desc';
+
+    // เก็บราคาจาก filter popup
+    if (this.filterMinPrice !== null) {
+      this.currentFilters.minPrice = this.filterMinPrice;
+    }
+    if (this.filterMaxPrice !== null) {
+      this.currentFilters.maxPrice = this.filterMaxPrice;
     }
 
-    // ปิด filter popup
-    this.showFilterPopup = false;
+    // เก็บประเภทการเช่า
+    this.currentFilters.daily = this.filters.daily;
+    this.currentFilters.monthly = this.filters.monthly;
 
-    // ใช้ unified filter ที่รวมทุกเงื่อนไข
+    // ปิด filter popup ถ้า closePopup = true
+    if (closePopup) {
+      this.showFilterPopup = false;
+    }
+
+    // เรียก unified filter
     this.applyUnifiedFilter();
   }
 
@@ -673,8 +641,8 @@ export class DormListComponent implements OnInit {
       amenityMatch: 'any'
     };
     
-    this.applyFilters();
-    this.showFilterPopup = false;
+    // ส่ง false เพื่อไม่ปิด popup
+    this.applyFilters(false);
   }
 
   toggleAmenity(amenity: any) {
@@ -786,34 +754,20 @@ export class DormListComponent implements OnInit {
 
   /** Apply rent type filter */
   applyRentTypeFilter() {
-    const hasDaily = this.filters.daily;
-    const hasMonthly = this.filters.monthly;
-    
-    // อัปเดต current filters
-    this.currentFilters.daily = hasDaily;
-    this.currentFilters.monthly = hasMonthly;
-    
-    this.applyUnifiedFilter();
+    // ไม่ต้องทำอะไร - จะถูกเรียกเมื่อกด "ตกลง" ใน applyFilters()
   }
 
   /** Apply rating filter */
   applyRatingFilter() {
-    const selectedStars: number[] = [];
-    if (this.filters.rating5) selectedStars.push(5);
-    if (this.filters.rating4) selectedStars.push(4);
-    if (this.filters.rating3) selectedStars.push(3);
-    if (this.filters.rating2) selectedStars.push(2);
-    if (this.filters.rating1) selectedStars.push(1);
+    // TODO: Backend ยังไม่รองรับการกรองตามดาว
+    console.warn('Rating filter is not yet supported by backend API');
     
-    // อัปเดต current filters
-    this.currentFilters.stars = selectedStars;
-    
-    // ถ้ามีการกรองดาว ให้เรียงจากดาวมาก → น้อย (UX best practice)
-    if (selectedStars.length > 0) {
-      this.sortOrder = 'rating-desc';
-    }
-    
-    this.applyUnifiedFilter();
+    // Reset rating filters
+    this.filters.rating5 = false;
+    this.filters.rating4 = false;
+    this.filters.rating3 = false;
+    this.filters.rating2 = false;
+    this.filters.rating1 = false;
   }
 
   /** Apply price filter */
@@ -837,26 +791,12 @@ export class DormListComponent implements OnInit {
       return;
     }
     
-    const minPrice = this.filterMinPrice;
-    const maxPrice = this.filterMaxPrice;
-    
-    // อัปเดต current filters
-    this.currentFilters.minPrice = minPrice;
-    this.currentFilters.maxPrice = maxPrice;
-    
-    this.applyUnifiedFilter();
+    // ไม่ต้องทำอะไร - จะถูกเรียกเมื่อกด "ตกลง" ใน applyFilters()
   }
 
   /** Apply amenities filter */
   applyAmenitiesFilter() {
-    const selectedAmenities = this.amenities
-      .filter(amenity => amenity.checked)
-      .map(amenity => amenity.id);
-    
-    // อัปเดต current filters
-    this.currentFilters.amenityIds = selectedAmenities;
-    
-    this.applyUnifiedFilter();
+    // ไม่ต้องทำอะไร - จะถูกเรียกเมื่อกด "ตกลง" ใน applyFilters()
   }
 
   /** Apply unified filter using the new API */
@@ -888,14 +828,31 @@ export class DormListComponent implements OnInit {
     // ไม่ส่ง stars ไป API เพราะ backend อาจกรองไม่ถูกต้องกับทศนิยม
     // เราจะกรองเองที่ client-side แทน
     
+    // ส่งชื่อ amenities แทน IDs (ตามที่ backend ต้องการ)
     if (this.currentFilters.amenityIds.length > 0) {
-      filterParams.amenityIds = this.currentFilters.amenityIds;
-      filterParams.amenityMatch = this.currentFilters.amenityMatch;
+      const selectedAmenityNames = this.amenities
+        .filter(a => this.currentFilters.amenityIds.includes(a.id))
+        .map(a => a.name);
+      
+      if (selectedAmenityNames.length > 0) {
+        filterParams.amenities = selectedAmenityNames.join(',');
+      }
     }
 
     this.dormitoryService.filterDormitories(filterParams).subscribe({
       next: (response) => {
-        this.dorms = response.dormitories.map(d => this.mapDormToUi(d));
+        // Handle both array response and object wrapper response
+        let dormitories: any[] = [];
+        if (Array.isArray(response)) {
+          dormitories = response;
+        } else if (response && response.dormitories) {
+          dormitories = response.dormitories;
+        } else {
+          console.error('Invalid response format:', response);
+          dormitories = [];
+        }
+        
+        this.dorms = dormitories.map(d => this.mapDormToUi(d));
         
         // กรองตามโซนที่เลือก (ถ้ามี)
         if (this.selectedZone && this.selectedZone !== '') {

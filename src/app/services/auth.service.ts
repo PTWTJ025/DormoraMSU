@@ -234,7 +234,16 @@ export class AuthService {
         .get<any>(`${this.backendUrl}/auth/admin/me`, { headers })
         .toPromise();
 
+      // Debug: ดูว่า Backend ส่งอะไรกลับมา
+      console.log('🔍 Backend response:', response);
+
+      // Backend ส่ง memberType: 'admin' มา
       if (!response || response.memberType !== 'admin') {
+        console.error('❌ Admin verification failed:', {
+          hasResponse: !!response,
+          memberType: response?.memberType,
+          fullResponse: response
+        });
         await this.signOut(null);
         throw new Error('คุณไม่มีสิทธิ์เข้าถึงระบบแอดมิน');
       }

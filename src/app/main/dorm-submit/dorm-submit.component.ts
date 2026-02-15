@@ -93,6 +93,11 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
       summer_price: [''], // ราคาซัมเมอร์ (ไม่บังคับ)
       deposit: [''], // ค่าประกันห้อง (ไม่บังคับ)
       
+      // ค่าน้ำค่าไฟ (ไม่บังคับ)
+      electricity_price: [''], // ค่าไฟ บาท/หน่วย
+      water_price_type: [''], // ประเภทค่าน้ำ: per_unit หรือ flat_rate
+      water_price: [''], // ค่าน้ำ
+      
       // สิ่งอำนวยความสะดวก (จะสร้างแบบ dynamic จาก API)
       amenities: this.fb.group({}),
       
@@ -347,11 +352,15 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
                this.dormForm.get('address')?.valid && 
                this.dormForm.get('zone_name')?.valid);
       case 2:
-        return true;
+        return true; // ข้อมูลติดต่อไม่บังคับ
       case 3:
-        return true;
+        return true; // ตรวจสอบราคาใน validator แล้ว
       case 4:
-        return true;
+        // ต้องมีรูปอย่างน้อย minImages รูป, มีพิกัด, และเลือกสิ่งอำนวยความสะดวกอย่างน้อย 5 อย่าง
+        const hasEnoughImages = this.images.length >= this.minImages;
+        const hasLocation = !!(this.dormForm.get('latitude')?.value && this.dormForm.get('longitude')?.value);
+        const hasEnoughAmenities = this.getSelectedAmenities().length >= 5;
+        return hasEnoughImages && hasLocation && hasEnoughAmenities;
       default:
         return false;
     }

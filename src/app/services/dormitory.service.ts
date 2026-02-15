@@ -408,6 +408,15 @@ export class DormitoryService {
       })
     );
   }
+  /** Get list of amenity names from backend (for filter UI) */
+  getAmenitiesList(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.backendUrl}/dormitories/amenities`).pipe(
+      catchError(err => {
+        console.error('[DormitoryService] Error fetching amenities list:', err);
+        return of([]);
+      })
+    );
+  }
 
   // ดึงรายการหอพักทั้งหมด
   getAllDormitories(params?: {
@@ -645,7 +654,7 @@ export class DormitoryService {
     status?: string;
     limit?: number;
     offset?: number;
-  }): Observable<{dormitories: Dorm[], total: number, limit: number, offset: number}> {
+  }): Observable<any> {
     let httpParams = new HttpParams();
     
     // Zone IDs
@@ -708,6 +717,17 @@ export class DormitoryService {
     }
     
     return this.http.get<any>(`${this.backendUrl}/dormitories/filter`, { params: httpParams }).pipe(
+      map(response => {
+        // Handle both array response and object wrapper response
+        if (Array.isArray(response)) {
+          return response;
+        } else if (response && response.dormitories) {
+          return response;
+        } else {
+          console.warn('Unexpected response format from filter API:', response);
+          return { dormitories: [], total: 0, limit: 0, offset: 0 };
+        }
+      }),
       catchError(err => {
         console.error('[DormitoryService] Error filtering dormitories:', err);
         return of({ dormitories: [], total: 0, limit: 0, offset: 0 });

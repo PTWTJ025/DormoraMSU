@@ -1,0 +1,281 @@
+/* Mobile-first responsive design */
+
+/* Card hover effect */
+.card-hover-effect {
+  transition: all 0.3s ease;
+}
+
+.card-hover-effect:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Price container styling */
+.price-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.price-monthly {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+  line-height: 1.3;
+}
+
+.price-monthly .unit {
+  font-size: 0.75rem;
+  color: #6B7280;
+  font-weight: 400;
+  margin-left: 2px;
+}
+
+.price-daily {
+  font-size: 0.75rem;
+  color: #6B7280;
+  line-height: 1.2;
+}
+
+.price-daily .unit {
+  font-size: 0.7rem;
+  margin-left: 2px;
+}
+
+/* Line clamp utilities */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  /* Reduce padding on mobile */
+  .mobile-compact {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  /* Stack filters vertically */
+  .filter-row {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  /* Full width search on mobile */
+  .search-input-mobile {
+    width: 100% !important;
+  }
+
+  /* Adjust card grid for mobile */
+  .dorm-grid-mobile {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  /* Compact card on mobile */
+  .dorm-card-mobile {
+    padding: 0.75rem !important;
+  }
+
+  .dorm-card-mobile .card-image {
+    height: 180px !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  .dorm-card-mobile .card-title {
+    font-size: 0.95rem !important;
+    min-height: 44px !important;
+  }
+
+  .dorm-card-mobile .card-zone {
+    font-size: 0.8rem !important;
+  }
+
+  .dorm-card-mobile .card-date {
+    font-size: 0.7rem !important;
+  }
+
+  /* Compact filter popup on mobile */
+  .filter-popup-mobile {
+    width: calc(100vw - 2rem) !important;
+    max-width: 100% !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    max-height: 70vh !important;
+  }
+
+  /* Mobile filter popup - bottom sheet style */
+  @media (max-width: 640px) {
+    .filter-popup-mobile {
+      position: fixed !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      top: auto !important;
+      width: 100% !important;
+      transform: none !important;
+      border-radius: 1rem 1rem 0 0 !important;
+      max-height: 85vh !important;
+      animation: slideUp 0.3s ease-out;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  /* Smaller buttons on mobile */
+  .btn-mobile {
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.875rem !important;
+  }
+
+  /* Compact header on mobile */
+  .page-header-mobile h2 {
+    font-size: 1rem !important;
+  }
+
+  .page-header-mobile .result-count {
+    font-size: 0.8rem !important;
+  }
+
+  /* Back button mobile */
+  .back-button-mobile {
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.875rem !important;
+  }
+
+  .back-button-mobile svg {
+    width: 1rem !important;
+    height: 1rem !important;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .dorm-grid-tablet {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Filter popup scrollbar styling */
+.filter-popup-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.filter-popup-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.filter-popup-scroll::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.filter-popup-scroll::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Skeleton loading animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Search result badge */
+.search-badge {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Filter button - Simple and direct approach */
+.filter-button {
+  border: 2px solid #D1D5DB;
+  background-color: #ffffff;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.filter-button:hover {
+  background-color: #F9FAFB;
+}
+
+.filter-button.filter-button-active {
+  background-color: #FEF3C7;
+  border-color: #FFCD22;
+}
+
+.filter-button.filter-button-active:hover {
+  background-color: #FEF3C7;
+  border-color: #FFCD22;
+}
+
+/* Zone select mobile */
+@media (max-width: 640px) {
+  .zone-select-mobile {
+    width: 100% !important;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Smooth transitions - specific elements only */
+input, select {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+button:not(.filter-button), a {
+  transition: all 0.2s ease;
+}
+
+/* Focus states for accessibility - exclude filter button */
+input:focus,
+select:focus {
+  outline: 2px solid #FFCD22;
+  outline-offset: 2px;
+}
+
+button:not(.filter-button):focus {
+  outline: 2px solid #FFCD22;
+  outline-offset: 2px;
+}
+
+/* Loading overlay */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}

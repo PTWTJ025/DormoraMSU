@@ -39,6 +39,7 @@ import {
   trigger,
 } from '@angular/animations';
 import { MapService } from '../../../services/map.service';
+import { OwnerDormitoryService } from '../../../services/owner-dormitory.service';
 import {
   DormitoryService,
   RoomType,
@@ -313,6 +314,7 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
     private mapService: MapService,
     private cdr: ChangeDetectorRef,
     private http: HttpClient,
+    private ownerDormitoryService: OwnerDormitoryService,
     private dormitoryService: DormitoryService,
     private authService: AuthService,
     private distanceService: DistanceService,
@@ -1937,8 +1939,7 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
   }
 
   goToOwnerPage() {
-    // ระบบใหม่ไม่มีหน้าเจ้าของหอพัก ให้กลับไปหน้าแอดมินแทน
-    this.router.navigate(['/admin']);
+    this.router.navigate(['/owner']);
   }
 
   cancelForm() {

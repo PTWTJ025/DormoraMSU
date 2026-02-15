@@ -101,13 +101,23 @@
             >
               <span class="font-english">{{ priceRange || dormPrice }}</span>
             </div>
-            <div *ngIf="$any(dormDetail)?.status_dorm || $any(dormDetail)?.statusDorm" 
-                 [ngClass]="{
-                   'bg-green-100 text-green-700': ($any(dormDetail)?.status_dorm || $any(dormDetail)?.statusDorm) === 'ว่าง',
-                   'bg-red-100 text-red-700': ($any(dormDetail)?.status_dorm || $any(dormDetail)?.statusDorm) === 'เต็ม'
-                 }"
-                 class="font-medium inline-block mt-2 px-3 py-1 rounded-lg text-sm">
-              {{ $any(dormDetail)?.status_dorm || $any(dormDetail)?.statusDorm }}
+            <div
+              *ngIf="
+                $any(dormDetail)?.status_dorm || $any(dormDetail)?.statusDorm
+              "
+              [ngClass]="{
+                'bg-green-100 text-green-700':
+                  ($any(dormDetail)?.status_dorm ||
+                    $any(dormDetail)?.statusDorm) === 'ว่าง',
+                'bg-red-100 text-red-700':
+                  ($any(dormDetail)?.status_dorm ||
+                    $any(dormDetail)?.statusDorm) === 'เต็ม',
+              }"
+              class="font-medium inline-block mt-2 px-3 py-1 rounded-lg text-sm"
+            >
+              {{
+                $any(dormDetail)?.status_dorm || $any(dormDetail)?.statusDorm
+              }}
             </div>
           </div>
         </div>
@@ -573,805 +583,391 @@
         </div>
       </div>
 
-      <!-- Reviews Section -->
-      <div class="bg-white shadow-sm mb-6">
-        <div class="bg-gray-50 border-b border-gray-200">
-          <h3 class="font-bold text-xl px-6 py-4 text-[#4F5356]">
-            รีวิวจากผู้เช่า
-          </h3>
-        </div>
+      <!-- Right Side - Sidebar -->
+      <div class="lg:mt-6 min-w-0 overflow-hidden">
+        <!-- Owner Profile Card -->
+        <div class="bg-white shadow-sm p-4 mb-4">
+          <div class="flex flex-col items-center">
+            <!-- Profile Image with Yellow Border -->
+            <div
+              class="w-24 h-24 rounded-full overflow-hidden mb-3 border-2"
+              style="border-color: #fbbf24"
+            >
+              <img
+                [src]="getOwnerContactAvatarUrl()"
+                alt="Owner Profile"
+                class="w-full h-full object-cover"
+              />
+            </div>
 
-        <!-- Review Stats -->
-        <div class="p-6 border-b border-gray-200">
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-gray-900">
-              ความคิดเห็นของผู้ใช้หอพัก
+            <!-- Owner Name -->
+            <h3 class="font-semibold text-lg text-[#4F5356] mb-3">
+              {{ ownerContact.name }}
             </h3>
-            <div class="flex items-center gap-2">
-              <!-- ลูกศร: ขยับลง 1px -->
+
+            <!-- Phone Button -->
+            <button
+              (click)="contactOwner()"
+              class="w-60 bg-[#31AA52] hover:bg-[#289244] text-[14px] text-white py-2.5 rounded-lg mb-2 font-medium flex items-center justify-center transition-colors duration-200 shadow-sm"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5 text-green-500 fill-current translate-y-[1px]"
-                viewBox="0 0 20 20"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="w-5 h-5 mr-2"
               >
                 <path
-                  fill-rule="evenodd"
-                  d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z"
-                  clip-rule="evenodd"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"
                 />
               </svg>
+              {{ ownerContact.phone || "ติดต่อสอบถาม" }}
+            </button>
 
-              <!-- เลข: สูงเท่าไอคอน + ขยับลง 1px -->
-              <span
-                class="text-lg font-bold text-gray-900 leading-[20px] translate-y-[2px]"
+            <!-- Secondary Phone Button (if exists) -->
+            <button
+              *ngIf="ownerContact.secondaryPhone"
+              (click)="contactOwnerSecondary()"
+              class="w-60 bg-[#4A90E2] hover:bg-[#357ABD] text-[14px] text-white py-2.5 rounded-lg mb-2 font-medium flex items-center justify-center transition-colors duration-200 shadow-sm"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="w-5 h-5 mr-2"
               >
-                {{ overallRating.toFixed(1) }}
-              </span>
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"
+                />
+              </svg>
+              {{ ownerContact.secondaryPhone }}
+            </button>
 
-              <!-- ดาว: คงเดิม -->
-              <div class="flex items-center gap-1">
-                <ng-container *ngFor="let star of getStars(overallRating)">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="w-5 h-5 inline-block"
-                    viewBox="0 0 20 20"
-                    fill="#FDD836"
-                  >
-                    <path
-                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.454a1 1 0 00-1.175 0l-3.38 2.454c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"
-                    />
-                  </svg>
-                </ng-container>
-              </div>
+            <!-- Line ID Box -->
+            <div
+              *ngIf="ownerContact.lineId && ownerContact.lineId !== 'ไม่มี'"
+              class="w-60 border border-[#434FAA] text-center text-[14px] py-2.5 rounded-lg flex items-center justify-center font-medium text-[#434FAA] cursor-pointer hover:border-[#2c3e8a] transition-colors duration-200"
+              (click)="openLineChat()"
+              title="คลิกเพื่อแอดเพื่อนใน Line"
+            >
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg"
+                alt="Line"
+                class="w-5 h-5 mr-2"
+              />
+              Line ID : {{ ownerContact.lineId }}
+            </div>
+            <div
+              *ngIf="!ownerContact.lineId || ownerContact.lineId === 'ไม่มี'"
+              class="w-60 border border-gray-300 text-center text-[14px] py-2.5 rounded-lg flex items-center justify-center font-medium text-gray-500"
+            >
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg"
+                alt="Line"
+                class="w-5 h-5 mr-2 opacity-50"
+              />
+              Line ID : ไม่มี
             </div>
           </div>
         </div>
 
-        <!-- Add Review Section -->
-        <div class="pt-4 pb-2 border-b border-gray-200">
-          <div
-            *ngIf="isLoggedIn && !isOwner && canReview; else reviewPrompt"
-            class="space-y-4"
+        <!-- Similar Properties -->
+        <div class="bg-white shadow-sm">
+          <h3
+            class="font-bold text-lg px-4 py-3 border-b border-gray-200 text-[#4F5356]"
           >
-            <div class="flex items-center space-x-4">
+            หอพักที่คล้ายกัน
+          </h3>
+
+          <!-- Loading State -->
+          <div *ngIf="loadingState.similar" class="p-4 text-center">
+            <div
+              class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"
+            ></div>
+            <p class="text-sm text-gray-600 mt-2">
+              กำลังโหลดหอพักที่คล้ายกัน...
+            </p>
+          </div>
+
+          <!-- Empty State -->
+          <div
+            *ngIf="!loadingState.similar && similarProperties.length === 0"
+            class="p-4 text-center text-gray-500"
+          >
+            <p class="text-sm">ไม่พบหอพักที่คล้ายกัน</p>
+          </div>
+
+          <!-- Similar Properties List -->
+          <div
+            *ngIf="!loadingState.similar && similarProperties.length > 0"
+            class="p-3 space-y-3"
+          >
+            <!-- Debug Info (ลบออกได้เมื่อแก้ไขเสร็จ) -->
+            <div class="text-xs text-gray-400 mb-2">
+              Debug: พบหอพักที่คล้ายกัน {{ similarProperties.length }} รายการ
+            </div>
+            <div
+              *ngFor="let property of similarProperties"
+              (click)="viewSimilarDorm(property.id)"
+              class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow duration-200 cursor-pointer max-w-[300px]"
+            >
+              <!-- Image section -->
               <div
-                class="w-10 h-10 rounded-full bg-blue-100 flex-shrink-0 overflow-hidden relative bottom-0.5"
-              >
-                <img
-                  [src]="getUserAvatarUrl()"
-                  alt="User"
-                  class="w-full h-full object-cover"
-                />
-              </div>
-              <div class="flex-1 relative">
-                <!-- Rating Selection -->
-                <div class="mb-3 p-3 bg-gray-50 rounded-lg">
-                  <label class="block text-sm font-medium text-gray-700 mb-2">ให้คะแนนหอพักนี้:</label>
-                  <div class="flex items-center space-x-1">
-                    <ng-container *ngFor="let star of getRatingStars()">
-                      <button
-                        type="button"
-                        (click)="selectRating(star)"
-                        class="focus:outline-none transition-colors duration-200"
-                        [attr.aria-label]="'ให้คะแนน ' + star + ' ดาว'"
+                class="w-full h-36 overflow-hidden rounded-t-lg hover:scale-105 transition-transform duration-500"
+                [style.background-image]="'url(' + property.image + ')'"
+                style="
+                  background-size: cover;
+                  background-position: center;
+                  background-repeat: no-repeat;
+                "
+              ></div>
+              <!-- Content section -->
+              <div class="p-3">
+                <!-- ราคารายวัน -->
+                <div
+                  *ngIf="property.dailyPrice"
+                  class="text-sm font-semibold text-[#4F5356] mb-1"
+                >
+                  {{ property.dailyPrice }}
+                </div>
+                <!-- ราคารายเดือน -->
+                <div
+                  *ngIf="property.monthlyPrice"
+                  class="text-lg font-bold text-[#4F5356] mb-1"
+                >
+                  {{ property.monthlyPrice }}
+                </div>
+                <!-- Fallback ราคาเดิม -->
+                <div
+                  *ngIf="!property.dailyPrice && !property.monthlyPrice"
+                  class="text-lg font-bold text-[#4F5356] mb-1"
+                >
+                  {{ property.price }}
+                </div>
+                <div
+                  class="text-lg font-medium text-[#4F5356] mb-1 line-clamp-1"
+                >
+                  {{ property.name }}
+                </div>
+                <div class="text-sm text-[#4F5356] mb-1 line-clamp-1">
+                  {{ property.zone }}
+                </div>
+                <div class="text-xs text-[#4F5356] mb-2">
+                  {{ property.date }}
+                </div>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center">
+                    <span
+                      class="text-sm font-bold text-[#4F5356] relative top-0.5"
+                      >{{ property.rating.toFixed(1) }}</span
+                    >
+                    <div class="ml-2 flex relative top-[0.05rem]">
+                      <!-- ดาวเต็ม -->
+                      <ng-container
+                        *ngFor="let star of getStars(property.rating)"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          [attr.fill]="star <= selectedRating ? '#FDD836' : '#E5E7EB'"
+                          fill="#FDD836"
                           viewBox="0 0 20 20"
-                          class="w-6 h-6 hover:scale-110 transition-transform cursor-pointer"
+                          class="w-4 h-4 relative"
                         >
                           <path
                             d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.454a1 1 0 00-1.175 0l-3.38 2.454c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"
                           />
                         </svg>
-                      </button>
-                    </ng-container>
-                    <span class="ml-2 text-sm text-gray-600">{{ selectedRating }} ดาว</span>
-                  </div>
-                </div>
-                
-                <textarea
-                  [(ngModel)]="newComment"
-                  placeholder="แสดงความคิดเห็นของคุณ..."
-                  class="w-full p-3 pr-16 border border-gray-300 rounded-lg outline-none focus:outline-none focus:ring-0 focus:border-blue-500 resize-none transition duration-200 scrollbar-thin"
-                  rows="1"
-                  (input)="autoGrow($event)"
-                  (keydown.enter)="
-                    $event.preventDefault(); addComment(newComment)
-                  "
-                  (keyup.enter)="$event.preventDefault()"
-                ></textarea>
-                <!-- Send Icon Button inside textarea -->
-                <button
-                  type="button"
-                  class="absolute right-4 top-1/2 -translate-y-[60%] text-white bg-blue-600 hover:bg-blue-700 rounded-md h-8 w-8 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed outline-none focus:outline-none"
-                  [disabled]="
-                    !(newComment && newComment.trim()) || isSubmittingComment
-                  "
-                  (click)="addComment(newComment)"
-                  aria-label="ส่งความคิดเห็น"
-                >
-                  <ng-container *ngIf="!isSubmittingComment; else loadingSend">
-                    <i class="fa-solid fa-paper-plane text-xs"></i>
-                  </ng-container>
-                  <ng-template #loadingSend>
-                    <span
-                      class="inline-block h-4 w-4 border-2 border-white/80 border-t-transparent rounded-full animate-spin"
-                    ></span>
-                  </ng-template>
-                </button>
-
-                <!-- Sentiment Analysis Result -->
-                <div
-                  *ngIf="newComment && sentimentResult"
-                  class="mt-2 p-3 rounded-lg"
-                  [ngClass]="{
-                    'bg-green-50 text-green-700':
-                      sentimentResult === 'positive',
-                    'bg-red-50 text-red-700': sentimentResult === 'negative',
-                    'bg-yellow-50 text-yellow-700':
-                      sentimentResult === 'neutral'
-                  }"
-                >
-                  <div class="flex items-center space-x-2">
-                    <svg
-                      *ngIf="sentimentResult === 'positive'"
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zm7-1a1 1 0 11-2 0 1 1 0 012 0zm-3 5a3 3 0 01-6 0h6z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                    <svg
-                      *ngIf="sentimentResult === 'negative'"
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zm7-1a1 1 0 11-2 0 1 1 0 012 0zm-3 6a3 3 0 01-6 0h6z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                    <svg
-                      *ngIf="sentimentResult === 'neutral'"
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zm7-1a1 1 0 11-2 0 1 1 0 012 0zm-4 3a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                    <span class="font-medium">
-                      {{
-                        sentimentResult === "positive"
-                          ? "ความคิดเห็นเชิงบวก"
-                          : sentimentResult === "negative"
-                          ? "ความคิดเห็นเชิงลบ"
-                          : "ความคิดเห็นเป็นกลาง"
-                      }}
-                    </span>
-                  </div>
-                </div>
-
-                <!-- Submit button replaced by icon button above -->
-              </div>
-            </div>
-          </div>
-
-          <!-- Review Prompt Template -->
-          <ng-template #reviewPrompt>
-            <!-- ถ้าเป็นสถานะรออนุมัติจริง ให้แสดงเฉพาะการ์ดเหลือง ไม่ต้องมีกล่องเทา -->
-            <ng-container *ngIf="isPendingApproval; else defaultReviewPrompt">
-              <div
-                class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-left"
-              >
-                <div class="flex items-center">
-                  <svg
-                    class="w-5 h-5 text-yellow-600 mr-2"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                  <span class="text-yellow-800 font-medium">รอการอนุมัติ</span>
-                </div>
-                <p class="text-yellow-700 text-sm mt-1">
-                  รีวิวของคุณกำลังรอการอนุมัติจากเจ้าของหอพัก
-                </p>
-              </div>
-            </ng-container>
-
-            <!-- ดีฟอลต์: กล่องเทา + ข้อความกรณีอื่น ๆ -->
-            <ng-template #defaultReviewPrompt>
-              <div class="bg-gray-50 p-6 rounded-lg text-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-12 w-12 mx-auto text-gray-400 mb-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                  />
-                </svg>
-                <p class="text-gray-600 mb-4" *ngIf="!isLoggedIn">
-                  กรุณาเข้าสู่ระบบก่อนแสดงความคิดเห็น
-                </p>
-                <p class="text-gray-600 mb-4" *ngIf="isOwner">
-                  เจ้าของหอพักไม่สามารถแสดงความคิดเห็นได้
-                </p>
-                <p
-                  class="text-gray-600 mb-4"
-                  *ngIf="isLoggedIn && !isOwner && !canReview"
-                >
-                  {{
-                    reviewEligibilityMessage ||
-                      "เฉพาะสมาชิกที่อยู่อาศัยในหอพักนี้เท่านั้นที่สามารถแสดงความคิดเห็นได้"
-                  }}
-                </p>
-                <button
-                  *ngIf="!isLoggedIn"
-                  (click)="navigateToLogin()"
-                  class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg inline-flex items-center space-x-2 transition duration-200"
-                >
-                  <span>เข้าสู่ระบบ</span>
-                </button>
-              </div>
-            </ng-template>
-          </ng-template>
-        </div>
-
-        <!-- Reviews List -->
-        <div class="divide-y divide-gray-200">
-          <!-- Review Items -->
-          <div *ngFor="let review of reviews; let i = index" class="p-6">
-            <div class="flex">
-              <div
-                class="w-10 h-10 rounded-full bg-blue-100 flex-shrink-0 mr-4 overflow-hidden"
-              >
-                <img
-                  [src]="getReviewerAvatarUrl(review)"
-                  alt="User"
-                  class="w-full h-full object-cover"
-                />
-              </div>
-              <div class="flex-1">
-                <div class="flex items-center justify-between mb-2">
-                  <div class="flex items-center">
-                    <span class="font-bold text-[#4F5356] text-sm">{{
-                      review.username
-                    }}</span>
-                    <!-- Resident status pill -->
-                    <ng-container
-                      *ngIf="review.isResident; else formerResident"
-                    >
-                      <span
-                        class="ml-2 text-[11px] px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 font-medium"
-                        >กำลังอาศัยอยู่</span
+                      </ng-container>
+                      <!-- ดาวว่าง -->
+                      <ng-container
+                        *ngFor="let emptyStar of getEmptyStars(property.rating)"
                       >
-                    </ng-container>
-                    <ng-template #formerResident>
-                      <span
-                        class="ml-2 text-[11px] px-2 py-0.5 rounded-full bg-gray-50 text-gray-600 border border-gray-200 font-medium"
-                        >เคยอาศัยอยู่</span
-                      >
-                    </ng-template>
-                  </div>
-                  <div class="flex items-center space-x-3">
-                    <!-- Edit Button (for current user's reviews) -->
-                    <button
-                      *ngIf="review.isCurrentUser"
-                      (click)="editReview(i)"
-                      class="text-blue-500 hover:text-blue-700 text-xs font-medium flex items-center"
-                    >
-                      <i class="fa-regular fa-pen-to-square mr-1 translate-y-[0.5px] translate-x-[5px]"></i>
-                      <span class="sr-only">แก้ไข</span>
-                    </button>
-
-                    <!-- Rating Display -->
-                    <div class="flex items-center">
-                      <!-- Sentiment Icon (Font Awesome) -->
-                      <i
-                        *ngIf="review.isPositive"
-                        class="fa-solid fa-arrow-up text-green-500 mr-1 text-xs translate-y-[0.5px] translate-x-[-1px]"
-                      ></i>
-                      <i
-                        *ngIf="!review.isPositive"
-                        class="fa-solid fa-arrow-down text-red-500 mr-1 text-xs translate-y-[0.5px] translate-x-[-1px]"
-                      ></i>
-
-                      <!-- Stars -->
-                      <div class="flex">
-                        <ng-container
-                          *ngFor="let star of getStars(review.rating)"
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="#E5E7EB"
+                          viewBox="0 0 20 20"
+                          class="w-4 h-4 relative"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="#FDD836"
-                            viewBox="0 0 20 20"
-                            class="w-4 h-4"
-                          >
-                            <path
-                              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.454a1 1 0 00-1.175 0l-3.38 2.454c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"
-                            />
-                          </svg>
-                        </ng-container>
-                        <ng-container
-                          *ngFor="let emptyStar of getEmptyStars(review.rating)"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            stroke="#D1D5DB"
-                            viewBox="0 0 20 20"
-                            class="w-4 h-4"
-                          >
-                            <path
-                              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.454a1 1 0 00-1.175 0l-3.38 2.454c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"
-                            />
-                          </svg>
-                        </ng-container>
-                      </div>
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.454a1 1 0 00-1.175 0l-3.38 2.454c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"
+                          />
+                        </svg>
+                      </ng-container>
                     </div>
                   </div>
                 </div>
-
-                <!-- Review Content -->
-                <div *ngIf="!review.isEditing; else editMode">
-                  <p class="text-gray-700 text-sm leading-relaxed">
-                    {{ review.comment }}
-                  </p>
-                </div>
-
-                <!-- Date under content -->
-                <div class="mt-1 text-[11px] text-gray-500">
-                  {{ review.date | date : "dd/MM/yyyy" }}
-                </div>
-
-                <!-- Edit Mode -->
-                <ng-template #editMode>
-                  <div class="space-y-3">
-                    <textarea
-                      [(ngModel)]="review.editComment"
-                      class="w-full p-3 pr-4 border border-gray-300 rounded-lg focus:ring-0 focus:outline-none focus:border-blue-500 resize-none overflow-auto scrollbar-thin transition duration-200"
-                      rows="3"
-                      (input)="autoGrow($event)"
-                      placeholder="แก้ไขความคิดเห็นของคุณ..."
-                    ></textarea>
-
-                    <div class="flex space-x-2">
-                      <button
-                        (click)="saveReview(i)"
-                        class="relative bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
-                        [disabled]="review.saving"
-                      >
-                        <span *ngIf="!review.saving; else savingEdit"
-                          >บันทึก</span
-                        >
-                        <ng-template #savingEdit>
-                          <span
-                            class="inline-block h-4 w-4 border-2 border-white/80 border-t-transparent rounded-full animate-spin"
-                          ></span>
-                        </ng-template>
-                      </button>
-                      <button
-                        (click)="cancelEdit(i)"
-                        class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium"
-                      >
-                        ยกเลิก
-                      </button>
-                    </div>
-                  </div>
-                </ng-template>
               </div>
             </div>
-          </div>
-        </div>
 
-        <!-- View All Button -->
-        <div class="p-4 text-center border-t border-gray-200">
-          <button
-            (click)="viewAllComments()"
-            class="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline transition-colors duration-200"
-          >
-            ดูความคิดเห็นทั้งหมด ({{ reviews.length }} รีวิว)
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Right Side - Sidebar -->
-    <div class="lg:mt-6 min-w-0 overflow-hidden">
-      <!-- Owner Profile Card -->
-      <div class="bg-white shadow-sm p-4 mb-4">
-        <div class="flex flex-col items-center">
-          <!-- Profile Image with Yellow Border -->
-          <div
-            class="w-24 h-24 rounded-full overflow-hidden mb-3 border-2"
-            style="border-color: #fbbf24"
-          >
-            <img
-              [src]="getOwnerContactAvatarUrl()"
-              alt="Owner Profile"
-              class="w-full h-full object-cover"
-            />
-          </div>
-
-          <!-- Owner Name -->
-          <h3 class="font-semibold text-lg text-[#4F5356] mb-3">
-            {{ ownerContact.name }}
-          </h3>
-
-          <!-- Phone Button -->
-          <button
-            (click)="contactOwner()"
-            class="w-60 bg-[#31AA52] hover:bg-[#289244] text-[14px] text-white py-2.5 rounded-lg mb-2 font-medium flex items-center justify-center transition-colors duration-200 shadow-sm"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-              class="w-5 h-5 mr-2"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"
-              />
-            </svg>
-            {{ ownerContact.phone || "ติดต่อสอบถาม" }}
-          </button>
-
-          <!-- Secondary Phone Button (if exists) -->
-          <button
-            *ngIf="ownerContact.secondaryPhone"
-            (click)="contactOwnerSecondary()"
-            class="w-60 bg-[#4A90E2] hover:bg-[#357ABD] text-[14px] text-white py-2.5 rounded-lg mb-2 font-medium flex items-center justify-center transition-colors duration-200 shadow-sm"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-              class="w-5 h-5 mr-2"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"
-              />
-            </svg>
-            {{ ownerContact.secondaryPhone }}
-          </button>
-
-          <!-- Line ID Box -->
-          <div
-            *ngIf="ownerContact.lineId && ownerContact.lineId !== 'ไม่มี'"
-            class="w-60 border border-[#434FAA] text-center text-[14px] py-2.5 rounded-lg flex items-center justify-center font-medium text-[#434FAA] cursor-pointer hover:border-[#2c3e8a] transition-colors duration-200"
-            (click)="openLineChat()"
-            title="คลิกเพื่อแอดเพื่อนใน Line"
-          >
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg"
-              alt="Line"
-              class="w-5 h-5 mr-2"
-            />
-            Line ID : {{ ownerContact.lineId }}
-          </div>
-          <div
-            *ngIf="!ownerContact.lineId || ownerContact.lineId === 'ไม่มี'"
-            class="w-60 border border-gray-300 text-center text-[14px] py-2.5 rounded-lg flex items-center justify-center font-medium text-gray-500"
-          >
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg"
-              alt="Line"
-              class="w-5 h-5 mr-2 opacity-50"
-            />
-            Line ID : ไม่มี
-          </div>
-        </div>
-      </div>
-
-      <!-- Similar Properties -->
-      <div class="bg-white shadow-sm">
-        <h3
-          class="font-bold text-lg px-4 py-3 border-b border-gray-200 text-[#4F5356]"
-        >
-          หอพักที่คล้ายกัน
-        </h3>
-        
-        <!-- Loading State -->
-        <div *ngIf="loadingState.similar" class="p-4 text-center">
-          <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-          <p class="text-sm text-gray-600 mt-2">กำลังโหลดหอพักที่คล้ายกัน...</p>
-        </div>
-        
-        <!-- Empty State -->
-        <div *ngIf="!loadingState.similar && similarProperties.length === 0" class="p-4 text-center text-gray-500">
-          <p class="text-sm">ไม่พบหอพักที่คล้ายกัน</p>
-        </div>
-        
-        <!-- Similar Properties List -->
-        <div *ngIf="!loadingState.similar && similarProperties.length > 0" class="p-3 space-y-3">
-          <!-- Debug Info (ลบออกได้เมื่อแก้ไขเสร็จ) -->
-          <div class="text-xs text-gray-400 mb-2">
-            Debug: พบหอพักที่คล้ายกัน {{ similarProperties.length }} รายการ
-          </div>
-          <div
-            *ngFor="let property of similarProperties"
-            (click)="viewSimilarDorm(property.id)"
-            class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow duration-200 cursor-pointer max-w-[300px]"
-          >
-            <!-- Image section -->
-            <div
-              class="w-full h-36 overflow-hidden rounded-t-lg hover:scale-105 transition-transform duration-500"
-              [style.background-image]="'url(' + property.image + ')'"
-              style="
-                background-size: cover;
-                background-position: center;
-                background-repeat: no-repeat;
-              "
-            ></div>
-            <!-- Content section -->
-            <div class="p-3">
-              <!-- ราคารายวัน -->
-              <div
-                *ngIf="property.dailyPrice"
-                class="text-sm font-semibold text-[#4F5356] mb-1"
+            <!-- ปุ่มดูเพิ่มเติม -->
+            <div class="text-center pt-2">
+              <button
+                (click)="viewMoreSimilarDorms()"
+                class="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline transition-colors duration-200"
               >
-                {{ property.dailyPrice }}
-              </div>
-              <!-- ราคารายเดือน -->
-              <div
-                *ngIf="property.monthlyPrice"
-                class="text-lg font-bold text-[#4F5356] mb-1"
-              >
-                {{ property.monthlyPrice }}
-              </div>
-              <!-- Fallback ราคาเดิม -->
-              <div
-                *ngIf="!property.dailyPrice && !property.monthlyPrice"
-                class="text-lg font-bold text-[#4F5356] mb-1"
-              >
-                {{ property.price }}
-              </div>
-              <div class="text-lg font-medium text-[#4F5356] mb-1 line-clamp-1">
-                {{ property.name }}
-              </div>
-              <div class="text-sm text-[#4F5356] mb-1 line-clamp-1">
-                {{ property.zone }}
-              </div>
-              <div class="text-xs text-[#4F5356] mb-2">
-                {{ property.date }}
-              </div>
-              <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                  <span
-                    class="text-sm font-bold text-[#4F5356] relative top-0.5"
-                    >{{ property.rating.toFixed(1) }}</span
-                  >
-                  <div class="ml-2 flex relative top-[0.05rem]">
-                    <!-- ดาวเต็ม -->
-                    <ng-container
-                      *ngFor="let star of getStars(property.rating)"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="#FDD836"
-                        viewBox="0 0 20 20"
-                        class="w-4 h-4 relative"
-                      >
-                        <path
-                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.454a1 1 0 00-1.175 0l-3.38 2.454c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"
-                        />
-                      </svg>
-                    </ng-container>
-                    <!-- ดาวว่าง -->
-                    <ng-container
-                      *ngFor="let emptyStar of getEmptyStars(property.rating)"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="#E5E7EB"
-                        viewBox="0 0 20 20"
-                        class="w-4 h-4 relative"
-                      >
-                        <path
-                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.454a1 1 0 00-1.175 0l-3.38 2.454c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"
-                        />
-                      </svg>
-                    </ng-container>
-                  </div>
-                </div>
-              </div>
+                ดูหอพักที่คล้ายกันเพิ่มเติม
+              </button>
             </div>
-          </div>
-
-          <!-- ปุ่มดูเพิ่มเติม -->
-          <div class="text-center pt-2">
-            <button
-              (click)="viewMoreSimilarDorms()"
-              class="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline transition-colors duration-200"
-            >
-              ดูหอพักที่คล้ายกันเพิ่มเติม
-            </button>
           </div>
         </div>
       </div>
     </div>
-  </div>
+    <!-- End of Main Content Grid -->
 
-  <!-- Compare Popup -->
-  <app-compare-popup></app-compare-popup>
+    <!-- Compare Popup -->
+    <app-compare-popup></app-compare-popup>
 
-  <!-- Inline Popup / Toast -->
-  <div *ngIf="isPopupVisible" class="fixed bottom-6 right-6 z-50">
-    <div
-      class="min-w-[260px] max-w-sm px-4 py-3 rounded-lg shadow-lg text-white flex items-start space-x-3"
-      [ngClass]="{
-        'bg-green-600': popupType === 'success',
-        'bg-red-600': popupType === 'error',
-        'bg-yellow-600': popupType === 'warning',
-        'bg-blue-600': popupType === 'info'
-      }"
-    >
-      <i
-        class="mt-0.5"
+    <!-- Inline Popup / Toast -->
+    <div *ngIf="isPopupVisible" class="fixed bottom-6 right-6 z-50">
+      <div
+        class="min-w-[260px] max-w-sm px-4 py-3 rounded-lg shadow-lg text-white flex items-start space-x-3"
         [ngClass]="{
-          'fa-solid fa-circle-check': popupType === 'success',
-          'fa-solid fa-triangle-exclamation': popupType === 'warning',
-          'fa-solid fa-circle-info': popupType === 'info',
-          'fa-solid fa-circle-xmark': popupType === 'error'
+          'bg-green-600': popupType === 'success',
+          'bg-red-600': popupType === 'error',
+          'bg-yellow-600': popupType === 'warning',
+          'bg-blue-600': popupType === 'info',
         }"
-      ></i>
-      <div class="flex-1 text-sm leading-5">
-        {{ popupMessage }}
-      </div>
-      <button
-        class="ml-2 text-white/80 hover:text-white"
-        (click)="hidePopup()"
-        aria-label="ปิด"
       >
-        <i class="fa-solid fa-xmark"></i>
-      </button>
+        <i
+          class="mt-0.5"
+          [ngClass]="{
+            'fa-solid fa-circle-check': popupType === 'success',
+            'fa-solid fa-triangle-exclamation': popupType === 'warning',
+            'fa-solid fa-circle-info': popupType === 'info',
+            'fa-solid fa-circle-xmark': popupType === 'error',
+          }"
+        ></i>
+        <div class="flex-1 text-sm leading-5">
+          {{ popupMessage }}
+        </div>
+        <button
+          class="ml-2 text-white/80 hover:text-white"
+          (click)="hidePopup()"
+          aria-label="ปิด"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
     </div>
-  </div>
 
-  <!-- Image Modal -->
-  <div
-    *ngIf="showImageModal"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90"
-    (click)="closeImageModal()"
-    (keydown)="onModalKeydown($event)"
-    tabindex="0"
-  >
-    <!-- Modal Content -->
+    <!-- Image Modal -->
     <div
-      class="relative max-w-7xl max-h-full w-full h-full flex items-center justify-center p-4"
+      *ngIf="showImageModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90"
+      (click)="closeImageModal()"
+      (keydown)="onModalKeydown($event)"
+      tabindex="0"
     >
-      <!-- Close Button -->
-      <button
-        class="absolute top-4 right-4 z-10 bp-3 text-white transition-all duration-200"
-        (click)="closeImageModal()"
-        aria-label="ปิด"
-      >
-        <svg
-          class="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M6 18L18 6M6 6l12 12"
-          ></path>
-        </svg>
-      </button>
-
-      <!-- Previous Button -->
-      <button
-        *ngIf="images.length > 1"
-        class="absolute left-4 top-1/2 transform -translate-y-1/2 p-4 text-white z-10 transition-all duration-200"
-        (click)="prevModalImage(); $event.stopPropagation()"
-        aria-label="ภาพก่อนหน้า"
-      >
-        <svg
-          class="w-8 h-8"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M15 19l-7-7 7-7"
-          ></path>
-        </svg>
-      </button>
-
-      <!-- Next Button -->
-      <button
-        *ngIf="images.length > 1"
-        class="absolute right-4 top-1/2 transform -translate-y-1/2 p-4 text-white z-10 transition-all duration-200"
-        (click)="nextModalImage(); $event.stopPropagation()"
-        aria-label="ภาพถัดไป"
-      >
-        <svg
-          class="w-8 h-8"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M9 5l7 7-7 7"
-          ></path>
-        </svg>
-      </button>
-
-      <!-- Main Image -->
-      <img
-        [src]="images[modalImageIndex]"
-        alt="Dorm Image Full Size"
-        class="max-w-full max-h-full object-contain"
-        (click)="$event.stopPropagation()"
-      />
-
-      <!-- Image Counter -->
+      <!-- Modal Content -->
       <div
-        *ngIf="images.length > 1"
-        class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full text-sm"
+        class="relative max-w-7xl max-h-full w-full h-full flex items-center justify-center p-4"
       >
-        {{ modalImageIndex + 1 }} / {{ images.length }}
-      </div>
+        <!-- Close Button -->
+        <button
+          class="absolute top-4 right-4 z-10 bp-3 text-white transition-all duration-200"
+          (click)="closeImageModal()"
+          aria-label="ปิด"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
 
-      <!-- Thumbnail Strip (Optional) -->
-      <div
-        *ngIf="images.length > 1 && images.length <= 10"
-        class="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex space-x-2 bg-black/30 p-2 rounded-sm"
-      >
+        <!-- Previous Button -->
+        <button
+          *ngIf="images.length > 1"
+          class="absolute left-4 top-1/2 transform -translate-y-1/2 p-4 text-white z-10 transition-all duration-200"
+          (click)="prevModalImage(); $event.stopPropagation()"
+          aria-label="ภาพก่อนหน้า"
+        >
+          <svg
+            class="w-8 h-8"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"
+            ></path>
+          </svg>
+        </button>
+
+        <!-- Next Button -->
+        <button
+          *ngIf="images.length > 1"
+          class="absolute right-4 top-1/2 transform -translate-y-1/2 p-4 text-white z-10 transition-all duration-200"
+          (click)="nextModalImage(); $event.stopPropagation()"
+          aria-label="ภาพถัดไป"
+        >
+          <svg
+            class="w-8 h-8"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            ></path>
+          </svg>
+        </button>
+
+        <!-- Main Image -->
+        <img
+          [src]="images[modalImageIndex]"
+          alt="Dorm Image Full Size"
+          class="max-w-full max-h-full object-contain"
+          (click)="$event.stopPropagation()"
+        />
+
+        <!-- Image Counter -->
         <div
-          *ngFor="let image of images; let i = index"
-          class="w-12 h-8 cursor-pointer transition-all duration-200 border-2 flex items-center justify-center overflow-hidden"
-          [class.border-white]="i === modalImageIndex"
-          [class.border-transparent]="i !== modalImageIndex"
-          [class.opacity-60]="i !== modalImageIndex"
-          (click)="modalImageIndex = i; $event.stopPropagation()"
+          *ngIf="images.length > 1"
+          class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full text-sm"
         >
-          <img
-            [src]="image"
-            alt="Thumbnail"
-            class="w-full h-full object-cover object-center rounded-sm"
-          />
+          {{ modalImageIndex + 1 }} / {{ images.length }}
+        </div>
+
+        <!-- Thumbnail Strip (Optional) -->
+        <div
+          *ngIf="images.length > 1 && images.length <= 10"
+          class="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex space-x-2 bg-black/30 p-2 rounded-sm"
+        >
+          <div
+            *ngFor="let image of images; let i = index"
+            class="w-12 h-8 cursor-pointer transition-all duration-200 border-2 flex items-center justify-center overflow-hidden"
+            [class.border-white]="i === modalImageIndex"
+            [class.border-transparent]="i !== modalImageIndex"
+            [class.opacity-60]="i !== modalImageIndex"
+            (click)="modalImageIndex = i; $event.stopPropagation()"
+          >
+            <img
+              [src]="image"
+              alt="Thumbnail"
+              class="w-full h-full object-cover object-center rounded-sm"
+            />
+          </div>
         </div>
       </div>
     </div>

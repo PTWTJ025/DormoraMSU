@@ -1,0 +1,10 @@
+{
+    "terminal.integrated.defaultProfile.windows": "Command Prompt",
+    "terminal.integrated.profiles.windows": {
+        "Command Prompt": {
+            "path": "cmd.exe",
+            "args": []
+        }
+    },
+    "kiroAgent.configureMCP": "Disabled"
+} 

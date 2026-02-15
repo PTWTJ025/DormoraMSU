@@ -1,0 +1,247 @@
+<mat-toolbar class="bg-white text-black navbar-shadow font-thai fixed top-0 left-0 right-0 z-50" style="height: 60px;">
+  <!-- Content container with max-width -->
+  <div class="w-full mx-auto sm:px-4 md:px-6 flex items-center justify-between h-full">
+    
+    <!-- ซ้ายสุด: โลโก้ -->
+    <a class="flex items-center cursor-pointer shrink-0" [routerLink]="getHomeLink()">
+      <img src="assets/images/logo.png" 
+        alt="DormoraMSU Logo"
+        class="w-[40px] h-[40px] sm:w-[45px] sm:h-[45px] md:w-[50px] md:h-[50px] mr-2 object-contain"
+        loading="eager">
+      <span class="text-base sm:text-lg md:text-xl font-thai flex items-center">
+        <span class="font-normal text-gray-700">Dormora</span><span class="font-bold" style="color: #FFCD22;">MSU</span>
+      </span>
+    </a>
+
+    <!-- Hamburger Menu สำหรับมือถือ -->
+    <button *ngIf="!isLoading" 
+      class="md:hidden flex items-center justify-center w-10 h-10 text-gray-600 hover:text-black bg-transparent border-0 outline-none cursor-pointer"
+      (click)="toggleMobileMenu()"
+      type="button"
+      [attr.aria-expanded]="mobileMenuOpen"
+      aria-label="Toggle menu">
+      <svg *ngIf="!mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+      <svg *ngIf="mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+
+    <!-- เมนูสำหรับหน้าจอใหญ่ (Desktop/Tablet) -->
+    <div class="hidden md:flex items-center ml-4">
+      <!-- หอพักทั้งหมด -->
+      <li>
+        <button
+          class="text-gray-600 text-sm lg:text-base font-thai font-normal px-2 lg:px-3 py-2 flex items-center bg-transparent border-0 outline-none cursor-pointer hover:text-black transition-colors"
+          routerLink="/dorm-list">
+          หอพักทั้งหมด
+        </button>
+      </li>
+      <!-- แผนที่ทั้งหมด -->
+      <li>
+        <button
+          class="text-gray-600 text-sm lg:text-base font-thai font-normal px-2 lg:px-3 py-2 flex items-center bg-transparent border-0 outline-none cursor-pointer hover:text-black transition-colors"
+          routerLink="/dorm-map">
+          แผนที่ทั้งหมด
+        </button>
+      </li>
+    </div>
+
+    <!-- Spacer -->
+    <div class="hidden md:flex flex-1"></div>
+
+    <!-- ขวาสุด: ปุ่ม action (Desktop/Tablet) -->
+    <div class="hidden md:flex items-center space-x-2 lg:space-x-4">
+      <!-- Loading state -->
+      <div *ngIf="isLoading" class="flex items-center">
+        <div class="loader"></div>
+      </div>
+
+      <!-- ปุ่มส่งข้อมูลหอพัก -->
+      <button *ngIf="!isLoading"
+        class="text-white text-xs sm:text-sm font-thai font-normal px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg cursor-pointer border-0 outline-none transition-colors duration-200 flex items-center whitespace-nowrap"
+        style="background-color: #FFCD22; color: #1F2937;"
+        onmouseover="this.style.backgroundColor='#F59E0B'"
+        onmouseout="this.style.backgroundColor='#FFCD22'"
+        routerLink="/dorm-submit">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        ส่งข้อมูลหอพัก
+      </button>
+
+      <!-- ปุ่มเข้าสู่ระบบแอดมิน -->
+      <div class="relative" *ngIf="!isLoading && !isLoggedIn()">
+        <button
+          class="bg-green-500 hover:bg-green-600 text-white text-xs sm:text-sm font-thai font-normal px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg cursor-pointer border-0 outline-none transition-colors duration-200 flex items-center whitespace-nowrap"
+          routerLink="/admin/login">
+          เข้าสู่ระบบแอดมิน
+        </button>
+      </div>
+
+      <!-- ข้อมูลผู้ใช้ที่ล็อกอินแล้ว -->
+      <div class="relative flex items-center space-x-2" *ngIf="!isLoading && isLoggedIn()">
+        <button class="flex items-center space-x-1 lg:space-x-2 bg-transparent border-0 outline-none cursor-pointer px-1 lg:px-2 py-1"
+          (click)="toggleProfileDropdown()" 
+          [attr.aria-expanded]="profileDropdownOpen" 
+          [attr.aria-haspopup]="true"
+          type="button">
+          
+          <img 
+            [src]="getUserAvatarUrl()" 
+            alt="avatar"
+            class="w-7 h-7 lg:w-8 lg:h-8 rounded-full object-cover bg-blue-200"
+            (load)="onPhotoLoad()" 
+            (error)="onPhotoError()" 
+            loading="lazy" />
+          
+          <div class="flex flex-col items-start ml-1 lg:ml-2">
+            <span class="text-xs lg:text-sm text-gray-800 font-thai font-normal max-w-[80px] lg:max-w-none truncate">
+              {{ getUserDisplayName() }}
+            </span>
+          </div>
+        </button>
+        
+        <ng-container *ngIf="profileDropdownOpen">
+          <div class="fixed inset-0 z-40" (click)="closeProfileDropdown()"></div>
+          <div class="origin-top-right absolute right-0 top-full mt-2 w-48 rounded-xl shadow-xl bg-white ring-1 ring-black ring-opacity-5 z-50 animate-fade-in p-2 flex flex-col gap-1 border border-gray-100">
+            <button (click)="goToProfile()"
+              class="flex items-center gap-2 text-base text-black hover:text-blue-600 font-thai bg-transparent border-0 outline-none cursor-pointer px-2 py-2 rounded-lg transition-colors duration-150 hover:bg-gray-100">
+              <span class="w-6 h-6 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m0 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h3.75"/>
+                </svg>
+              </span>
+              <span>จัดการระบบ</span>
+            </button>
+            <button (click)="onLogout()"
+              class="flex items-center gap-2 text-base text-black hover:text-blue-600 font-thai bg-transparent border-0 outline-none cursor-pointer px-2 py-2 rounded-lg transition-colors duration-150 hover:bg-gray-100">
+              <span class="w-6 h-6 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 -rotate-90 mr-1">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+              </span>
+              <span>ออกจากระบบ</span>
+            </button>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</mat-toolbar>
+
+<!-- Mobile Menu Overlay -->
+<div *ngIf="mobileMenuOpen && !isLoading" 
+  class="md:hidden fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
+  (click)="closeMobileMenu()"></div>
+
+<!-- Mobile Menu Panel -->
+<div *ngIf="mobileMenuOpen && !isLoading"
+  class="md:hidden fixed top-[60px] left-0 right-0 bg-white shadow-lg z-50 animate-slide-down max-h-[calc(100vh-60px)] overflow-y-auto">
+  <div class="px-4 py-3 space-y-2">
+    
+    <!-- ข้อมูลผู้ใช้ (ถ้าล็อกอินแล้ว) -->
+    <div *ngIf="isLoggedIn()" class="flex items-center space-x-3 pb-3 border-b border-gray-200">
+      <img 
+        [src]="getUserAvatarUrl()" 
+        alt="avatar"
+        class="w-12 h-12 rounded-full object-cover bg-blue-200"
+        loading="lazy" />
+      
+      <div class="flex-1">
+        <p class="text-base font-medium text-gray-800 font-thai">{{ getUserDisplayName() }}</p>
+        <p class="text-xs text-gray-500 font-thai">แอดมิน</p>
+      </div>
+    </div>
+
+    <!-- เมนูนำทาง -->
+    <nav class="space-y-1 py-2">
+      <button
+        class="w-full text-left px-4 py-3 text-base font-thai text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center"
+        routerLink="/dorm-list"
+        (click)="closeMobileMenu()">
+        <svg class="w-5 h-5 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+        </svg>
+        หอพักทั้งหมด
+      </button>
+
+      <button
+        class="w-full text-left px-4 py-3 text-base font-thai text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center"
+        routerLink="/dorm-map"
+        (click)="closeMobileMenu()">
+        <svg class="w-5 h-5 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+        </svg>
+        แผนที่ทั้งหมด
+      </button>
+    </nav>
+
+    <!-- ปุ่ม Action -->
+    <div class="space-y-2 pt-3 border-t border-gray-200">
+      <!-- ปุ่มส่งข้อมูลหอพัก -->
+      <button
+        class="w-full text-white text-base font-thai font-normal px-4 py-3 rounded-lg cursor-pointer border-0 outline-none transition-colors duration-200 flex items-center justify-center"
+        style="background-color: #FFCD22; color: #1F2937;"
+        routerLink="/dorm-submit"
+        (click)="closeMobileMenu()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        ส่งข้อมูลหอพัก
+      </button>
+
+      <!-- ปุ่มเข้าสู่ระบบแอดมิน -->
+      <div *ngIf="!isLoggedIn()" class="space-y-2">
+        <button
+          class="w-full bg-green-500 hover:bg-green-600 text-white text-base font-thai font-normal px-4 py-3 rounded-lg cursor-pointer border-0 outline-none transition-colors duration-200 flex items-center justify-center"
+          routerLink="/admin/login"
+          (click)="closeMobileMenu()">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+          เข้าสู่ระบบแอดมิน
+        </button>
+      </div>
+
+      <!-- เมนูผู้ใช้ -->
+      <div *ngIf="isLoggedIn()" class="space-y-1">
+        <button (click)="goToProfile(); closeMobileMenu()"
+          class="w-full flex items-center gap-3 text-base text-gray-700 hover:text-blue-600 font-thai bg-transparent border-0 outline-none cursor-pointer px-4 py-3 rounded-lg transition-colors duration-150 hover:bg-gray-100">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m0 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h3.75"/>
+          </svg>
+          <span>จัดการระบบ</span>
+        </button>
+        <button (click)="onLogout(); closeMobileMenu()"
+          class="w-full flex items-center gap-3 text-base text-red-600 hover:text-red-700 font-thai bg-transparent border-0 outline-none cursor-pointer px-4 py-3 rounded-lg transition-colors duration-150 hover:bg-red-50">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 -rotate-90">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+          <span>ออกจากระบบ</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Spacer -->
+<div style="height: 60px;"></div>
+
+<style>
+  @keyframes slide-down {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-slide-down {
+    animation: slide-down 0.2s ease-out;
+  }
+</style>

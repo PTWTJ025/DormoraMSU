@@ -1,0 +1,87 @@
+import { Injectable } from '@angular/core';
+import { CanActivate, Router, ActivatedRouteSnapshot, UrlTree } from '@angular/router';
+import { AuthService } from '../services/auth.service';
+import { Observable, of } from 'rxjs';
+import { map, take, filter, catchError, switchMap, tap, first, timeout } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
+
+@Injectable({ providedIn: 'root' })
+export class AuthRedirectGuard implements CanActivate {
+  constructor(private authService: AuthService, private router: Router) {}
+
+  canActivate(route: ActivatedRouteSnapshot): Observable<boolean | UrlTree> {
+    return this.authService.currentUser$.pipe(
+      filter(user => user !== undefined),
+      tap(user => {
+        const type = user?.memberType || 'none';
+        if (!environment.production) {
+          console.log(`[AuthGuard] userType=${type}`);
+        }
+      }),
+      timeout(15000),
+      first(),
+      map(user => {
+        const destPath = route.routeConfig?.path || '';
+        const isAdminPage = destPath === 'admin';
+        const isAdminLoginPage = destPath === 'admin/login';
+
+        if (!environment.production) {
+          console.log(`[AuthRedirectGuard] Checking access to ${destPath}, user:`, user ? `${user.memberType}` : 'null');
+        }
+
+        // ===== ADMIN LOGIC =====
+        const adminProfile = localStorage.getItem('adminProfile');
+        if (adminProfile) {
+          try {
+            const profile = JSON.parse(adminProfile);
+            if (profile.memberType === 'admin') {
+              console.log('[AuthRedirectGuard] Admin profile found');
+              
+              // ถ้าเป็น admin page ให้อนุญาต
+              if (isAdminPage) {
+                console.log('[AuthRedirectGuard] Admin accessing admin page, allowing');
+                return true;
+              }
+              
+              // ถ้าเป็น admin login page ให้ redirect ไป admin
+              if (isAdminLoginPage) {
+                console.log('[AuthRedirectGuard] Admin accessing admin login, redirecting to /admin');
+                return this.router.createUrlTree(['/admin']);
+              }
+              
+              // สำหรับหน้าอื่นๆ ให้ redirect ไป admin
+              console.log('[AuthRedirectGuard] Admin accessing other pages, redirecting to /admin');
+              return this.router.createUrlTree(['/admin']);
+            }
+          } catch (error) {
+            console.error('[AuthRedirectGuard] Error parsing admin profile:', error);
+            localStorage.removeItem('adminProfile');
+            localStorage.removeItem('firebaseToken');
+          }
+        }
+
+        // ===== NO ADMIN LOGIC =====
+        // ถ้าไม่ใช่ admin และพยายามเข้า admin page ให้ redirect ไป admin login
+        if (isAdminPage) {
+          console.log('[AuthRedirectGuard] Non-admin trying to access admin page, redirecting to admin login');
+          return this.router.createUrlTree(['/admin/login']);
+        }
+
+        // ถ้าเป็น admin login page ให้อนุญาต
+        if (isAdminLoginPage) {
+          console.log('[AuthRedirectGuard] Accessing admin login page, allowing');
+          return true;
+        }
+
+        // สำหรับหน้าอื่นๆ ให้อนุญาต (หน้าสาธารณะ)
+        console.log('[AuthRedirectGuard] Accessing public pages, allowing');
+        return true;
+      }),
+      catchError(error => {
+        console.error('[AuthRedirectGuard] Error in guard:', error);
+        // In case of error, allow access (default behavior)
+        return of(true);
+      })
+    );
+  }
+}

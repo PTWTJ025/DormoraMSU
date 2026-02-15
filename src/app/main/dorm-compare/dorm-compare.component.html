@@ -1,0 +1,615 @@
+<app-navbar></app-navbar>
+
+<div class="min-h-screen bg-gray-50 font-thai">
+  <!-- Header Section -->
+  <div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-9 py-4 sm:py-6">
+      <div
+        class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+      >
+        <div class="flex items-center space-x-4">
+          <h1 class="text-base sm:text-lg md:text-xl font-medium font-thai">
+            รายการเปรียบเทียบหอพัก
+          </h1>
+        </div>
+
+        <div
+          class="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto justify-between sm:justify-start"
+        >
+          <!-- Sort Controls -->
+          <div class="flex items-center space-x-2">
+            <label class="text-xs sm:text-sm font-medium text-gray-700"
+              >เรียงตาม:</label
+            >
+            <select
+              [(ngModel)]="sortBy"
+              (change)="onSortChange()"
+              class="px-2 sm:px-3 py-1 border border-gray-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="rating">คะแนน</option>
+              <option value="price">ราคา</option>
+            </select>
+          </div>
+
+          <!-- Clear All Icon Button -->
+          <button
+            (click)="clearAll()"
+            class="relative group p-2 text-gray-600 hover:text-gray-800"
+            aria-label="ล้างทั้งหมด"
+          >
+            <i class="material-icons text-xl sm:text-2xl relative top-[5px]"
+              >playlist_remove</i
+            >
+
+            <!-- Tooltip -->
+            <span
+              class="pointer-events-none absolute top-full left-full -translate-x-2 -translate-y-2 whitespace-nowrap rounded-md bg-black/80 px-2 py-1 text-white text-xs sm:text-sm opacity-0 group-hover:opacity-100 transition-opacity shadow-md z-50 font-thai"
+            >
+              ล้างทั้งหมด
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-9 py-2">
+    <!-- Loading Skeleton -->
+    <div
+      *ngIf="isLoading"
+      class="bg-white rounded-lg shadow-lg overflow-hidden"
+    >
+      <div class="overflow-x-auto">
+        <table class="border-collapse w-full" [style.min-width]="getTableMinWidth()">
+          <!-- Skeleton Header Row -->
+          <tr class="bg-gray-50">
+            <td
+              class="w-32 sm:w-40 px-3 sm:px-4 py-3 sm:py-4 border border-gray-200 align-middle"
+            ></td>
+            <td
+              *ngFor="let i of getSkeletonColumns()"
+              class="w-56 sm:w-64 md:w-70 px-3 sm:px-4 py-3 sm:py-4 text-center border border-gray-200 align-middle"
+            >
+              <div class="flex flex-col items-center space-y-2 sm:space-y-3">
+                <!-- Skeleton Image -->
+                <div
+                  class="w-32 h-20 sm:w-40 sm:h-24 md:w-44 md:h-28 skeleton-shimmer rounded-md"
+                ></div>
+                <!-- Skeleton Name -->
+                <div
+                  class="h-3 sm:h-4 skeleton-shimmer rounded w-24 sm:w-32"
+                ></div>
+                <!-- Skeleton Stars -->
+                <div class="flex items-center justify-center gap-2">
+                  <div class="flex space-x-1">
+                    <div
+                      *ngFor="let star of getSkeletonArray(5)"
+                      class="w-3 h-3 sm:w-4 sm:h-4 skeleton-shimmer rounded"
+                    ></div>
+                  </div>
+                  <div
+                    class="w-6 sm:w-8 h-3 sm:h-4 skeleton-shimmer rounded"
+                  ></div>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Skeleton Rows -->
+          <tr
+            *ngFor="let row of getSkeletonArray(10)"
+            class="border-b"
+            [ngClass]="row % 2 === 0 ? 'bg-gray-50' : 'bg-white'"
+          >
+            <td
+              class="w-32 sm:w-40 px-3 sm:px-6 py-3 sm:py-4 border border-gray-200 align-middle"
+            >
+              <div
+                class="h-3 sm:h-4 skeleton-shimmer rounded w-24 sm:w-32"
+              ></div>
+            </td>
+            <td
+              *ngFor="let i of getSkeletonColumns()"
+              class="w-56 sm:w-64 md:w-70 px-3 sm:px-4 py-3 sm:py-4 text-center border border-gray-200 align-middle"
+            >
+              <div
+                class="h-3 sm:h-4 skeleton-shimmer rounded w-16 sm:w-20 mx-auto"
+              ></div>
+            </td>
+          </tr>
+
+          <!-- Skeleton Section Headers -->
+          <tr class="border-b bg-gray-100">
+            <td
+              class="px-3 sm:px-6 py-3 sm:py-4 text-center border border-gray-200"
+              [attr.colspan]="getSkeletonColumns().length + 1"
+            >
+              <div
+                class="h-4 sm:h-5 skeleton-shimmer rounded w-36 sm:w-48 mx-auto"
+              ></div>
+            </td>
+          </tr>
+
+          <!-- More Skeleton Rows -->
+          <tr *ngFor="let row of [1, 2, 3, 4, 5]" class="bg-white">
+            <td
+              class="w-32 sm:w-40 px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 align-middle"
+            >
+              <div class="flex items-center">
+                <div
+                  class="w-3 h-3 sm:w-4 sm:h-4 skeleton-shimmer rounded mr-2"
+                ></div>
+                <div
+                  class="h-3 sm:h-4 skeleton-shimmer rounded w-20 sm:w-24"
+                ></div>
+              </div>
+            </td>
+            <td
+              *ngFor="let i of getSkeletonColumns()"
+              class="w-56 sm:w-64 md:w-70 px-3 sm:px-4 py-2 sm:py-3 text-center border border-gray-200 align-middle"
+            >
+              <div
+                class="w-5 h-5 sm:w-6 sm:h-6 skeleton-shimmer rounded mx-auto"
+              ></div>
+            </td>
+          </tr>
+
+          <!-- Skeleton Internal Amenities Section -->
+          <tr class="border-b bg-gray-100">
+            <td
+              class="px-3 sm:px-6 py-3 sm:py-4 text-center border border-gray-200"
+              [attr.colspan]="getSkeletonColumns().length + 1"
+            >
+              <div
+                class="h-4 sm:h-5 skeleton-shimmer rounded w-32 sm:w-40 mx-auto"
+              ></div>
+            </td>
+          </tr>
+
+          <!-- Skeleton Internal Amenities Rows -->
+          <tr
+            *ngFor="let row of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]"
+            class="border-b"
+            [ngClass]="row % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
+          >
+            <td
+              class="w-32 sm:w-40 px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 align-middle"
+            >
+              <div class="flex items-center">
+                <div
+                  class="w-3 h-3 sm:w-4 sm:h-4 skeleton-shimmer rounded mr-2"
+                ></div>
+                <div
+                  class="h-3 sm:h-4 skeleton-shimmer rounded w-20 sm:w-24"
+                ></div>
+              </div>
+            </td>
+            <td
+              *ngFor="let i of getSkeletonColumns()"
+              class="w-56 sm:w-64 md:w-70 px-3 sm:px-4 py-2 sm:py-3 text-center border border-gray-200 align-middle"
+            >
+              <div
+                class="w-5 h-5 sm:w-6 sm:h-6 skeleton-shimmer rounded mx-auto"
+              ></div>
+            </td>
+          </tr>
+
+          <!-- Another Section -->
+          <tr class="border-b bg-gray-100">
+            <td
+              class="px-3 sm:px-6 py-3 sm:py-4 text-center border border-gray-200"
+              [attr.colspan]="getSkeletonColumns().length + 1"
+            >
+              <div
+                class="h-4 sm:h-5 skeleton-shimmer rounded w-40 sm:w-56 mx-auto"
+              ></div>
+            </td>
+          </tr>
+
+          <!-- More Skeleton Amenity Rows -->
+          <tr
+            *ngFor="let row of [1, 2, 3, 4, 5, 6, 7]"
+            class="border-b"
+            [ngClass]="row % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
+          >
+            <td
+              class="w-32 sm:w-40 px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 align-middle"
+            >
+              <div class="flex items-center">
+                <div
+                  class="w-3 h-3 sm:w-4 sm:h-4 skeleton-shimmer rounded mr-2"
+                ></div>
+                <div
+                  class="h-3 sm:h-4 skeleton-shimmer rounded w-24 sm:w-28"
+                ></div>
+              </div>
+            </td>
+            <td
+              *ngFor="let i of getSkeletonColumns()"
+              class="w-56 sm:w-64 md:w-70 px-3 sm:px-4 py-2 sm:py-3 text-center border border-gray-200 align-middle"
+            >
+              <div
+                class="w-5 h-5 sm:w-6 sm:h-6 skeleton-shimmer rounded mx-auto"
+              ></div>
+            </td>
+          </tr>
+
+          <!-- Skeleton Action Row -->
+          <tr class="bg-white">
+            <td
+              class="w-32 sm:w-40 px-3 sm:px-6 py-3 sm:py-4 border border-gray-200 align-middle"
+            >
+              <div
+                class="h-3 sm:h-4 skeleton-shimmer rounded w-24 sm:w-32 hidden sm:block"
+              ></div>
+            </td>
+            <td
+              *ngFor="let i of [1, 2, 3]"
+              class="w-56 sm:w-64 md:w-70 px-3 sm:px-4 py-3 sm:py-4 text-center border border-gray-200 align-middle"
+            >
+              <div
+                class="h-7 sm:h-8 skeleton-shimmer rounded w-20 sm:w-24 mx-auto"
+              ></div>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div
+      *ngIf="!isLoading && compareDorms.length === 0"
+      class="text-center py-8 sm:py-12"
+    >
+      <div class="bg-white rounded-lg shadow-lg p-6 sm:p-8">
+        <svg
+          class="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-3 sm:mb-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+          ></path>
+        </svg>
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-2">
+          ไม่มีหอพักสำหรับเปรียบเทียบ
+        </h3>
+        <p class="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">
+          เลือกหอพักที่ต้องการเปรียบเทียบจากหน้าหลักหรือรายการหอพัก
+        </p>
+        <button
+          (click)="goBack()"
+          class="px-4 sm:px-6 py-2 text-gray-800 text-sm sm:text-base rounded-lg font-medium transition-colors"
+          style="background-color: #FFCD22;"
+          onmouseover="this.style.backgroundColor='#F59E0B'"
+          onmouseout="this.style.backgroundColor='#FFCD22'"
+        >
+          กลับไปเลือกหอพัก
+        </button>
+      </div>
+    </div>
+
+    <!-- Comparison Table -->
+    <div
+      *ngIf="!isLoading && compareDorms.length > 0"
+      class="bg-white rounded-lg shadow-lg overflow-hidden"
+    >
+      <!-- Table Content -->
+      <div class="overflow-x-auto">
+        <table class="border-collapse w-full" [style.min-width]="getTableMinWidth()">
+          <!-- Header Row with Dorm Info -->
+          <tr class="bg-gray-50">
+            <td
+              class="w-32 sm:w-40 px-3 sm:px-4 py-3 sm:py-4 border border-gray-200 align-middle"
+            ></td>
+            <td
+              *ngFor="let dorm of compareDorms"
+              [class]="getColumnWidth() + ' px-2 sm:px-3 py-3 sm:py-4 text-center border border-gray-200 align-middle'"
+            >
+              <div class="flex flex-col items-center space-y-2 sm:space-y-3">
+                <!-- Image with Remove Button - Fixed Height -->
+                <div
+                  class="relative w-24 h-16 sm:w-28 sm:h-18 md:w-32 md:h-20 overflow-hidden rounded-md bg-gray-100 shadow-sm mx-auto"
+                >
+                  <img
+                    [src]="dorm.image"
+                    [alt]="dorm.name"
+                    class="w-full h-full object-cover object-center transition-transform duration-300 hover:scale-105"
+                    (error)="onImageError($event)"
+                    (load)="onImageLoad($event)"
+                  />
+                  <button
+                    (click)="removeFromCompare(dorm.id)"
+                    class="absolute top-1 right-1 w-5 h-5 sm:w-6 sm:h-6 bg-red-500 bg-opacity-90 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs sm:text-sm font-bold cursor-pointer transition-all duration-200 hover:scale-110 z-10 border-0 outline-none"
+                    title="ลบออกจากรายการเปรียบเทียบ"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <!-- Name - Fixed Height Container -->
+                <div class="h-8 sm:h-10 flex items-center justify-center">
+                  <h3
+                    class="font-semibold text-gray-900 text-xs sm:text-sm text-center px-2 line-clamp-2"
+                  >
+                    {{ dorm.name }}
+                  </h3>
+                </div>
+
+                <!-- Star Rating - Fixed Height Container -->
+                <div class="h-8 sm:h-10 flex flex-col items-center justify-center">
+                  <div class="flex items-center justify-center">
+                    <div class="flex">
+                      <svg
+                        *ngFor="let star of getStars(dorm.rating)"
+                        class="w-3 h-3 sm:w-4 sm:h-4"
+                        [class.text-yellow-400]="star.filled"
+                        [class.text-gray-300]="!star.filled"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.454a1 1 0 00-1.175 0l-3.38 2.454c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"
+                        ></path>
+                      </svg>
+                    </div>
+                    <!-- แสดงคะแนนตัวเลข -->
+                    <div class="ml-1 sm:ml-2 text-xs sm:text-sm text-gray-600">
+                      {{
+                        dorm.rating > 0 ? dorm.rating.toFixed(1) : "ไม่มีรีวิว"
+                      }}
+                    </div>
+                  </div>
+                  <!-- แสดงจำนวนรีวิวใต้ดาว -->
+                  <div
+                    *ngIf="dorm.reviewCount > 0"
+                    class="text-[10px] sm:text-xs text-gray-500 mt-1"
+                  >
+                    ({{ dorm.reviewCount }} รีวิว)
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Daily Price Row -->
+          <tr class="border-b bg-white">
+            <td
+              class="w-24 sm:w-28 px-2 sm:px-3 py-3 sm:py-4 font-medium text-gray-700 text-xs sm:text-sm border border-gray-200 align-middle"
+            >
+              ราคารายวัน
+            </td>
+            <td
+              *ngFor="let dorm of compareDorms"
+              [class]="getColumnWidth() + ' px-2 sm:px-3 py-3 sm:py-4 text-center border border-gray-200 align-middle'"
+            >
+              <div class="text-xs sm:text-sm">
+                <div *ngIf="dorm.dailyPrice" class="text-gray-600">
+                  <span class="font-semibold">{{ dorm.dailyPrice | number }}</span>
+                  บาท/วัน
+                </div>
+                <div *ngIf="!dorm.dailyPrice" class="text-gray-400">
+                  -
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Monthly Price Row -->
+          <tr class="border-b bg-gray-50">
+            <td
+              class="w-24 sm:w-28 px-2 sm:px-3 py-3 sm:py-4 font-medium text-gray-700 text-xs sm:text-sm border border-gray-200 align-middle"
+            >
+              ราคารายเดือน
+            </td>
+            <td
+              *ngFor="let dorm of compareDorms"
+              [class]="getColumnWidth() + ' px-2 sm:px-3 py-3 sm:py-4 text-center border border-gray-200 align-middle'"
+            >
+              <div class="text-xs sm:text-sm">
+                <div *ngIf="dorm.monthlyPrice" class="font-semibold text-blue-600">
+                  {{ dorm.monthlyPrice | number }} บาท/เดือน
+                </div>
+                <div *ngIf="!dorm.monthlyPrice" class="text-gray-400">
+                  -
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Term Price Row -->
+          <tr class="border-b bg-white">
+            <td
+              class="w-24 sm:w-28 px-2 sm:px-3 py-3 sm:py-4 font-medium text-gray-700 text-xs sm:text-sm border border-gray-200 align-middle"
+            >
+              ราคาตามเทอม
+            </td>
+            <td
+              *ngFor="let dorm of compareDorms"
+              [class]="getColumnWidth() + ' px-2 sm:px-3 py-3 sm:py-4 text-center border border-gray-200 align-middle'"
+            >
+              <div class="text-xs sm:text-sm">
+                <div *ngIf="dorm.termPrice" class="text-gray-500">
+                  <span class="font-semibold">{{ dorm.termPrice | number }}</span>
+                  บาท/เทอม
+                </div>
+                <div *ngIf="!dorm.termPrice" class="text-gray-400">
+                  -
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Location Zone Row -->
+          <tr class="border-b bg-gray-50">
+            <td
+              class="w-24 sm:w-28 px-2 sm:px-3 py-3 sm:py-4 font-medium text-gray-700 text-xs sm:text-sm border border-gray-200 align-middle"
+            >
+              โซนที่ตั้ง
+            </td>
+            <td
+              *ngFor="let dorm of compareDorms"
+              [class]="getColumnWidth() + ' px-2 sm:px-3 py-3 sm:py-4 text-center border border-gray-200 align-middle'"
+            >
+              <div class="text-xs sm:text-sm text-gray-900">
+                {{ dorm.zone }}
+              </div>
+            </td>
+          </tr>
+
+          <!-- Electricity Cost Row -->
+          <tr class="border-b bg-white">
+            <td
+              class="w-24 sm:w-28 px-2 sm:px-3 py-3 sm:py-4 font-medium text-gray-700 text-xs sm:text-sm border border-gray-200 align-middle"
+            >
+              ค่าไฟ
+            </td>
+            <td
+              *ngFor="let dorm of compareDorms"
+              [class]="getColumnWidth() + ' px-2 sm:px-3 py-3 sm:py-4 text-center border border-gray-200 align-middle'"
+            >
+              <div class="text-xs sm:text-sm text-gray-900">
+                {{ getElectricityCost(dorm) }}
+              </div>
+            </td>
+          </tr>
+
+          <!-- Water Cost Row -->
+          <tr class="border-b bg-gray-50">
+            <td
+              class="w-24 sm:w-28 px-2 sm:px-3 py-3 sm:py-4 font-medium text-gray-700 text-xs sm:text-sm border border-gray-200 align-middle"
+            >
+              ค่าน้ำ
+            </td>
+            <td
+              *ngFor="let dorm of compareDorms"
+              [class]="getColumnWidth() + ' px-2 sm:px-3 py-3 sm:py-4 text-center border border-gray-200 align-middle'"
+            >
+              <div class="text-xs sm:text-sm text-gray-900">
+                {{ getWaterCost(dorm) }}
+              </div>
+            </td>
+          </tr>
+
+          <!-- Internal Amenities Section -->
+          <tr class="border-b bg-gray-100">
+            <td
+              class="px-3 sm:px-6 py-3 sm:py-4 font-semibold text-gray-900 text-xs sm:text-sm text-center border border-gray-200"
+              [attr.colspan]="compareDorms.length + 1"
+            >
+              สิ่งอำนวยความสะดวกภายใน
+            </td>
+          </tr>
+
+          <!-- Internal Amenities Rows -->
+          <tr
+            *ngFor="let amenity of internalAmenities; let i = index"
+            [ngClass]="i % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
+          >
+            <td
+              class="px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 border border-gray-200 align-middle min-w-0"
+            >
+              <div class="flex items-center justify-center sm:justify-start">
+                <i
+                  class="fas {{
+                    getAmenityIcon(amenity)
+                  }} mr-1 sm:mr-2 text-gray-500 text-sm sm:text-base hidden sm:inline w-4 h-4 flex-shrink-0 relative bottom-[5px]"
+                ></i>
+                <span class="truncate text-center sm:text-left">&nbsp;{{ amenity }}</span>
+              </div>
+            </td>
+            <td
+              *ngFor="let dorm of compareDorms"
+              class="px-3 sm:px-6 py-2 sm:py-3 text-center border border-gray-200 align-middle"
+            >
+              <span
+                *ngIf="hasAmenity(dorm, amenity)"
+                class="text-green-600 font-bold text-base sm:text-lg"
+                >✓</span
+              >
+              <span
+                *ngIf="!hasAmenity(dorm, amenity)"
+                class="text-gray-400 font-bold text-base sm:text-lg"
+                >-</span
+              >
+            </td>
+          </tr>
+
+          <!-- External Amenities Section -->
+          <tr class="border-b bg-gray-100">
+            <td
+              class="px-3 sm:px-6 py-3 sm:py-4 font-semibold text-gray-900 text-xs sm:text-sm text-center border border-gray-200"
+              [attr.colspan]="compareDorms.length + 1"
+            >
+              สิ่งอำนวยความสะดวกภายนอก
+            </td>
+          </tr>
+
+          <!-- External Amenities Rows -->
+          <tr
+            *ngFor="let amenity of externalAmenities; let i = index"
+            class="border-b"
+            [ngClass]="i % 2 === 0 ? 'bg-gray-50' : 'bg-white'"
+          >
+            <td
+              class="px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 border border-gray-200 align-middle min-w-0"
+            >
+              <div class="flex items-center justify-center sm:justify-start">
+                <i
+                  class="fas {{
+                    getAmenityIcon(amenity)
+                  }} mr-1 sm:mr-2 text-gray-500 text-sm sm:text-base hidden sm:inline w-4 h-4 flex-shrink-0 relative bottom-[5px]"
+                ></i>
+                <span class="truncate text-center sm:text-left">&nbsp;{{ amenity }}</span>
+              </div>
+            </td>
+            <td
+              *ngFor="let dorm of compareDorms"
+              class="px-3 sm:px-6 py-2 sm:py-3 text-center border border-gray-200 align-middle"
+            >
+              <span
+                *ngIf="hasAmenity(dorm, amenity)"
+                class="text-green-600 font-bold text-base sm:text-lg"
+                >✓</span
+              >
+              <span
+                *ngIf="!hasAmenity(dorm, amenity)"
+                class="text-gray-400 font-bold text-base sm:text-lg"
+                >-</span
+              >
+            </td>
+          </tr>
+
+          <!-- Action Row -->
+          <tr class="bg-white">
+            <td
+              class="w-32 sm:w-40 px-3 sm:px-4 py-3 sm:py-4 font-semibold text-gray-900 text-xs sm:text-sm border border-gray-200 align-middle"
+            >
+              <span class="hidden sm:inline">รายละเอียดเพิ่มเติม</span>
+            </td>
+            <td
+              *ngFor="let dorm of compareDorms"
+              [class]="getColumnWidth() + ' px-2 sm:px-3 py-3 sm:py-4 text-center border border-gray-200 align-middle'"
+            >
+              <button
+                (click)="viewDormDetail(dorm.id)"
+                class="px-2 sm:px-4 py-1.5 sm:py-2 text-gray-800 text-xs sm:text-sm rounded-lg transition-colors w-full sm:w-auto"
+                style="background-color: #FFCD22;"
+                onmouseover="this.style.backgroundColor='#F59E0B'"
+                onmouseout="this.style.backgroundColor='#FFCD22'"
+              >
+                <span class="sm:hidden">ดูรายละเอียด</span>
+                <span class="hidden sm:inline">ดูรายละเอียด</span>
+              </button>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

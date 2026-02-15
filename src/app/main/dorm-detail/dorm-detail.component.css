@@ -1,0 +1,28 @@
+/* Make scrollbar thinner for review textareas */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.3);
+  border-radius: 9999px;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin; /* Firefox */
+}
+
+img, video { 
+  max-width: 100%; 
+  height: auto; 
+}
+
+/* Hide scrollbar but keep scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari, Opera */
+}

@@ -1,0 +1,145 @@
+/* Custom utility classes */
+  .h-15 {
+    height: 60px;
+  }
+
+  .h-30 {
+    height: 70px;
+  }
+
+  /* ความกว้างคงที่สำหรับโลโก้และปุ่ม */
+  .w-40 {
+    width: 160px;
+  }
+
+  /* ระยะห่างที่ปรับแล้ว */
+  .ml-4 {
+    margin-left: 16px; /* ระยะห่างระหว่างโลโก้กับ Roomaroo */
+  }
+
+  .ml-8 {
+    margin-left: 32px; /* ระยะห่างระหว่าง Roomaroo กับหอพัค */
+  }
+
+  .mr-8 {
+    margin-right: 32px; /* ระยะห่างระหว่างหอพักกับแผนที่ */
+  }
+
+  .gap-4 {
+    gap: 16px; /* ระยะห่างระหว่างปุ่มทั้งสอง */
+  }
+
+  .px-2\.5 {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .py-1\.5 {
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  .px-4 {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .rounded-2\.5 {
+    border-radius: 10px;
+  }
+
+  /* เพิ่ม padding เฉพาะแนวตั้ง */
+  .py-2\.5 {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+/* สีที่ปรับให้เหมือนภาพ */
+.bg-blue-500 {
+  background-color: #2196f3;
+}
+
+.bg-blue-700 {
+  background-color: #1976d2;
+}
+
+.bg-green-500 {
+  background-color: #4caf50;
+}
+
+.bg-green-700 {
+  background-color: #388e3c;
+}
+
+.text-white {
+  color: #ffffff;
+}
+
+.text-gray-600 {
+  color: #666666;
+}
+
+.text-black {
+  color: #000000;
+}
+
+/* ฟอนต์ Noto Sans Thai */
+.font-thai {
+  font-family: 'Noto Sans Thai', sans-serif;
+}
+
+.font-bold {
+  font-weight: 700; /* สำหรับ "Room" */
+}
+
+.font-normal {
+  font-weight: 400; /* สำหรับ "aroo", หอพัก, แผนที่, และปุ่ม */
+}
+
+/* ปรับขนาดฟอนต์ให้เหมาะสม */
+.text-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+.text-base {
+  font-size: 1rem;
+  line-height: 1.75rem;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+/* การจัดตำแหน่ง */
+.justify-end {
+  justify-content: flex-end;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.flex-1 {
+  flex: 1 1 0%;
+}
+
+li { list-style: none; }
+
+.navbar-shadow {
+  box-shadow: 0 2px 6px 0 rgba(0,0,0,0.10);
+}
+
+.loader {
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #3498db;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg);}
+  100% { transform: rotate(360deg);}
+}

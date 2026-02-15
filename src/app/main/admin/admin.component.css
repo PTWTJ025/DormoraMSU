@@ -1,0 +1,89 @@
+/* ================== Table base ================== */
+/* เส้นขอบอ่อน อ่านง่าย */
+table th,
+table td {
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+/* ป้องกันเนื้อหาเบียดจนดันความกว้างคอลัมน์ */
+table {
+  table-layout: fixed;
+}
+
+/* ตัดข้อความล้นเซลล์ให้เรียบร้อย */
+td,
+th {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ป้องกัน scrollbar แนวนอนใน main (Angular host) */
+:host ::ng-deep main {
+  overflow-x: hidden;
+}
+
+/* ================== Carousel แบบ Slide ================== */
+.center-carousel {
+  display: flex;
+  justify-content: center;
+}
+
+.carousel-viewport {
+  position: relative;
+  width: 100%;
+  max-width: 48rem; /* 768px */
+  height: 22rem;    /* 352px */
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+/* แทร็กเลื่อนทั้งชุดรูป */
+.carousel-track {
+  display: flex;
+  height: 100%;
+  transition: transform 0.4s ease-in-out;
+  will-change: transform;
+}
+
+/* สไลด์แต่ละรูป */
+.carousel-slide {
+  min-width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* ปุ่มเลื่อน */
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.9);
+  padding: 0.75rem;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: all 0.2s ease;
+  z-index: 10;
+  cursor: pointer;
+}
+.carousel-btn.left { left: 1rem; }
+.carousel-btn.right { right: 1rem; }
+.carousel-btn:hover { 
+  background: #fff;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+  transform: translateY(-50%) scale(1.1);
+}
+.carousel-btn:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .carousel-viewport { height: 18rem; }
+  .carousel-btn { padding: 0.5rem; }
+}

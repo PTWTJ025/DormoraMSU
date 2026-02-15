@@ -1,0 +1,524 @@
+<!-- Admin Dashboard Container -->
+<div class="min-h-screen bg-gray-50 flex">
+  <!-- Sidebar (desktop) -->
+  <aside class="hidden md:block w-64 bg-white shadow-lg">
+    <!-- Logo Section -->
+    <div class="p-6 border-b border-gray-200">
+      <div class="flex items-center justify-center">
+        <img src="assets/images/logo.png" 
+          alt="DormoraMSU Logo"
+          class="w-12 h-12 object-contain"
+          loading="eager">
+        <div class="ml-3">
+          <h1 class="text-xl font-bold text-gray-800">
+            <span class="text-gray-700">Dormora</span><span style="color: #FFCD22;">MSU</span>
+          </h1>
+          <p class="text-xs text-gray-500">Admin Dashboard</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="p-4">
+      <div class="space-y-2">
+        <button
+          (click)="setTab('submissions')"
+          [class]="selectedTab === 'submissions' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-600 border-gray-200'"
+          class="w-full text-left px-4 py-3 rounded-lg border transition-all duration-200 hover:bg-blue-50"
+        >
+          <div class="flex items-center">
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <span class="font-medium">ข้อมูลรอตรวจสอบ</span>
+            <span *ngIf="pendingSubmissions > 0" class="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+              {{ pendingSubmissions }}
+            </span>
+          </div>
+        </button>
+
+        <button
+          (click)="setTab('duplicates')"
+          [class]="selectedTab === 'duplicates' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-600 border-gray-200'"
+          class="w-full text-left px-4 py-3 rounded-lg border transition-all duration-200 hover:bg-blue-50"
+        >
+          <div class="flex items-center">
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+            </svg>
+            <span class="font-medium">ข้อมูลซ้ำ</span>
+            <span *ngIf="duplicateCount > 0" class="ml-auto bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">
+              {{ duplicateCount }}
+            </span>
+          </div>
+        </button>
+
+        <button
+          (click)="setTab('approved')"
+          [class]="selectedTab === 'approved' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-600 border-gray-200'"
+          class="w-full text-left px-4 py-3 rounded-lg border transition-all duration-200 hover:bg-blue-50"
+        >
+          <div class="flex items-center">
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="font-medium">อนุมัติแล้ว</span>
+            <span *ngIf="approvedSubmissions > 0" class="ml-auto bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+              {{ approvedSubmissions }}
+            </span>
+          </div>
+        </button>
+      </div>
+    </nav>
+  </aside>
+  <!-- Main Content -->
+  <main class="flex-1 flex flex-col">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+      <div class="px-6 py-4">
+        <div class="flex items-center justify-between">
+          <!-- Mobile menu button -->
+          <button
+            class="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100"
+            (click)="toggleMobileSidebar()"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </button>
+
+          <!-- Page Title -->
+          <div class="flex-1 md:flex-none">
+            <h2 class="text-2xl font-bold text-gray-800">
+              <span *ngIf="selectedTab === 'submissions'">จัดการข้อมูลหอพัก</span>
+              <span *ngIf="selectedTab === 'duplicates'">ตรวจสอบข้อมูลซ้ำ</span>
+              <span *ngIf="selectedTab === 'approved'">ข้อมูลที่อนุมัติแล้ว</span>
+              <span *ngIf="selectedTab === 'review'">ตรวจสอบรายละเอียด</span>
+              <span *ngIf="selectedTab === 'edit'">แก้ไขข้อมูล</span>
+            </h2>
+          </div>
+
+          <!-- Admin Profile -->
+          <div class="relative">
+            <button
+              (click)="toggleProfileDropdown()"
+              class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <img
+                [src]="getAdminAvatarUrl()"
+                [alt]="adminName"
+                class="w-8 h-8 rounded-full object-cover"
+                (error)="onImageError()"
+              />
+              <span class="hidden md:block text-sm font-medium text-gray-700">{{ adminName }}</span>
+              <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div
+              *ngIf="profileDropdownOpen"
+              class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
+            >
+              <div class="py-2">
+                <button
+                  (click)="onLogout()"
+                  class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                  </svg>
+                  ออกจากระบบ
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Statistics Cards -->
+    <div class="p-6 bg-white border-b border-gray-200">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+          <div class="flex items-center">
+            <div class="p-2 bg-blue-100 rounded-lg">
+              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-blue-600">ทั้งหมด</p>
+              <p class="text-2xl font-bold text-blue-900">{{ totalSubmissions }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+          <div class="flex items-center">
+            <div class="p-2 bg-yellow-100 rounded-lg">
+              <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-yellow-600">รอตรวจสอบ</p>
+              <p class="text-2xl font-bold text-yellow-900">{{ pendingSubmissions }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+          <div class="flex items-center">
+            <div class="p-2 bg-green-100 rounded-lg">
+              <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-green-600">อนุมัติแล้ว</p>
+              <p class="text-2xl font-bold text-green-900">{{ approvedSubmissions }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-red-50 rounded-lg p-4 border border-red-200">
+          <div class="flex items-center">
+            <div class="p-2 bg-red-100 rounded-lg">
+              <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-red-600">ไม่อนุมัติ</p>
+              <p class="text-2xl font-bold text-red-900">{{ rejectedSubmissions }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Content Area -->
+    <div class="flex-1 p-6">
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="flex items-center justify-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <span class="ml-3 text-gray-600">กำลังโหลดข้อมูล...</span>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="errorMessage && !isLoading" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+        <div class="flex items-center">
+          <svg class="w-5 h-5 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span class="text-red-700">{{ errorMessage }}</span>
+        </div>
+      </div>
+
+      <!-- Submissions List -->
+      <div *ngIf="selectedTab === 'submissions' && !isLoading" class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-800">ข้อมูลหอพักรอตรวจสอบ</h3>
+          <p class="text-sm text-gray-600 mt-1">ข้อมูลที่ส่งมาจาก Google Form</p>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อหอพัก</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ที่อยู่</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ราคา</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ผู้ส่ง</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่ส่ง</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สถานะ</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">การดำเนินการ</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr *ngFor="let submission of filteredSubmissions" class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">{{ submission.dormName }}</div>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="text-sm text-gray-900 max-w-xs truncate">{{ submission.dormAddress }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{ submission.priceRange }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{ submission.ownerName || 'ไม่ระบุ' }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{ formatTimestamp(submission.timestamp) }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span [class]="getSubmissionStatusClass(submission.status)" class="px-2 py-1 text-xs font-medium rounded-full">
+                    {{ getSubmissionStatusText(submission.status) }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <button
+                    (click)="reviewSubmission(submission.id)"
+                    class="text-blue-600 hover:text-blue-900 mr-3"
+                  >
+                    ตรวจสอบ
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div *ngIf="filteredSubmissions.length === 0" class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">ไม่มีข้อมูลรอตรวจสอบ</h3>
+            <p class="mt-1 text-sm text-gray-500">ยังไม่มีข้อมูลหอพักที่ส่งมาจาก Google Form</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Duplicates List -->
+      <div *ngIf="selectedTab === 'duplicates' && !isLoading" class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-800">ข้อมูลซ้ำที่ตรวจพบ</h3>
+          <p class="text-sm text-gray-600 mt-1">หอพักที่มีคนส่งข้อมูลมาหลายครั้ง</p>
+        </div>
+
+        <div class="p-6">
+          <div *ngFor="let group of duplicateGroups" class="mb-6 border border-gray-200 rounded-lg">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+              <h4 class="font-medium text-gray-900">{{ group.dormName }}</h4>
+              <p class="text-sm text-gray-600">พบข้อมูลซ้ำ {{ group.submissions.length }} รายการ</p>
+            </div>
+            <div class="p-4">
+              <div class="grid gap-4">
+                <div *ngFor="let submission of group.submissions" class="border border-gray-100 rounded p-3">
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <p class="font-medium">{{ submission.dormName }}</p>
+                      <p class="text-sm text-gray-600">{{ submission.dormAddress }}</p>
+                      <p class="text-xs text-gray-500">ส่งโดย: {{ submission.ownerName }} | {{ formatTimestamp(submission.timestamp) }}</p>
+                    </div>
+                    <button
+                      (click)="reviewSubmission(submission.id)"
+                      class="text-blue-600 hover:text-blue-900 text-sm"
+                    >
+                      ดูรายละเอียด
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-4 flex space-x-2">
+                <button
+                  (click)="mergeDuplicateSubmissions(group.id, group.submissions[0].id)"
+                  class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                >
+                  รวมข้อมูล
+                </button>
+                <button
+                  (click)="selectDuplicateGroup(group)"
+                  class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm"
+                >
+                  เปรียบเทียบ
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="duplicateGroups.length === 0" class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">ไม่พบข้อมูลซ้ำ</h3>
+            <p class="mt-1 text-sm text-gray-500">ข้อมูลทั้งหมดไม่มีความซ้ำซ้อน</p>
+          </div>
+        </div>
+      </div>
+      <!-- Review Detail -->
+      <div *ngIf="selectedTab === 'review' && reviewSubmissionDetail" class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800">ตรวจสอบรายละเอียดหอพัก</h3>
+            <p class="text-sm text-gray-600 mt-1">{{ reviewSubmissionDetail.dormName }}</p>
+          </div>
+          <button
+            (click)="cancelReviewSubmission()"
+            class="text-gray-500 hover:text-gray-700"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="p-6">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Basic Information -->
+            <div>
+              <h4 class="text-lg font-medium text-gray-900 mb-4">ข้อมูลพื้นฐาน</h4>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">ชื่อหอพัก</label>
+                  <p class="mt-1 text-sm text-gray-900">{{ reviewSubmissionDetail.dormName }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">ที่อยู่</label>
+                  <p class="mt-1 text-sm text-gray-900">{{ reviewSubmissionDetail.dormAddress }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">คำอธิบาย</label>
+                  <p class="mt-1 text-sm text-gray-900">{{ reviewSubmissionDetail.description || 'ไม่มีคำอธิบาย' }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">โซน</label>
+                  <p class="mt-1 text-sm text-gray-900">{{ reviewSubmissionDetail.dormZone }}</p>
+                </div>
+              </div>
+
+              <h4 class="text-lg font-medium text-gray-900 mb-4 mt-8">ราคา</h4>
+              <div class="grid grid-cols-1 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">ช่วงราคา</label>
+                  <p class="mt-1 text-sm text-gray-900">{{ reviewSubmissionDetail.priceRange }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">ประเภทห้อง</label>
+                  <p class="mt-1 text-sm text-gray-900">{{ reviewSubmissionDetail.roomTypes }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div>
+              <h4 class="text-lg font-medium text-gray-900 mb-4">ข้อมูลติดต่อ</h4>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">ชื่อเจ้าของ</label>
+                  <p class="mt-1 text-sm text-gray-900">{{ reviewSubmissionDetail.ownerName }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">เบอร์โทร</label>
+                  <p class="mt-1 text-sm text-gray-900">{{ reviewSubmissionDetail.contactPhone }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">อีเมล</label>
+                  <p class="mt-1 text-sm text-gray-900">{{ reviewSubmissionDetail.contactEmail || 'ไม่มี' }}</p>
+                </div>
+              </div>
+
+              <h4 class="text-lg font-medium text-gray-900 mb-4 mt-8">สิ่งอำนวยความสะดวก</h4>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">สิ่งอำนวยความสะดวก</label>
+                  <p class="mt-1 text-sm text-gray-900">{{ reviewSubmissionDetail.facilities || 'ไม่ระบุ' }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Amenities -->
+          <div class="mt-8">
+            <h4 class="text-lg font-medium text-gray-900 mb-4">สิ่งอำนวยความสะดวก</h4>
+            <div class="p-4 bg-gray-50 rounded-lg">
+              <p class="text-sm text-gray-900">{{ reviewSubmissionDetail.facilities || 'ไม่มีข้อมูลสิ่งอำนวยความสะดวก' }}</p>
+            </div>
+          </div>
+
+          <!-- Images -->
+          <div class="mt-8" *ngIf="reviewSubmissionDetail.images && reviewSubmissionDetail.images.length > 0">
+            <h4 class="text-lg font-medium text-gray-900 mb-4">รูปภาพ</h4>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div *ngFor="let image of reviewSubmissionDetail.images" class="aspect-square">
+                <img [src]="image" [alt]="reviewSubmissionDetail.dormName" class="w-full h-full object-cover rounded-lg border border-gray-200">
+              </div>
+            </div>
+          </div>
+
+          <!-- Submitter Information -->
+          <div class="mt-8 bg-gray-50 rounded-lg p-4">
+            <h4 class="text-lg font-medium text-gray-900 mb-4">ข้อมูลผู้ส่ง</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700">ชื่อผู้ส่ง</label>
+                <p class="mt-1 text-sm text-gray-900">{{ reviewSubmissionDetail.ownerName || 'ไม่ระบุ' }}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">เบอร์โทร</label>
+                <p class="mt-1 text-sm text-gray-900">{{ reviewSubmissionDetail.contactPhone || 'ไม่ระบุ' }}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">อีเมล</label>
+                <p class="mt-1 text-sm text-gray-900">{{ reviewSubmissionDetail.contactEmail || 'ไม่ระบุ' }}</p>
+              </div>
+            </div>
+            <div class="mt-4">
+              <label class="block text-sm font-medium text-gray-700">วันที่ส่ง</label>
+              <p class="mt-1 text-sm text-gray-900">{{ formatTimestamp(reviewSubmissionDetail.timestamp) }}</p>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="mt-8 flex flex-wrap gap-4">
+            <button
+              (click)="approveSubmission()"
+              class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              อนุมัติ
+            </button>
+            <button
+              (click)="approveAndPublishSubmission()"
+              class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              อนุมัติและเผยแพร่
+            </button>
+            <button
+              (click)="editSubmission()"
+              class="px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+            >
+              แก้ไขข้อมูล
+            </button>
+            <button
+              (click)="rejectSubmission()"
+              class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              ไม่อนุมัติ
+            </button>
+            <button
+              (click)="cancelReviewSubmission()"
+              class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              ยกเลิก
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<!-- Toast Notification -->
+<div *ngIf="showToast" class="fixed top-4 right-4 z-50 max-w-sm w-full">
+  <div [class]="'rounded-lg p-4 shadow-lg border ' + (toastType === 'success' ? 'bg-green-50 border-green-200' : toastType === 'error' ? 'bg-red-50 border-red-200' : 'bg-blue-50 border-blue-200')">
+    <div class="flex items-center">
+      <svg *ngIf="toastType === 'success'" class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <svg *ngIf="toastType === 'error'" class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <svg *ngIf="toastType === 'info'" class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <span [class]="'text-sm font-medium ' + (toastType === 'success' ? 'text-green-800' : toastType === 'error' ? 'text-red-800' : 'text-blue-800')">
+        {{ toastMessage }}
+      </span>
+      <button (click)="hideToast()" class="ml-auto">
+        <svg class="w-4 h-4 text-gray-500 hover:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>

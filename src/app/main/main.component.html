@@ -1,0 +1,349 @@
+<ng-container *ngIf="!isAuthPage()">
+  <app-navbar></app-navbar>
+</ng-container>
+
+<div
+  class="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 pb-8 sm:pb-12 font-thai font-english"
+>
+  <!-- Slider section -->
+  <div
+    class="relative overflow-hidden h-[180px] xs:h-[220px] sm:h-[280px] md:h-[360px] lg:h-[450px] mb-5 sm:mb-7 md:mb-9"
+  >
+    <div class="relative h-full overflow-hidden rounded-lg">
+      <div
+        class="flex h-full transition-transform duration-500"
+        [style.transform]="'translateX(-' + currentSlide * 100 + '%)'"
+      >
+        <div
+          *ngFor="let img of sliderImages"
+          class="w-full h-full flex-shrink-0 relative cursor-pointer"
+          (click)="viewSlideDetail(img)"
+        >
+          <img
+            [src]="img.src"
+            [alt]="img.alt"
+            class="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-300"
+          />
+          <!-- Gradient overlay -->
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent"
+          ></div>
+
+          <!-- Text overlay - anchored to slide container -->
+          <div
+            class="absolute inset-0 flex flex-col justify-end p-3 sm:p-4 md:p-6"
+          >
+            <div class="flex items-end justify-between gap-3">
+              <!-- Left: Dorm info -->
+              <div class="flex-1 min-w-0">
+                <h3
+                  class="text-white text-base sm:text-lg md:text-xl lg:text-2xl font-bold font-thai drop-shadow-lg mb-1 truncate"
+                >
+                  {{ img.title || "หอพัก" }}
+                </h3>
+                <p
+                  class="text-white/90 text-xs sm:text-sm md:text-base font-thai drop-shadow-md line-clamp-1"
+                >
+                  {{ img.subtitle }}
+                </p>
+              </div>
+
+              <!-- Right: Price text (no background) -->
+              <div *ngIf="img.priceText" class="flex-shrink-0">
+                <div class="text-white text-base sm:text-lg md:text-xl lg:text-2xl font-bold font-english drop-shadow-lg">
+                  {{ img.priceText }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Navigation dots -->
+    <div
+      class="absolute bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2 z-10"
+    >
+      <button
+        *ngFor="let img of sliderImages; let i = index"
+        class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-white/70 border border-gray-300 transition-all duration-200"
+        [class.bg-yellow-400]="i === currentSlide"
+        [class.w-3]="i === currentSlide"
+        [class.sm:w-3.5]="i === currentSlide"
+        (click)="goToSlide(i)"
+      ></button>
+    </div>
+  </div>
+
+  <!-- Recommended Section -->
+  <section class="mb-6 sm:mb-8 fade-in">
+    <div class="flex items-center justify-between mb-3 sm:mb-4">
+      <div>
+        <h2
+          class="text-base sm:text-lg md:text-xl font-medium font-thai section-title"
+        >
+          หอพักแนะนำ
+        </h2>
+        <p class="text-xs sm:text-sm text-gray-600 font-thai mt-1">
+          คัดสรรจากหอพักที่มีคะแนนรีวิวดี ราคาเหมาะสม และข้อมูลครบถ้วน
+        </p>
+      </div>
+      <button
+        (click)="viewAllRecommended()"
+        class="view-all-btn text-xs sm:text-sm font-medium font-thai text-gray-600 flex items-center gap-0.5 sm:gap-1 hover:text-gray-800 transition-colors"
+      >
+        ดูทั้งหมด
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-3 h-3 sm:w-3.5 sm:h-3.5"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="m8.25 4.5 7.5 7.5-7.5 7.5"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Skeleton: Recommended -->
+    <div
+      *ngIf="isLoadingRecommended"
+      class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3 md:gap-4"
+    >
+      <div
+        *ngFor="let s of [1, 2, 3, 4]"
+        class="bg-white border border-black/10 rounded-lg p-2.5 sm:p-3 animate-pulse"
+      >
+        <div
+          class="w-full h-28 sm:h-36 md:h-40 mb-2 bg-gray-200 rounded-lg"
+        ></div>
+        <div class="h-3 sm:h-3.5 bg-gray-200 rounded w-2/3 mb-1.5"></div>
+        <div class="h-3 sm:h-3.5 bg-gray-200 rounded w-1/2 mb-1.5"></div>
+        <div class="h-2.5 sm:h-3 bg-gray-200 rounded w-1/3 mb-2"></div>
+        <div class="flex gap-1 mt-auto">
+          <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-gray-200 rounded"></div>
+          <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-gray-200 rounded"></div>
+          <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-gray-200 rounded"></div>
+          <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-gray-200 rounded"></div>
+          <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dorm Cards -->
+    <div
+      *ngIf="!isLoadingRecommended"
+      class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3 md:gap-4"
+    >
+      <ng-container *ngFor="let dorm of displayedRecommended">
+        <div
+          class="bg-white shadow hover:shadow-lg transition-shadow p-2.5 sm:p-3 flex flex-col border border-black/10 h-full card-hover-effect rounded-lg"
+        >
+          <div
+            class="w-full h-28 sm:h-36 md:h-40 mb-2 overflow-hidden rounded-lg cursor-pointer"
+            [routerLink]="['/dorm-detail', dorm.id]"
+          >
+            <img
+              [src]="dorm.image"
+              alt="dorm"
+              class="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+            />
+          </div>
+
+          <div class="flex-1 flex flex-col">
+            <!-- Price -->
+            <div
+              class="text-[#6D6D6D] font-bold text-xs sm:text-sm flex items-start price-container h-[32px] sm:h-[38px] font-english mb-1"
+              [innerHTML]="getSafePriceHtml(dorm.price)"
+            ></div>
+
+            <!-- Dorm Name -->
+            <div
+              class="font-medium text-sm sm:text-base mb-0.5 sm:mb-1 font-thai min-h-[40px] sm:min-h-[48px] line-clamp-2 cursor-pointer"
+              [routerLink]="['/dorm-detail', dorm.id]"
+            >
+              {{ dorm.name }}
+            </div>
+
+            <!-- Zone -->
+            <div
+              class="text-gray-500 text-[11px] sm:text-xs mb-0.5 sm:mb-1 font-thai min-h-[16px] sm:min-h-[18px] line-clamp-1"
+            >
+              โซน{{ dorm.zone }}
+            </div>
+
+            <!-- Date -->
+            <div
+              class="text-gray-400 text-[10px] sm:text-[11px] font-thai mb-1.5 sm:mb-2"
+            >
+              อัพเดทล่าสุด: {{ dorm.date }}
+            </div>
+
+            <!-- Rating -->
+            <div class="mt-auto flex items-center">
+              <span
+                class="text-sm sm:text-base font-bold text-gray-700 font-english mr-1.5 sm:mr-2 relative top-[0.05rem]"
+                >{{ dorm.rating?.toFixed(1) || "0.0" }}</span
+              >
+              <span class="flex">
+                <ng-container *ngFor="let star of getStars(dorm.rating)">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    [attr.fill]="star.filled ? '#FDD836' : '#E5E7EB'"
+                    viewBox="0 0 20 20"
+                    class="w-3.5 h-3.5 sm:w-4 sm:h-4 inline"
+                  >
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.454a1 1 0 00-1.175 0l-3.38 2.454c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"
+                    />
+                  </svg>
+                </ng-container>
+              </span>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </section>
+
+  <!-- Latest Section -->
+  <section class="mb-6 sm:mb-8 fade-in">
+    <div class="flex items-center justify-between mb-3 sm:mb-4">
+      <h2
+        class="text-base sm:text-lg md:text-xl font-medium font-thai section-title"
+      >
+        หอพักที่อัพเดทล่าสุด
+      </h2>
+      <button
+        (click)="viewAllLatest()"
+        class="view-all-btn text-xs sm:text-sm font-medium font-thai text-gray-600 flex items-center gap-0.5 sm:gap-1 hover:text-gray-800 transition-colors"
+      >
+        ดูทั้งหมด
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-3 h-3 sm:w-3.5 sm:h-3.5"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="m8.25 4.5 7.5 7.5-7.5 7.5"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Skeleton: Latest -->
+    <div
+      *ngIf="isLoadingLatest"
+      class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3 md:gap-4"
+    >
+      <div
+        *ngFor="let s of [1, 2, 3, 4]"
+        class="bg-white border border-black/10 rounded-lg p-2.5 sm:p-3 animate-pulse"
+      >
+        <div
+          class="w-full h-28 sm:h-36 md:h-40 mb-2 bg-gray-200 rounded-lg"
+        ></div>
+        <div class="h-3 sm:h-3.5 bg-gray-200 rounded w-2/3 mb-1.5"></div>
+        <div class="h-3 sm:h-3.5 bg-gray-200 rounded w-1/2 mb-1.5"></div>
+        <div class="h-2.5 sm:h-3 bg-gray-200 rounded w-1/3 mb-2"></div>
+        <div class="flex gap-1 mt-auto">
+          <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-gray-200 rounded"></div>
+          <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-gray-200 rounded"></div>
+          <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-gray-200 rounded"></div>
+          <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-gray-200 rounded"></div>
+          <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dorm Cards -->
+    <div
+      *ngIf="!isLoadingLatest"
+      class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3 md:gap-4"
+    >
+      <ng-container *ngFor="let dorm of displayedLatest">
+        <div
+          class="bg-white shadow hover:shadow-lg transition-shadow p-2.5 sm:p-3 flex flex-col border border-black/10 h-full card-hover-effect rounded-lg"
+        >
+          <div
+            class="w-full h-28 sm:h-36 md:h-40 mb-2 overflow-hidden rounded-lg cursor-pointer"
+            [routerLink]="['/dorm-detail', dorm.id]"
+          >
+            <img
+              [src]="dorm.image"
+              alt="dorm"
+              class="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+            />
+          </div>
+
+          <div class="flex-1 flex flex-col">
+            <!-- Price -->
+            <div
+              class="text-[#6D6D6D] font-bold text-xs sm:text-sm flex items-start price-container h-[32px] sm:h-[38px] font-english mb-1"
+              [innerHTML]="getSafePriceHtml(dorm.price)"
+            ></div>
+
+            <!-- Dorm Name -->
+            <div
+              class="font-medium text-sm sm:text-base mb-0.5 sm:mb-1 font-thai min-h-[40px] sm:min-h-[48px] line-clamp-2 cursor-pointer"
+              [routerLink]="['/dorm-detail', dorm.id]"
+            >
+              {{ dorm.name }}
+            </div>
+
+            <!-- Zone -->
+            <div
+              class="text-gray-500 text-[11px] sm:text-xs mb-0.5 sm:mb-1 font-thai min-h-[16px] sm:min-h-[18px] line-clamp-1"
+            >
+              โซน{{ dorm.zone }}
+            </div>
+
+            <!-- Date -->
+            <div
+              class="text-gray-400 text-[10px] sm:text-[11px] font-thai mb-1.5 sm:mb-2"
+            >
+              อัพเดทล่าสุด: {{ dorm.date }}
+            </div>
+
+            <!-- Rating -->
+            <div class="mt-auto flex items-center">
+              <span
+                class="text-sm sm:text-base font-bold text-gray-700 font-english mr-1.5 sm:mr-2"
+                >{{ dorm.rating?.toFixed(1) || "0.0" }}</span
+              >
+              <span class="flex">
+                <ng-container *ngFor="let star of getStars(dorm.rating)">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    [attr.fill]="star.filled ? '#FDD836' : '#E5E7EB'"
+                    viewBox="0 0 20 20"
+                    class="w-3.5 h-3.5 sm:w-4 sm:h-4 inline"
+                  >
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.454a1 1 0 00-1.175 0l-3.38 2.454c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"
+                    />
+                  </svg>
+                </ng-container>
+              </span>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </section>
+
+  <!-- Compare Popup -->
+  <app-compare-popup></app-compare-popup>
+</div>
+
+<!-- Footer -->
+<app-about></app-about>

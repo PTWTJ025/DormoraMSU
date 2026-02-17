@@ -187,11 +187,13 @@ export class DormMapComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.dormitoryService.getDormitoryPopup(dorm.dorm_id).subscribe({
         next: (dormDetail) => {
+          console.log('[DormMap] Popup detail data:', dormDetail);
           this.selectedDorm = dormDetail;
           this.showPopup(dormDetail);
         },
         error: (err) => {
           console.error('[DormMap] Error loading dormitory popup:', err);
+          console.log('[DormMap] Fallback basic popup data:', dorm);
           this.showBasicPopup(dorm);
         },
       }),
@@ -230,46 +232,34 @@ export class DormMapComponent implements OnInit, OnDestroy {
       .addTo(this.map!);
   }
 
-  /** Popup Card — inline styles เพื่อ bypass Angular ViewEncapsulation */
+  /** Popup Card — styled similar to screenshot (image + price + name + zone + rating) */
   private createPopupContent(dormDetail: DormDetail): string {
     const imageUrl =
       dormDetail.main_image_url || dormDetail.thumbnail_url || '';
     const priceDisplay = this.getPriceDisplay(dormDetail);
     const rating = (dormDetail.rating ?? 0).toFixed(1);
-    const dormId = dormDetail.dorm_id;
-    const lat = dormDetail.latitude ?? '';
-    const lng = dormDetail.longitude ?? '';
-    const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 
     return `
-      <div style="font-family:'Noto Sans Thai','Inter',sans-serif; width:280px;">
+      <div style="font-family:'Noto Sans Thai','Inter',sans-serif; width:260px; background:#ffffff;">
         ${
           imageUrl
             ? `<img src="${imageUrl}" alt="${dormDetail.dorm_name || ''}"
-               style="width:100%; height:150px; object-fit:cover; display:block; border-radius:10px 10px 0 0;" />`
+               style="width:100%; height:150px; object-fit:cover; display:block;" />`
             : ''
         }
         <div style="padding:12px 14px 14px;">
-          <div style="font-size:13px; color:#64748b; margin-bottom:4px;">
+          <div style="font-size:16px; font-weight:700; color:#111827; margin-bottom:4px;">
             ${priceDisplay}
           </div>
-          <div style="font-size:15px; font-weight:700; color:#1e293b; line-height:1.4; margin-bottom:4px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">
-            ${dormDetail.dorm_name || 'ห.ค.ต'}
+          <div style="font-size:14px; font-weight:600; color:#111827; line-height:1.4; margin-bottom:4px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">
+            ${dormDetail.dorm_name || '-'}
           </div>
-          <div style="font-size:12px; color:#94a3b8; margin-bottom:6px; display:flex; align-items:center; gap:3px;">
-            ◉ ${dormDetail.zone_name || 'ไม่ระบุโซน'}
+          <div style="font-size:12px; color:#6b7280; margin-bottom:6px;">
+            ${dormDetail.zone_name || 'ไม่ระบุโซน'}
           </div>
-          <div style="display:flex; gap:8px;">
-            <a href="/dorm-detail/${dormId}"
-               style="flex:1; display:flex; align-items:center; justify-content:center; gap:4px; padding:8px 0; background:#3b82f6; color:#fff; font-size:12px; font-weight:600; border-radius:8px; text-decoration:none; font-family:'Noto Sans Thai',sans-serif; cursor:pointer; transition:background .2s;"
-               onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
-              🔍 ดูรายละเอียด
-            </a>
-            <a href="${navUrl}" target="_blank" rel="noopener"
-               style="flex:1; display:flex; align-items:center; justify-content:center; gap:4px; padding:8px 0; background:#3b82f6; color:#fff; font-size:12px; font-weight:600; border-radius:8px; text-decoration:none; font-family:'Noto Sans Thai',sans-serif; cursor:pointer; transition:background .2s;"
-               onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
-              📍 นำทาง
-            </a>
+          <div style="display:flex; align-items:center; gap:6px; margin-top:4px;">
+            <span style="font-size:13px; font-weight:700; color:#111827;">${rating}</span>
+            <span style="display:flex; align-items:center; gap:2px;">${this.getStarIcons(Number(rating))}</span>
           </div>
         </div>
       </div>
@@ -280,38 +270,22 @@ export class DormMapComponent implements OnInit, OnDestroy {
   private createBasicPopupContent(dorm: Dorm): string {
     const priceDisplay = this.getPriceDisplay(dorm);
     const rating = (dorm.rating ?? 0).toFixed(1);
-    const dormId = dorm.dorm_id;
-    const lat = dorm.latitude ?? '';
-    const lng = dorm.longitude ?? '';
-    const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 
     return `
-      <div style="font-family:'Noto Sans Thai','Inter',sans-serif; width:280px;">
+      <div style="font-family:'Noto Sans Thai','Inter',sans-serif; width:260px; background:#ffffff;">
         <div style="padding:12px 14px 14px;">
-          <div style="font-size:13px; color:#64748b; margin-bottom:4px;">
+          <div style="font-size:16px; font-weight:700; color:#111827; margin-bottom:4px;">
             ${priceDisplay}
           </div>
-          <div style="font-size:15px; font-weight:700; color:#1e293b; line-height:1.4; margin-bottom:4px;">
-            ${dorm.dorm_name || 'ห.ค.ต'}
+          <div style="font-size:14px; font-weight:600; color:#111827; line-height:1.4; margin-bottom:4px;">
+            ${dorm.dorm_name || '-'}
           </div>
-          <div style="font-size:12px; color:#94a3b8; margin-bottom:6px; display:flex; align-items:center; gap:3px;">
-            ◉ ${dorm.zone_name || 'ไม่ระบุโซน'}
+          <div style="font-size:12px; color:#6b7280; margin-bottom:6px;">
+            ${dorm.zone_name || 'ไม่ระบุโซน'}
           </div>
-          <div style="display:flex; align-items:center; gap:4px; margin-bottom:12px;">
-            <span style="font-size:13px; font-weight:700; color:#1e293b;">${rating}</span>
-            <span style="display:flex; align-items:center; gap:1px;">${this.getStarIcons(Number(rating))}</span>
-          </div>
-          <div style="display:flex; gap:8px;">
-            <a href="/dorm-detail/${dormId}"
-               style="flex:1; display:flex; align-items:center; justify-content:center; gap:4px; padding:8px 0; background:#3b82f6; color:#fff; font-size:12px; font-weight:600; border-radius:8px; text-decoration:none; font-family:'Noto Sans Thai',sans-serif; cursor:pointer;"
-               onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
-              ดูรายละเอียด
-            </a>
-            <a href="${navUrl}" target="_blank" rel="noopener"
-               style="flex:1; display:flex; align-items:center; justify-content:center; gap:4px; padding:8px 0; background:#3b82f6; color:#fff; font-size:12px; font-weight:600; border-radius:8px; text-decoration:none; font-family:'Noto Sans Thai',sans-serif; cursor:pointer;"
-               onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
-              นำทาง
-            </a>
+          <div style="display:flex; align-items:center; gap:6px; margin-top:4px;">
+            <span style="font-size:13px; font-weight:700; color:#111827;">${rating}</span>
+            <span style="display:flex; align-items:center; gap:2px;">${this.getStarIcons(Number(rating))}</span>
           </div>
         </div>
       </div>

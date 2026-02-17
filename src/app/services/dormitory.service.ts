@@ -323,16 +323,66 @@ export class DormitoryService {
   // ดึงรายละเอียดหอพักตาม ID
   getDormitoryById(dormId: number): Observable<DormDetail> {
     return this.http.get<DormDetail>(`${this.backendUrl}/dormitories/${dormId}`).pipe(
-      map(dorm => {
+      map((dorm) => {
+        const raw: any = dorm;
+
         // Convert coordinates to numbers
-        if (dorm.latitude) {
-          dorm.latitude = typeof dorm.latitude === 'string' ? parseFloat(dorm.latitude) : dorm.latitude;
+        if (dorm.latitude != null) {
+          dorm.latitude =
+            typeof dorm.latitude === 'string'
+              ? parseFloat(dorm.latitude as any)
+              : dorm.latitude;
         }
-        if (dorm.longitude) {
-          dorm.longitude = typeof dorm.longitude === 'string' ? parseFloat(dorm.longitude) : dorm.longitude;
+        if (dorm.longitude != null) {
+          dorm.longitude =
+            typeof dorm.longitude === 'string'
+              ? parseFloat(dorm.longitude as any)
+              : dorm.longitude;
         }
+
+        // Normalize images -> main_image_url / thumbnail_url
+        if (Array.isArray(raw.images) && raw.images.length > 0) {
+          dorm.images = raw.images;
+          const primary =
+            raw.images.find((img: any) => img.is_primary) || raw.images[0];
+          if (primary?.image_url) {
+            dorm.main_image_url = primary.image_url;
+            dorm.thumbnail_url = primary.image_url;
+          }
+        } else if (!dorm.images) {
+          dorm.images = [];
+        }
+
+        // Normalize rating from rating_summary
+        if (
+          raw.rating_summary &&
+          typeof raw.rating_summary.average_rating !== 'undefined'
+        ) {
+          const avg = Number(raw.rating_summary.average_rating) || 0;
+          dorm.rating = avg;
+        }
+
+        // Normalize monthly_price (backend อาจส่ง string)
+        if (raw.monthly_price != null) {
+          const monthly = Number(raw.monthly_price);
+          if (!Number.isNaN(monthly)) {
+            dorm.monthly_price = monthly;
+
+            // ถ้า min/max ยังไม่มี ให้ใช้ monthly เติม
+            if (dorm.min_price == null) dorm.min_price = monthly;
+            if (dorm.max_price == null) dorm.max_price = monthly;
+          }
+        }
+
+        // กรณียังไม่มี price_display แต่มี min/max
+        if (!dorm.price_display && dorm.min_price && dorm.max_price) {
+          dorm.price_display = `${Number(dorm.min_price).toLocaleString()} - ${Number(
+            dorm.max_price
+          ).toLocaleString()} บาท/เดือน`;
+        }
+
         return dorm;
-      })
+      }),
     );
   }
 

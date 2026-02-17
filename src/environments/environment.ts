@@ -11,7 +11,8 @@ export const environment = {
   },
 
   // Backend API URLs - สลับระหว่าง localhost และ production
-  backendApiUrl: 'https://your-production-backend.com/api', // แก้ URL production ตรงนี้
+  backendApiUrl: 'https://dormroomaroo-backend.onrender.com/api', // แก้ URL production ตรงนี้
+  // backendApiUrl: 'http://localhost:3000/api', 
 
   fastApiUrl: 'https://roomaroo-textclassification.onrender.com/api',
 

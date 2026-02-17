@@ -259,10 +259,6 @@ export class DormMapComponent implements OnInit, OnDestroy {
           <div style="font-size:12px; color:#94a3b8; margin-bottom:6px; display:flex; align-items:center; gap:3px;">
             ◉ ${dormDetail.zone_name || 'ไม่ระบุโซน'}
           </div>
-          <div style="display:flex; align-items:center; gap:4px; margin-bottom:12px;">
-            <span style="font-size:13px; font-weight:700; color:#1e293b;">${rating}</span>
-            <span style="display:flex; align-items:center; gap:1px;">${this.getStarIcons(Number(rating))}</span>
-          </div>
           <div style="display:flex; gap:8px;">
             <a href="/dorm-detail/${dormId}"
                style="flex:1; display:flex; align-items:center; justify-content:center; gap:4px; padding:8px 0; background:#3b82f6; color:#fff; font-size:12px; font-weight:600; border-radius:8px; text-decoration:none; font-family:'Noto Sans Thai',sans-serif; cursor:pointer; transition:background .2s;"
@@ -309,12 +305,12 @@ export class DormMapComponent implements OnInit, OnDestroy {
             <a href="/dorm-detail/${dormId}"
                style="flex:1; display:flex; align-items:center; justify-content:center; gap:4px; padding:8px 0; background:#3b82f6; color:#fff; font-size:12px; font-weight:600; border-radius:8px; text-decoration:none; font-family:'Noto Sans Thai',sans-serif; cursor:pointer;"
                onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
-              🔍 ดูรายละเอียด
+              ดูรายละเอียด
             </a>
             <a href="${navUrl}" target="_blank" rel="noopener"
                style="flex:1; display:flex; align-items:center; justify-content:center; gap:4px; padding:8px 0; background:#3b82f6; color:#fff; font-size:12px; font-weight:600; border-radius:8px; text-decoration:none; font-family:'Noto Sans Thai',sans-serif; cursor:pointer;"
                onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
-              📍 นำทาง
+              นำทาง
             </a>
           </div>
         </div>

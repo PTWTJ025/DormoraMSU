@@ -12,7 +12,7 @@ export const environment = {
   },
 
   // Production Backend API URL
-  backendApiUrl: 'https://dormora-msu-back-end.vercel.app/api',
+  backendApiUrl: 'https://dormora-msu-back-end.vercel.app',
 
   fastApiUrl: 'https://roomaroo-textclassification.onrender.com/api',
 

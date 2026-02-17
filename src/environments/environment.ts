@@ -1,6 +1,6 @@
 // Backend Configuration
 // เปลี่ยน USE_LOCAL_BACKEND เป็น false เมื่อต้องการใช้ production backend
-const USE_LOCAL_BACKEND = true;
+const USE_LOCAL_BACKEND = false ;
 
 export const environment = {
   production: false,

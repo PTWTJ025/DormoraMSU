@@ -336,6 +336,20 @@ export class DormitoryService {
     );
   }
 
+  /** Get dormitory popup data for map (reuse detail API) */
+  getDormitoryPopup(dormId: number): Observable<DormDetail> {
+    return this.getDormitoryById(dormId).pipe(
+      map((dorm) => {
+        if (!dorm.price_display && dorm.min_price && dorm.max_price) {
+          dorm.price_display = `${Number(dorm.min_price).toLocaleString()} - ${Number(
+            dorm.max_price
+          ).toLocaleString()} บาท/เดือน`;
+        }
+        return dorm;
+      })
+    );
+  }
+
   /** Get all zones */
   getAllZones(): Observable<Zone[]> {
     return this.http.get<Zone[]>(`${this.backendUrl}/zones`).pipe(

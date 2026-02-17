@@ -54,19 +54,18 @@ input:focus:valid {
   border-color: #3b82f6 !important; /* Tailwind blue-500 */
 }
 
-/* ปรับ container ของ popup ให้โปร่งใส (ไม่มี card ภายใน) */
-.maplibregl-popup-content,
-.mapboxgl-popup-content {
+/* Popup — global base (ถูก override ด้วย .popup-modern ใน component CSS) */
+.maplibregl-popup-content, .mapboxgl-popup-content {
   padding: 0 !important;
-  background: transparent !important;
+  background: #fff !important;
   border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
+  border-radius: 16px !important;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.08),
+    0 10px 30px -5px rgba(0, 0, 0, 0.14) !important;
+  overflow: hidden;
 }
 
-/* ให้ tip ด้านล่างยังแสดงอยู่ตามปกติ */
-.maplibregl-popup-tip,
-.mapboxgl-popup-tip {
-  display: block !important;
-}
+/* tip ของ popup ยังคงแสดงอยู่ */
+.maplibregl-popup-tip, .mapboxgl-popup-tip { display: block !important; }
 

@@ -9,7 +9,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as maptilersdk from '@maptiler/sdk';
 import { NavbarComponent } from '../navbar/navbar.component';
-import { DormitoryService, Dorm, DormDetail } from '../../services/dormitory.service';
+import {
+  DormitoryService,
+  Dorm,
+  DormDetail,
+} from '../../services/dormitory.service';
 import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
@@ -25,14 +29,16 @@ export class DormMapComponent implements OnInit, OnDestroy {
 
   @ViewChild('mapContainer') mapContainer!: ElementRef;
 
-  private map: maptilersdk.Map | null = null;
-  private markers: maptilersdk.Marker[] = [];
-  private subscription = new Subscription();
-
   dormitories: Dorm[] = [];
+  selectedDorm: DormDetail | null = null;
   isLoading = true;
   error: string | null = null;
   totalDormitories: number = 0;
+
+  private map: maptilersdk.Map | null = null;
+  private markers: maptilersdk.Marker[] = [];
+  private popup: maptilersdk.Popup | null = null;
+  private subscription = new Subscription();
 
   private readonly defaultCenter: [number, number] = [98.9853, 18.7883];
   private readonly defaultZoom = 12;
@@ -141,6 +147,9 @@ export class DormMapComponent implements OnInit, OnDestroy {
         .addTo(this.map!);
 
       marker.getElement().style.cursor = 'pointer';
+      marker.getElement().addEventListener('click', () => {
+        this.onMarkerClick(dorm);
+      });
 
       bounds.extend([dorm.longitude, dorm.latitude]);
       this.markers.push(marker);
@@ -163,20 +172,179 @@ export class DormMapComponent implements OnInit, OnDestroy {
     }
   }
 
+  private addMapControls(): void {
+    if (!this.map) return;
+    this.clearAllExistingControls();
+    this.addSatelliteControl();
+  }
+
+  private onMarkerClick(dorm: Dorm): void {
+    if (this.popup) {
+      this.popup.remove();
+      this.popup = null;
+    }
+
+    this.subscription.add(
+      this.dormitoryService.getDormitoryPopup(dorm.dorm_id).subscribe({
+        next: (dormDetail) => {
+          this.selectedDorm = dormDetail;
+          this.showPopup(dormDetail);
+        },
+        error: (err) => {
+          console.error('[DormMap] Error loading dormitory popup:', err);
+          this.showBasicPopup(dorm);
+        },
+      }),
+    );
+  }
+
+  private showPopup(dormDetail: DormDetail): void {
+    if (!this.map || !dormDetail.latitude || !dormDetail.longitude) return;
+
+    const popupContent = this.createPopupContent(dormDetail);
+    const isMobile = window.innerWidth < 640;
+
+    this.popup = new maptilersdk.Popup({
+      closeButton: true,
+      closeOnClick: false,
+      maxWidth: isMobile ? '290px' : '340px',
+      className: 'popup-modern',
+    })
+      .setLngLat([dormDetail.longitude, dormDetail.latitude])
+      .setHTML(popupContent)
+      .addTo(this.map!);
+  }
+
+  private showBasicPopup(dorm: Dorm): void {
+    if (!this.map || !dorm.latitude || !dorm.longitude) return;
+
+    const popupContent = this.createBasicPopupContent(dorm);
+    const isMobile = window.innerWidth < 640;
+
+    this.popup = new maptilersdk.Popup({
+      closeButton: true,
+      closeOnClick: false,
+      maxWidth: isMobile ? '290px' : '340px',
+      className: 'popup-modern',
+    })
+      .setLngLat([dorm.longitude, dorm.latitude])
+      .setHTML(popupContent)
+      .addTo(this.map!);
+  }
+
+  /** Modern / Minimal Popup Card — Full Detail */
+  private createPopupContent(dormDetail: DormDetail): string {
+    const imageUrl =
+      dormDetail.main_image_url || dormDetail.thumbnail_url || '';
+    const priceDisplay = this.getPriceDisplay(dormDetail);
+    const rating = (dormDetail.rating ?? 0).toFixed(1);
+    const dormId = dormDetail.dorm_id;
+    const lat = dormDetail.latitude ?? '';
+    const lng = dormDetail.longitude ?? '';
+    const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+
+    return `
+      <div class="popup-card font-thai">
+        ${
+          imageUrl
+            ? `<div class="popup-card-img-wrap">
+               <img src="${imageUrl}" alt="${dormDetail.dorm_name || ''}" class="popup-card-img" />
+               <span class="popup-card-badge">${priceDisplay}</span>
+             </div>`
+            : `<div class="popup-card-no-img">
+               <span class="popup-card-badge">${priceDisplay}</span>
+             </div>`
+        }
+        <div class="popup-card-body">
+          <div class="popup-card-name">${dormDetail.dorm_name || 'ห.ค.ต'}</div>
+          <div class="popup-card-zone">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            ${dormDetail.zone_name || 'ไม่ระบุโซน'}
+          </div>
+          <div class="popup-card-rating">
+            <span class="popup-card-rating-num">${rating}</span>
+            <span class="popup-card-stars">${this.getStarIcons(Number(rating))}</span>
+          </div>
+          <div class="popup-card-actions">
+            <a href="/dorm-detail/${dormId}" class="popup-btn popup-btn-primary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              ดูรายละเอียด
+            </a>
+            <a href="${navUrl}" target="_blank" rel="noopener" class="popup-btn popup-btn-outline">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+              นำทาง
+            </a>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /** Modern / Minimal Popup Card — Basic Fallback */
+  private createBasicPopupContent(dorm: Dorm): string {
+    const priceDisplay = this.getPriceDisplay(dorm);
+    const rating = (dorm.rating ?? 0).toFixed(1);
+    const dormId = dorm.dorm_id;
+    const lat = dorm.latitude ?? '';
+    const lng = dorm.longitude ?? '';
+    const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+
+    return `
+      <div class="popup-card font-thai">
+        <div class="popup-card-no-img">
+          <span class="popup-card-badge">${priceDisplay}</span>
+        </div>
+        <div class="popup-card-body">
+          <div class="popup-card-name">${dorm.dorm_name || 'ห.ค.ต'}</div>
+          <div class="popup-card-zone">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            ${dorm.zone_name || 'ไม่ระบุโซน'}
+          </div>
+          <div class="popup-card-rating">
+            <span class="popup-card-rating-num">${rating}</span>
+            <span class="popup-card-stars">${this.getStarIcons(Number(rating))}</span>
+          </div>
+          <div class="popup-card-actions">
+            <a href="/dorm-detail/${dormId}" class="popup-btn popup-btn-primary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              ดูรายละเอียด
+            </a>
+            <a href="${navUrl}" target="_blank" rel="noopener" class="popup-btn popup-btn-outline">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+              นำทาง
+            </a>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /** สร้างดาวแบบ Tailwind (เต็ม/ครึ่ง/ว่าง) - Responsive */
+  private getStarIcons(rating: number): string {
+    const full = Math.floor(rating);
+    const half = rating % 1 >= 0.5 ? 1 : 0;
+    const empty = 5 - full - half;
+
+    const fullStar =
+      '<span class="text-yellow-400 text-base sm:text-xl">★</span>';
+    const halfStar =
+      '<span class="relative text-base sm:text-xl"><span class="text-yellow-400">★</span><span class="absolute inset-y-0 right-0 w-1/2 bg-white"></span></span>';
+    const emptyStar =
+      '<span class="text-gray-300 text-base sm:text-xl">★</span>';
+
+    return `${fullStar.repeat(full)}${half ? halfStar : ''}${emptyStar.repeat(
+      empty,
+    )}`;
+  }
+
   private getPriceDisplay(dorm: Dorm | DormDetail): string {
     if (dorm.min_price && dorm.max_price) {
-      return `<span>${dorm.min_price.toLocaleString()}</span> – <span>${dorm.max_price.toLocaleString()}</span> บาท/เดือน`;
+      return `${dorm.min_price.toLocaleString()} - ${dorm.max_price.toLocaleString()} บาท/เดือน`;
     } else if (dorm.price_display) {
       return dorm.price_display;
     } else {
       return 'ติดต่อสอบถาม';
     }
-  }
-
-  private addMapControls(): void {
-    if (!this.map) return;
-    this.clearAllExistingControls();
-    this.addSatelliteControl();
   }
 
   private clearAllExistingControls(): void {

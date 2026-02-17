@@ -8,18 +8,18 @@ export const environment = {
     storageBucket: 'projectroomaroo.firebasestorage.app',
     messagingSenderId: '782979223053',
     appId: '1:782979223053:web:0ed401a937a53890158f44',
-    measurementId: 'G-X6MZ8F81G1'
+    measurementId: 'G-X6MZ8F81G1',
   },
-  
+
   // Production Backend API URL
-  backendApiUrl: 'https://dormroomaroo-backend.onrender.com/api',
-  
+  backendApiUrl: 'https://dormora-msu-back-end.vercel.app/api',
+
   fastApiUrl: 'https://roomaroo-textclassification.onrender.com/api',
-  
+
   mapTilerApiKey: 'Gpwk2Mpi9cl8hUkVrf6f',
-  
+
   // Admin Configuration
   admin: {
-    notificationEmail: 'admin@dormroomaroo.com'
-  }
+    notificationEmail: 'admin@dormroomaroo.com',
+  },
 };

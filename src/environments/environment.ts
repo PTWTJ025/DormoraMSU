@@ -11,8 +11,8 @@ export const environment = {
   },
 
   // Backend API URLs - สลับระหว่าง localhost และ production
-  backendApiUrl: 'https://dormroomaroo-backend.onrender.com/api', // แก้ URL production ตรงนี้
-  // backendApiUrl: 'http://localhost:3000/api', 
+  backendApiUrl: 'https://dormora-msu-back-end.vercel.app/api', // แก้ URL production ตรงนี้
+  // backendApiUrl: 'http://localhost:3000/api',
 
   fastApiUrl: 'https://roomaroo-textclassification.onrender.com/api',
 

@@ -207,8 +207,7 @@ export class DormMapComponent implements OnInit, OnDestroy {
     this.popup = new maptilersdk.Popup({
       closeButton: true,
       closeOnClick: false,
-      maxWidth: isMobile ? '290px' : '340px',
-      className: 'popup-modern',
+      maxWidth: isMobile ? '280px' : '320px',
     })
       .setLngLat([dormDetail.longitude, dormDetail.latitude])
       .setHTML(popupContent)
@@ -224,15 +223,14 @@ export class DormMapComponent implements OnInit, OnDestroy {
     this.popup = new maptilersdk.Popup({
       closeButton: true,
       closeOnClick: false,
-      maxWidth: isMobile ? '290px' : '340px',
-      className: 'popup-modern',
+      maxWidth: isMobile ? '280px' : '320px',
     })
       .setLngLat([dorm.longitude, dorm.latitude])
       .setHTML(popupContent)
       .addTo(this.map!);
   }
 
-  /** Modern / Minimal Popup Card — Full Detail */
+  /** Popup Card — inline styles เพื่อ bypass Angular ViewEncapsulation */
   private createPopupContent(dormDetail: DormDetail): string {
     const imageUrl =
       dormDetail.main_image_url || dormDetail.thumbnail_url || '';
@@ -244,35 +242,37 @@ export class DormMapComponent implements OnInit, OnDestroy {
     const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 
     return `
-      <div class="popup-card font-thai">
+      <div style="font-family:'Noto Sans Thai','Inter',sans-serif; width:280px;">
         ${
           imageUrl
-            ? `<div class="popup-card-img-wrap">
-               <img src="${imageUrl}" alt="${dormDetail.dorm_name || ''}" class="popup-card-img" />
-               <span class="popup-card-badge">${priceDisplay}</span>
-             </div>`
-            : `<div class="popup-card-no-img">
-               <span class="popup-card-badge">${priceDisplay}</span>
-             </div>`
+            ? `<img src="${imageUrl}" alt="${dormDetail.dorm_name || ''}"
+               style="width:100%; height:150px; object-fit:cover; display:block; border-radius:10px 10px 0 0;" />`
+            : ''
         }
-        <div class="popup-card-body">
-          <div class="popup-card-name">${dormDetail.dorm_name || 'ห.ค.ต'}</div>
-          <div class="popup-card-zone">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            ${dormDetail.zone_name || 'ไม่ระบุโซน'}
+        <div style="padding:12px 14px 14px;">
+          <div style="font-size:13px; color:#64748b; margin-bottom:4px;">
+            ${priceDisplay}
           </div>
-          <div class="popup-card-rating">
-            <span class="popup-card-rating-num">${rating}</span>
-            <span class="popup-card-stars">${this.getStarIcons(Number(rating))}</span>
+          <div style="font-size:15px; font-weight:700; color:#1e293b; line-height:1.4; margin-bottom:4px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">
+            ${dormDetail.dorm_name || 'ห.ค.ต'}
           </div>
-          <div class="popup-card-actions">
-            <a href="/dorm-detail/${dormId}" class="popup-btn popup-btn-primary">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              ดูรายละเอียด
+          <div style="font-size:12px; color:#94a3b8; margin-bottom:6px; display:flex; align-items:center; gap:3px;">
+            ◉ ${dormDetail.zone_name || 'ไม่ระบุโซน'}
+          </div>
+          <div style="display:flex; align-items:center; gap:4px; margin-bottom:12px;">
+            <span style="font-size:13px; font-weight:700; color:#1e293b;">${rating}</span>
+            <span style="display:flex; align-items:center; gap:1px;">${this.getStarIcons(Number(rating))}</span>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <a href="/dorm-detail/${dormId}"
+               style="flex:1; display:flex; align-items:center; justify-content:center; gap:4px; padding:8px 0; background:#3b82f6; color:#fff; font-size:12px; font-weight:600; border-radius:8px; text-decoration:none; font-family:'Noto Sans Thai',sans-serif; cursor:pointer; transition:background .2s;"
+               onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
+              🔍 ดูรายละเอียด
             </a>
-            <a href="${navUrl}" target="_blank" rel="noopener" class="popup-btn popup-btn-outline">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-              นำทาง
+            <a href="${navUrl}" target="_blank" rel="noopener"
+               style="flex:1; display:flex; align-items:center; justify-content:center; gap:4px; padding:8px 0; background:#3b82f6; color:#fff; font-size:12px; font-weight:600; border-radius:8px; text-decoration:none; font-family:'Noto Sans Thai',sans-serif; cursor:pointer; transition:background .2s;"
+               onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
+              📍 นำทาง
             </a>
           </div>
         </div>
@@ -280,7 +280,7 @@ export class DormMapComponent implements OnInit, OnDestroy {
     `;
   }
 
-  /** Modern / Minimal Popup Card — Basic Fallback */
+  /** Popup Card — Basic Fallback (ไม่มีรูป) */
   private createBasicPopupContent(dorm: Dorm): string {
     const priceDisplay = this.getPriceDisplay(dorm);
     const rating = (dorm.rating ?? 0).toFixed(1);
@@ -290,28 +290,31 @@ export class DormMapComponent implements OnInit, OnDestroy {
     const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 
     return `
-      <div class="popup-card font-thai">
-        <div class="popup-card-no-img">
-          <span class="popup-card-badge">${priceDisplay}</span>
-        </div>
-        <div class="popup-card-body">
-          <div class="popup-card-name">${dorm.dorm_name || 'ห.ค.ต'}</div>
-          <div class="popup-card-zone">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            ${dorm.zone_name || 'ไม่ระบุโซน'}
+      <div style="font-family:'Noto Sans Thai','Inter',sans-serif; width:280px;">
+        <div style="padding:12px 14px 14px;">
+          <div style="font-size:13px; color:#64748b; margin-bottom:4px;">
+            ${priceDisplay}
           </div>
-          <div class="popup-card-rating">
-            <span class="popup-card-rating-num">${rating}</span>
-            <span class="popup-card-stars">${this.getStarIcons(Number(rating))}</span>
+          <div style="font-size:15px; font-weight:700; color:#1e293b; line-height:1.4; margin-bottom:4px;">
+            ${dorm.dorm_name || 'ห.ค.ต'}
           </div>
-          <div class="popup-card-actions">
-            <a href="/dorm-detail/${dormId}" class="popup-btn popup-btn-primary">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              ดูรายละเอียด
+          <div style="font-size:12px; color:#94a3b8; margin-bottom:6px; display:flex; align-items:center; gap:3px;">
+            ◉ ${dorm.zone_name || 'ไม่ระบุโซน'}
+          </div>
+          <div style="display:flex; align-items:center; gap:4px; margin-bottom:12px;">
+            <span style="font-size:13px; font-weight:700; color:#1e293b;">${rating}</span>
+            <span style="display:flex; align-items:center; gap:1px;">${this.getStarIcons(Number(rating))}</span>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <a href="/dorm-detail/${dormId}"
+               style="flex:1; display:flex; align-items:center; justify-content:center; gap:4px; padding:8px 0; background:#3b82f6; color:#fff; font-size:12px; font-weight:600; border-radius:8px; text-decoration:none; font-family:'Noto Sans Thai',sans-serif; cursor:pointer;"
+               onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
+              🔍 ดูรายละเอียด
             </a>
-            <a href="${navUrl}" target="_blank" rel="noopener" class="popup-btn popup-btn-outline">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-              นำทาง
+            <a href="${navUrl}" target="_blank" rel="noopener"
+               style="flex:1; display:flex; align-items:center; justify-content:center; gap:4px; padding:8px 0; background:#3b82f6; color:#fff; font-size:12px; font-weight:600; border-radius:8px; text-decoration:none; font-family:'Noto Sans Thai',sans-serif; cursor:pointer;"
+               onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
+              📍 นำทาง
             </a>
           </div>
         </div>
@@ -319,22 +322,18 @@ export class DormMapComponent implements OnInit, OnDestroy {
     `;
   }
 
-  /** สร้างดาวแบบ Tailwind (เต็ม/ครึ่ง/ว่าง) - Responsive */
+  /** ดาว rating — ใช้ inline style เพื่อ bypass ViewEncapsulation */
   private getStarIcons(rating: number): string {
     const full = Math.floor(rating);
     const half = rating % 1 >= 0.5 ? 1 : 0;
     const empty = 5 - full - half;
 
-    const fullStar =
-      '<span class="text-yellow-400 text-base sm:text-xl">★</span>';
-    const halfStar =
-      '<span class="relative text-base sm:text-xl"><span class="text-yellow-400">★</span><span class="absolute inset-y-0 right-0 w-1/2 bg-white"></span></span>';
-    const emptyStar =
-      '<span class="text-gray-300 text-base sm:text-xl">★</span>';
+    const starStyle = 'font-size:16px; line-height:1;';
+    const fullStar = `<span style="${starStyle} color:#facc15;">★</span>`;
+    const halfStar = `<span style="${starStyle} color:#facc15;">★</span>`;
+    const emptyStar = `<span style="${starStyle} color:#cbd5e1;">★</span>`;
 
-    return `${fullStar.repeat(full)}${half ? halfStar : ''}${emptyStar.repeat(
-      empty,
-    )}`;
+    return `${fullStar.repeat(full)}${half ? halfStar : ''}${emptyStar.repeat(empty)}`;
   }
 
   private getPriceDisplay(dorm: Dorm | DormDetail): string {

@@ -54,18 +54,52 @@ input:focus:valid {
   border-color: #3b82f6 !important; /* Tailwind blue-500 */
 }
 
-/* Popup — global base (ถูก override ด้วย .popup-modern ใน component CSS) */
+/* Popup — global (MapLibre สร้าง DOM นอก Angular scope ต้องใส่ที่นี่) */
 .maplibregl-popup-content, .mapboxgl-popup-content {
   padding: 0 !important;
   background: #fff !important;
   border: none !important;
-  border-radius: 16px !important;
+  border-radius: 12px !important;
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.08),
     0 10px 30px -5px rgba(0, 0, 0, 0.14) !important;
   overflow: hidden;
 }
 
-/* tip ของ popup ยังคงแสดงอยู่ */
 .maplibregl-popup-tip, .mapboxgl-popup-tip { display: block !important; }
 
+/* Popup close button */
+.maplibregl-popup-close-button, .mapboxgl-popup-close-button {
+  font-size: 22px !important;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  text-align: center;
+  padding: 0 !important;
+  margin: 6px;
+  color: #64748b !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-radius: 50% !important;
+  right: 0 !important;
+  top: 0 !important;
+  z-index: 10 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.maplibregl-popup-close-button:hover, .mapboxgl-popup-close-button:hover {
+  background: rgba(255, 255, 255, 1) !important;
+  color: #1e293b !important;
+}
+
+/* Popup mobile responsive */
+@media (max-width: 640px) {
+  .maplibregl-popup-content, .mapboxgl-popup-content {
+    max-width: calc(100vw - 32px) !important;
+    border-radius: 10px !important;
+  }
+  .maplibregl-popup, .mapboxgl-popup {
+    max-width: calc(100vw - 32px) !important;
+  }
+}

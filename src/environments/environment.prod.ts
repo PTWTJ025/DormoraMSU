@@ -12,7 +12,7 @@ export const environment = {
   },
   
   // Production Backend API URL
-  backendApiUrl: 'https://your-production-backend.com/api', // แก้ URL production ตรงนี้
+  backendApiUrl: 'https://dormroomaroo-backend.onrender.com/api',
   
   fastApiUrl: 'https://roomaroo-textclassification.onrender.com/api',
   

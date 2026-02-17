@@ -22,10 +22,9 @@
   content: "";
   position: absolute;
   left: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 0;
   width: 4px;
-  height: 24px;
+  height: 100%;
   background: #68ACFD;
   border-radius: 2px;
 }

@@ -1,14 +1,30 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, ChangeDetectorRef, Inject, ViewChild, ElementRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  AfterViewInit,
+  OnDestroy,
+  ChangeDetectorRef,
+  Inject,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AdminProfile, AdminService, Dormitory, DormitoryDetail } from '../../services/admin.service';
+import {
+  AdminProfile,
+  AdminService,
+  Dormitory,
+  DormitoryDetail,
+} from '../../services/admin.service';
 import { Auth } from '@angular/fire/auth';
 import { signOut } from '@angular/fire/auth';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { MapService } from '../../services/map.service';
 import { environment } from '../../../environments/environment';
 import { interval, Subscription } from 'rxjs';
+import { AmenityIconComponent } from '../../components/amenity-icon/amenity-icon.component';
+
 interface Amenity {
   id: string;
   name: string;
@@ -18,14 +34,14 @@ interface Amenity {
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AmenityIconComponent],
   templateUrl: './admin.component.html',
-  styleUrl: './admin.component.css'
+  styleUrl: './admin.component.css',
 })
-
 export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild('previewMapContainer', { static: false }) previewMapContainer?: ElementRef;
-  
+  @ViewChild('previewMapContainer', { static: false })
+  previewMapContainer?: ElementRef;
+
   // Auto-refresh properties
   private refreshSubscription?: Subscription;
   private refreshInterval = 10000; // 10 seconds for real-time updates
@@ -53,8 +69,6 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   isDeleting = false;
   retryCount = 0;
 
-
-
   constructor(
     private router: Router,
     private adminService: AdminService,
@@ -62,16 +76,11 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     private sanitizer: DomSanitizer,
     private mapService: MapService,
     private cdr: ChangeDetectorRef,
-    @Inject(DOCUMENT) private document: Document
-
-
-    
+    @Inject(DOCUMENT) private document: Document,
   ) {
     // ตรวจสอบข้อมูลแอดมินจาก localStorage
     this.loadAdminProfile();
   }
-
-  
 
   ngOnInit(): void {
     this.loadDormitories();
@@ -80,10 +89,8 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     // Admin Component ไม่ต้องสร้างแผนที่เอง เพราะ AdminEditDormComponent จะจัดการเอง
-      this.cdr.markForCheck();
+    this.cdr.markForCheck();
   }
-
-  
 
   private readonly AMENITIES: Amenity[] = [
     // ภายในห้อง (Internal)
@@ -99,7 +106,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     { id: 'waterHeater', name: 'เครื่องทำน้ำอุ่น', location_type: 'ภายใน' },
     { id: 'sink', name: 'ซิงค์ล้างจาน', location_type: 'ภายใน' },
     { id: 'dressingTable', name: 'โต๊ะเครื่องแป้ง', location_type: 'ภายใน' },
-  
+
     // ภายนอก (External)
     { id: 'cctv', name: 'กล้องวงจรปิด', location_type: 'ภายนอก' },
     { id: 'security', name: 'รปภ.', location_type: 'ภายนอก' },
@@ -110,18 +117,22 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     { id: 'waterDispenser', name: 'ตู้น้ำหยอดเหรียญ', location_type: 'ภายนอก' },
     { id: 'swimmingPool', name: 'สระว่ายน้ำ', location_type: 'ภายนอก' },
     { id: 'parcelShelf', name: 'ที่วางพัสดุ', location_type: 'ภายนอก' },
-    { id: 'petsAllowed', name: 'อนุญาตให้เลี้ยงสัตว์', location_type: 'ภายนอก' },
+    {
+      id: 'petsAllowed',
+      name: 'อนุญาตให้เลี้ยงสัตว์',
+      location_type: 'ภายนอก',
+    },
     { id: 'keyCard', name: 'คีย์การ์ด', location_type: 'ภายนอก' },
     { id: 'washingMachine', name: 'เครื่องซักผ้า', location_type: 'ภายนอก' },
     { id: 'other', name: 'อื่นๆ', location_type: '' },
   ];
-  
+
   private amenityIndexMap = new Map(this.AMENITIES.map((a, i) => [a.id, i]));
 
   get amenitiesList(): Amenity[] {
     return this.AMENITIES;
   }
-  
+
   getAmenityIndex(amenityId: string): number {
     return this.amenityIndexMap.get(amenityId) ?? -1;
   }
@@ -154,20 +165,19 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
       24, // index 23: เครื่องซักผ้า
       // index 24: อื่นๆ (ไม่ต้องส่ง amenity_id)
     ];
-  
+
     return mapping[index] || undefined;
   }
 
   ngOnDestroy(): void {
     // หยุด auto-refresh
     this.stopAutoRefresh();
-    
+
     // ทำลายแผนที่ตัวอย่าง
     try {
       this.mapService.destroyMapByContainer('preview-map');
-      console.log('[Admin] ทำลายแผนที่ preview-map สำเร็จ');
     } catch (error) {
-      console.log('[Admin] Map cleanup error (preview-map):', error);
+      // Silent cleanup
     }
   }
 
@@ -183,16 +193,19 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   toastTimeout: any;
 
   // --- Toast Notification Methods ---
-  showToastNotification(message: string, type: 'success' | 'error' | 'info' = 'info'): void {
+  showToastNotification(
+    message: string,
+    type: 'success' | 'error' | 'info' = 'info',
+  ): void {
     this.toastMessage = message;
     this.toastType = type;
     this.showToast = true;
-    
+
     // Auto hide after 3 seconds
     if (this.toastTimeout) {
       clearTimeout(this.toastTimeout);
     }
-    
+
     this.toastTimeout = setTimeout(() => {
       this.hideToast();
     }, 3000);
@@ -222,8 +235,8 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   currentPage = 1;
   totalPages = 5;
 
-  selectedTab: 'all' | 'รออนุมัติ' | 'review' | 'edit' = 'all';
-  
+  selectedTab: 'all' | 'pending' | 'review' | 'edit' = 'all';
+
   // Review state
   reviewingDormId: string | null = null;
   reviewDormDetail: any = null;
@@ -235,9 +248,9 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Admin Component ไม่ต้องจัดการแผนที่ เพราะ AdminEditDormComponent จะจัดการเอง
 
-  setTab(tab: 'all' | 'รออนุมัติ' | 'review') {
+  setTab(tab: 'all' | 'pending' | 'review') {
     this.selectedTab = tab;
-    if (tab === 'รออนุมัติ') {
+    if (tab === 'pending') {
       this.loadPendingDormitories();
     } else if (tab === 'all') {
       this.filterDorms();
@@ -251,32 +264,33 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     this.adminService.getAllDormitories().subscribe({
       next: (dormitories) => {
         // จัดรูปแบบวันที่จาก ISO format เป็น DD-MM-YYYY
-        this.dorms = dormitories.map(dorm => ({
+        this.dorms = dormitories.map((dorm) => ({
           ...dorm,
-          submitted_date: this.formatDate(dorm.submitted_date)
+          submitted_date: this.formatDate(dorm.submitted_date),
         }));
         this.filteredDorms = this.dorms;
-        
+
         // อัปเดตสถิติ
         this.updateStatistics();
-        
+
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading dormitories:', error);
         this.errorMessage = 'เกิดข้อผิดพลาดในการโหลดข้อมูลหอพัก';
         this.isLoading = false;
         // ไม่มี fallback data
-      }
+      },
     });
   }
 
   // Auto-refresh methods
   startAutoRefresh(): void {
     if (!this.refreshSubscription) {
-      this.refreshSubscription = interval(this.refreshInterval).subscribe(() => {
-        this.refreshData();
-      });
+      this.refreshSubscription = interval(this.refreshInterval).subscribe(
+        () => {
+          this.refreshData();
+        },
+      );
     }
   }
 
@@ -290,7 +304,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   // Auto-refresh is now always enabled and silent
 
   refreshData(): void {
-    if (this.selectedTab === 'รออนุมัติ') {
+    if (this.selectedTab === 'pending') {
       this.loadPendingDormitoriesSilent();
     } else {
       this.loadDormitoriesSilent();
@@ -301,33 +315,33 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   loadDormitoriesSilent(): void {
     this.adminService.getAllDormitories().subscribe({
       next: (dormitories) => {
-        // จัดรูปแบบวันที่จาก ISO format เป็น DD-MM-YYYY
-        this.dorms = dormitories.map(dorm => ({
+        // จัดรูปแบบวันที่จาก ISO format เป็น DD-MM-YYYY และเพิ่ม fallback image
+        this.dorms = dormitories.map((dorm) => ({
           ...dorm,
-          submitted_date: this.formatDate(dorm.submitted_date)
+          main_image_url: dorm.main_image_url || 'assets/images/photo.png',
+          submitted_date: this.formatDate(dorm.submitted_date),
         }));
         this.filteredDorms = this.dorms;
       },
       error: (error) => {
-        console.error('Error loading dormitories:', error);
         // Silent error handling
-      }
+      },
     });
   }
 
   loadPendingDormitoriesSilent(): void {
     this.adminService.getPendingDormitories().subscribe({
       next: (dormitories) => {
-        // จัดรูปแบบวันที่จาก ISO format เป็น DD-MM-YYYY
-        this.filteredDorms = dormitories.map(dorm => ({
+        // จัดรูปแบบวันที่จาก ISO format เป็น DD-MM-YYYY และเพิ่ม fallback image
+        this.filteredDorms = dormitories.map((dorm) => ({
           ...dorm,
-          submitted_date: this.formatDate(dorm.submitted_date)
+          main_image_url: dorm.main_image_url || 'assets/images/photo.png',
+          submitted_date: this.formatDate(dorm.submitted_date),
         }));
       },
       error: (error) => {
-        console.error('Error loading pending dormitories:', error);
         // Silent error handling
-      }
+      },
     });
   }
 
@@ -337,30 +351,32 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.adminService.getPendingDormitories().subscribe({
       next: (dormitories) => {
-        // จัดรูปแบบวันที่จาก ISO format เป็น DD-MM-YYYY
-        this.filteredDorms = dormitories.map(dorm => ({
+        // จัดรูปแบบวันที่จาก ISO format เป็น DD-MM-YYYY และเพิ่ม fallback image
+        this.filteredDorms = dormitories.map((dorm) => ({
           ...dorm,
-          submitted_date: this.formatDate(dorm.submitted_date)
+          main_image_url: dorm.main_image_url || 'assets/images/photo.png',
+          submitted_date: this.formatDate(dorm.submitted_date),
         }));
-        
+
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading pending dormitories:', error);
         this.errorMessage = 'เกิดข้อผิดพลาดในการโหลดข้อมูลหอพักรออนุมัติ';
         this.isLoading = false;
         // Fallback to mock data if API fails
-        this.filteredDorms = this.dorms.filter(dorm => dorm.approval_status === 'รออนุมัติ');
-      }
+        this.filteredDorms = this.dorms.filter(
+          (dorm) => dorm.approval_status === 'pending',
+        );
+      },
     });
   }
 
   // loadMockData method removed - no more mock data
 
   filterDorms(): void {
-    if (this.selectedTab === 'รออนุมัติ') {
-      this.filteredDorms = this.dorms.filter(dorm => 
-        dorm.approval_status === 'รออนุมัติ'
+    if (this.selectedTab === 'pending') {
+      this.filteredDorms = this.dorms.filter(
+        (dorm) => dorm.approval_status === 'pending',
       );
     } else {
       this.filteredDorms = this.dorms;
@@ -368,19 +384,17 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getApprovedDorms(): any[] {
-    return this.dorms.filter(dorm => dorm.approval_status === 'อนุมัติ');
+    return this.dorms.filter((dorm) => dorm.approval_status === 'approved');
   }
 
   getPendingDorms(): any[] {
     // ถ้าเป็นแท็บรออนุมัติ ให้ใช้ filteredDorms ที่โหลดมาจาก API
-    if (this.selectedTab === 'รออนุมัติ') {
+    if (this.selectedTab === 'pending') {
       return this.filteredDorms;
     }
     // ถ้าไม่ใช่ ให้กรองจาก dorms ตามเดิม
-    return this.dorms.filter(dorm => dorm.approval_status === 'รออนุมัติ');
+    return this.dorms.filter((dorm) => dorm.approval_status === 'pending');
   }
-
-
 
   editDormitory(dormId: string): void {
     // Navigate to dedicated edit page
@@ -410,7 +424,6 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onEditSuccess(): void {
     // บันทึกสำเร็จแล้ว รีเฟรชข้อมูล
-    console.log('[Admin] Edit success, refreshing data...');
     this.refreshData();
     this.selectedTab = 'all';
     this.reviewingDormId = null;
@@ -426,27 +439,19 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   loadDormitoryDetail(dormId: string): void {
     this.isLoadingDetail = true;
-    console.log('[Admin] Loading dormitory detail for ID:', dormId);
-    
+
     this.adminService.getDormitoryDetail(dormId).subscribe({
       next: (detail) => {
-        console.log('[Admin] Full API Response:', detail);
-        console.log('[Admin] Data structure check:');
-        console.log('- detail.dormitory:', detail.dormitory);
-        console.log('- detail.images:', detail.images);
-        console.log('- detail.room_types:', detail.room_types);
-        console.log('- detail.amenities:', detail.amenities);
-        
         this.reviewDormDetail = detail;
         this.isLoadingDetail = false;
-        
+
         // Reset image index when loading new dormitory
         this.currentImageIndex = 0;
         this.imageModalIndex = 0;
-        
+
         // บังคับให้ Angular ตรวจจับการเปลี่ยนแปลง
         this.cdr.detectChanges();
-        
+
         // สร้างแผนที่ตัวอย่างหลังจากโหลดข้อมูลเสร็จ
         setTimeout(() => {
           this.initPreviewMap();
@@ -454,10 +459,8 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('Error loading dormitory detail:', error);
-        
         let errorMessage = 'เกิดข้อผิดพลาดในการโหลดข้อมูลหอพัก';
-        
+
         if (error.status === 404) {
           errorMessage = `ไม่พบหอพัก ID: ${dormId} ในระบบ\n\nหอพักนี้อาจถูกลบไปแล้ว หรือยังไม่ได้รับการอนุมัติ`;
         } else if (error.status === 403) {
@@ -465,18 +468,18 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
         } else if (error.status === 500) {
           errorMessage = 'เกิดข้อผิดพลาดจากเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง';
         }
-        
+
         alert(errorMessage);
         this.isLoadingDetail = false;
         this.cancelReview();
-      }
+      },
     });
   }
 
   cancelReview(): void {
     this.reviewingDormId = null;
     this.reviewDormDetail = null;
-    this.selectedTab = 'รออนุมัติ';
+    this.selectedTab = 'pending';
     this.currentReviewStep = 1;
   }
 
@@ -486,76 +489,103 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   approveDormFromReview(): void {
     if (!this.reviewingDormId) return;
-    
+
     if (confirm('คุณแน่ใจหรือไม่ที่จะอนุมัติหอพักนี้?')) {
-      this.adminService.updateDormitoryApproval(this.reviewingDormId, { status: 'อนุมัติ' }).subscribe({
-        next: (response) => {
-          console.log('Approve dormitory response:', response);
-          this.showToastNotification('อนุมัติหอพักเรียบร้อยแล้ว', 'success');
-          this.cancelReview();
-          this.loadDormitories();
-        },
-        error: (error) => {
-          console.error('Error approving dormitory:', error);
-          this.showToastNotification('เกิดข้อผิดพลาดในการอนุมัติหอพัก: ' + (error.error?.message || 'ไม่ทราบสาเหตุ'), 'error');
-        }
-      });
+      this.adminService
+        .updateDormitoryApproval(this.reviewingDormId, { status: 'อนุมัติ' })
+        .subscribe({
+          next: (response) => {
+            this.showToastNotification('อนุมัติหอพักเรียบร้อยแล้ว', 'success');
+            this.cancelReview();
+            this.loadDormitories();
+          },
+          error: (error) => {
+            this.showToastNotification(
+              'เกิดข้อผิดพลาดในการอนุมัติหอพัก: ' +
+                (error.error?.message || 'ไม่ทราบสาเหตุ'),
+              'error',
+            );
+          },
+        });
     }
   }
 
   rejectDormFromReview(): void {
     if (!this.reviewingDormId) return;
-    
+
     const reason = prompt('กรุณาระบุเหตุผลในการไม่อนุมัติ:');
     if (reason) {
-      this.adminService.updateDormitoryApproval(this.reviewingDormId, { status: 'ไม่อนุมัติ', rejectionReason: reason }).subscribe({
-        next: (response) => {
-          console.log('Reject dormitory response:', response);
-          this.showToastNotification('ไม่อนุมัติหอพักเรียบร้อยแล้ว', 'success');
-          this.cancelReview();
-          this.loadDormitories();
-        },
-        error: (error) => {
-          console.error('Error rejecting dormitory:', error);
-          this.showToastNotification('เกิดข้อผิดพลาดในการไม่อนุมัติหอพัก: ' + (error.error?.message || 'ไม่ทราบสาเหตุ'), 'error');
-        }
-      });
+      this.adminService
+        .updateDormitoryApproval(this.reviewingDormId, {
+          status: 'ไม่อนุมัติ',
+          rejectionReason: reason,
+        })
+        .subscribe({
+          next: (response) => {
+            this.showToastNotification(
+              'ไม่อนุมัติหอพักเรียบร้อยแล้ว',
+              'success',
+            );
+            this.cancelReview();
+            this.loadDormitories();
+          },
+          error: (error) => {
+            this.showToastNotification(
+              'เกิดข้อผิดพลาดในการไม่อนุมัติหอพัก: ' +
+                (error.error?.message || 'ไม่ทราบสาเหตุ'),
+              'error',
+            );
+          },
+        });
     }
   }
 
   // Image carousel methods
   get prevImageIndex(): number {
     if (!this.reviewDormDetail?.images) return 0;
-    return this.currentImageIndex === 0 
-      ? this.reviewDormDetail.images.length - 1 
+    return this.currentImageIndex === 0
+      ? this.reviewDormDetail.images.length - 1
       : this.currentImageIndex - 1;
   }
 
   get nextImageIndex(): number {
     if (!this.reviewDormDetail?.images) return 0;
-    return this.currentImageIndex === this.reviewDormDetail.images.length - 1 
-      ? 0 
+    return this.currentImageIndex === this.reviewDormDetail.images.length - 1
+      ? 0
       : this.currentImageIndex + 1;
   }
 
   get hasImages(): boolean {
-    return Array.isArray(this.reviewDormDetail?.images) && this.reviewDormDetail.images.length > 0;
+    return (
+      Array.isArray(this.reviewDormDetail?.images) &&
+      this.reviewDormDetail.images.length > 0
+    );
   }
 
   onPrevImage(): void {
-    if (!this.reviewDormDetail?.images || this.reviewDormDetail.images.length === 0) return;
-    
-    this.currentImageIndex = this.currentImageIndex === 0 
-      ? this.reviewDormDetail.images.length - 1 
-      : this.currentImageIndex - 1;
+    if (
+      !this.reviewDormDetail?.images ||
+      this.reviewDormDetail.images.length === 0
+    )
+      return;
+
+    this.currentImageIndex =
+      this.currentImageIndex === 0
+        ? this.reviewDormDetail.images.length - 1
+        : this.currentImageIndex - 1;
   }
 
   onNextImage(): void {
-    if (!this.reviewDormDetail?.images || this.reviewDormDetail.images.length === 0) return;
-    
-    this.currentImageIndex = this.currentImageIndex === this.reviewDormDetail.images.length - 1 
-      ? 0 
-      : this.currentImageIndex + 1;
+    if (
+      !this.reviewDormDetail?.images ||
+      this.reviewDormDetail.images.length === 0
+    )
+      return;
+
+    this.currentImageIndex =
+      this.currentImageIndex === this.reviewDormDetail.images.length - 1
+        ? 0
+        : this.currentImageIndex + 1;
   }
 
   openImageModalReview(index: number): void {
@@ -569,17 +599,19 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   prevModalImage(): void {
     if (!this.reviewDormDetail?.images) return;
-    this.imageModalIndex = this.imageModalIndex === 0 
-      ? this.reviewDormDetail.images.length - 1 
-      : this.imageModalIndex - 1;
+    this.imageModalIndex =
+      this.imageModalIndex === 0
+        ? this.reviewDormDetail.images.length - 1
+        : this.imageModalIndex - 1;
     this.cdr.detectChanges();
   }
 
   nextModalImage(): void {
     if (!this.reviewDormDetail?.images) return;
-    this.imageModalIndex = this.imageModalIndex === this.reviewDormDetail.images.length - 1 
-      ? 0 
-      : this.imageModalIndex + 1;
+    this.imageModalIndex =
+      this.imageModalIndex === this.reviewDormDetail.images.length - 1
+        ? 0
+        : this.imageModalIndex + 1;
     this.cdr.detectChanges();
   }
 
@@ -590,7 +622,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   getPriceRangeText(): string {
     const dormitory = this.reviewDormDetail?.dormitory || this.reviewDormDetail;
     if (!dormitory) return '-';
-    
+
     const { min_price, max_price } = dormitory;
     if (!min_price && !max_price) return '-';
     if (min_price === max_price) {
@@ -601,121 +633,194 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   getAmenitiesByLocation(locationType: string): any[] {
     if (!this.reviewDormDetail?.amenities) return [];
-    
+
     // ถ้า amenities เป็น array ให้กรองตาม location_type
     if (Array.isArray(this.reviewDormDetail.amenities)) {
       return this.reviewDormDetail.amenities.filter(
-        (amenity: any) => amenity.location_type === locationType
+        (amenity: any) => amenity.location_type === locationType,
       );
     }
-    
+
     // ถ้า amenities เป็น object ให้ใช้ key เป็น locationType
     return this.reviewDormDetail.amenities[locationType] || [];
   }
 
   getAllAmenitiesByLocation(locationType: string): any[] {
     // ใช้ AMENITIES array แทน API data เพื่อแสดงทุกสิ่ง
-    const allAmenities = this.AMENITIES.filter(amenity => amenity.location_type === locationType);
-    
+    const allAmenities = this.AMENITIES.filter(
+      (amenity) => amenity.location_type === locationType,
+    );
+
     if (!this.reviewDormDetail?.amenities) {
       // ถ้าไม่มีข้อมูล API ให้แสดงทุกสิ่งเป็น unavailable
-      return allAmenities.map(amenity => ({
+      return allAmenities.map((amenity) => ({
         amenity_name: amenity.name,
         is_available: false,
-        location_type: amenity.location_type
+        location_type: amenity.location_type,
       }));
     }
-    
+
     // ถ้ามีข้อมูล API ให้เช็คว่ามีหรือไม่
     const apiAmenities = this.getAmenitiesByLocation(locationType);
-    const apiAmenityNames = apiAmenities.map(api => api.amenity_name);
-    
-    return allAmenities.map(amenity => {
+    const apiAmenityNames = apiAmenities.map((api) => api.amenity_name);
+
+    return allAmenities.map((amenity) => {
       const isAvailable = apiAmenityNames.includes(amenity.name);
       return {
         amenity_name: amenity.name,
         is_available: isAvailable,
-        location_type: amenity.location_type
+        location_type: amenity.location_type,
       };
     });
   }
 
+  // Method ใหม่: แสดงสิ่งอำนวยความสะดวกทั้งหมด 24 รายการ พร้อมสถานะ
+  getAllAmenitiesWithStatus(): Array<{ name: string; has: boolean }> {
+    // รายการ amenities ทั้งหมด 24 รายการ (ตาม database)
+    const allAmenityNames = [
+      'แอร์',
+      'พัดลม',
+      'TV',
+      'ตู้เย็น',
+      'เตียงนอน',
+      'WIFI',
+      'ตู้เสื้อผ้า',
+      'โต๊ะทำงาน',
+      'โต๊ะเครื่องแป้ง',
+      'ไมโครเวฟ',
+      'เครื่องทำน้ำอุ่น',
+      'ซิงค์ล้างจาน',
+      'กล้องวงจรปิด',
+      'รปภ.',
+      'ลิฟต์',
+      'ที่จอดรถ',
+      'ฟิตเนส',
+      'Lobby',
+      'ผู้ดำหยอดเหรียญ',
+      'สระว่ายน้ำ',
+      'ที่วางพัสดุ',
+      'อนุญาตให้เลี้ยงสัตว์',
+      'คีย์การ์ด',
+      'เครื่องซักผ้า',
+    ];
+
+    // ดึงรายการที่หอนี้มี
+    const dormAmenities = this.reviewDormDetail?.amenities || [];
+    const dormAmenityNames = dormAmenities.map((a: any) => a.amenity_name);
+
+    // สร้าง array ที่มีทั้งหมด พร้อมสถานะว่ามีหรือไม่
+    return allAmenityNames.map((name) => ({
+      name: name,
+      has: dormAmenityNames.includes(name),
+    }));
+  }
+
   getAmenityIcon(amenityName: string): string {
     const iconMap: { [key: string]: string } = {
-      'แอร์': 'fas fa-snowflake',
-      'พัดลม': 'fas fa-fan',
-      'TV': 'fas fa-tv',
-      'ตู้เย็น': 'fas fa-box',
-      'เตียงนอน': 'fas fa-bed',
-      'WIFI': 'fas fa-wifi',
-      'ตู้เสื้อผ้า': 'fas fa-tshirt',
-      'โต๊ะทำงาน': 'fas fa-desktop',
-      'ไมโครเวฟ': 'fas fa-microchip',
-      'เครื่องทำน้ำอุ่น': 'fas fa-shower',
-      'ซิงค์ล้างจาน': 'fas fa-sink',
-      'โต๊ะเครื่องแป้ง': 'fas fa-magic',
-      'กล้องวงจรปิด': 'fas fa-video',
+      แอร์: 'fas fa-snowflake',
+      พัดลม: 'fas fa-fan',
+      TV: 'fas fa-tv',
+      ตู้เย็น: 'fas fa-box',
+      เตียงนอน: 'fas fa-bed',
+      WIFI: 'fas fa-wifi',
+      ตู้เสื้อผ้า: 'fas fa-tshirt',
+      โต๊ะทำงาน: 'fas fa-desktop',
+      ไมโครเวฟ: 'fas fa-microchip',
+      เครื่องทำน้ำอุ่น: 'fas fa-shower',
+      ซิงค์ล้างจาน: 'fas fa-sink',
+      โต๊ะเครื่องแป้ง: 'fas fa-magic',
+      กล้องวงจรปิด: 'fas fa-video',
       'รปภ.': 'fas fa-shield-alt',
-      'ลิฟต์': 'fas fa-elevator',
-      'ที่จอดรถ': 'fas fa-car',
-      'ฟิตเนส': 'fas fa-dumbbell',
-      'Lobby': 'fas fa-building',
-      'ตู้น้ำหยอดเหรียญ': 'fas fa-coins',
-      'สระว่ายน้ำ': 'fas fa-swimming-pool',
-      'ที่วางพัสดุ': 'fas fa-box-open',
-      'อนุญาตให้เลี้ยงสัตว์': 'fas fa-paw',
-      'คีย์การ์ด': 'fas fa-key',
-      'เครื่องซักผ้า': 'fas fa-tshirt'
+      ลิฟต์: 'fas fa-elevator',
+      ที่จอดรถ: 'fas fa-car',
+      ฟิตเนส: 'fas fa-dumbbell',
+      Lobby: 'fas fa-building',
+      ตู้น้ำหยอดเหรียญ: 'fas fa-coins',
+      สระว่ายน้ำ: 'fas fa-swimming-pool',
+      ที่วางพัสดุ: 'fas fa-box-open',
+      อนุญาตให้เลี้ยงสัตว์: 'fas fa-paw',
+      คีย์การ์ด: 'fas fa-key',
+      เครื่องซักผ้า: 'fas fa-tshirt',
     };
     return iconMap[amenityName] || 'fas fa-check';
   }
 
   isAmenityAvailable(amenityId: string): boolean {
     if (!this.reviewDormDetail?.amenities) return false;
-    
+
     // Check all location types for the amenity
     for (const locationType of ['ภายใน', 'ภายนอก', 'common']) {
       const amenities = this.reviewDormDetail.amenities[locationType] || [];
-      if (amenities.some((amenity: any) => amenity.amenity_name === amenityId && amenity.is_available)) {
+      if (
+        amenities.some(
+          (amenity: any) =>
+            amenity.amenity_name === amenityId && amenity.is_available,
+        )
+      ) {
         return true;
       }
     }
     return false;
   }
 
-
   getSpecificAmenityIcon(amenityName: string): boolean {
     const specificAmenities = [
-      'โต๊ะแป้ง', 'แอร์', 'เครื่องปรับอากาศ', 'พัดลม', 'ทีวี', 'ตู้เย็น', 'เตียง', 
-      'Wi-Fi', 'wifi', 'ตู้เสื้อผ้า', 'โต๊ะทำงาน', 'ไมโครเวฟ', 'เครื่องทำน้ำอุ่น', 
-      'อ่างล้างหน้า', 'กล้องวงจรปิด', 'CCTV', 'รักษาความปลอดภัย', 'ลิฟต์', 
-      'ที่จอดรถ', 'ฟิตเนส', 'ห้องรับแขก', 'ตู้น้ำดื่ม', 'สระว่ายน้ำ', 'ชั้นวางพัสดุ', 
-      'อนุญาตสัตว์เลี้ยง', 'คีย์การ์ด', 'เครื่องซักผ้า'
+      'โต๊ะแป้ง',
+      'แอร์',
+      'เครื่องปรับอากาศ',
+      'พัดลม',
+      'ทีวี',
+      'ตู้เย็น',
+      'เตียง',
+      'Wi-Fi',
+      'wifi',
+      'ตู้เสื้อผ้า',
+      'โต๊ะทำงาน',
+      'ไมโครเวฟ',
+      'เครื่องทำน้ำอุ่น',
+      'อ่างล้างหน้า',
+      'กล้องวงจรปิด',
+      'CCTV',
+      'รักษาความปลอดภัย',
+      'ลิฟต์',
+      'ที่จอดรถ',
+      'ฟิตเนส',
+      'ห้องรับแขก',
+      'ตู้น้ำดื่ม',
+      'สระว่ายน้ำ',
+      'ชั้นวางพัสดุ',
+      'อนุญาตสัตว์เลี้ยง',
+      'คีย์การ์ด',
+      'เครื่องซักผ้า',
     ];
-    
-    return specificAmenities.some(amenity => 
-      amenityName.toLowerCase().includes(amenity.toLowerCase())
+
+    return specificAmenities.some((amenity) =>
+      amenityName.toLowerCase().includes(amenity.toLowerCase()),
     );
   }
 
   getMapUrl(): SafeResourceUrl | null {
     if (!this.reviewDormDetail?.dormitory) return null;
     const { latitude, longitude } = this.reviewDormDetail.dormitory;
-    
+
     const url = `https://www.google.com/maps?q=${latitude},${longitude}&hl=th&z=15&output=embed`;
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
   loadAdminProfile(): void {
     const adminProfileStr = localStorage.getItem('adminProfile');
+    
     if (adminProfileStr) {
       try {
         this.adminProfile = JSON.parse(adminProfileStr);
+        
         this.isLoggedIn = true;
-        this.adminName = this.adminProfile?.displayName || this.adminProfile?.username || 'Admin1';
+        this.adminName =
+          this.adminProfile?.displayName ||
+          this.adminProfile?.username ||
+          'Admin1';
         this.adminUid = this.adminProfile?.username || '23545';
       } catch (error) {
-        console.error('Error parsing admin profile:', error);
         this.redirectToLogin();
       }
     } else {
@@ -729,7 +834,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.adminProfile?.photoURL) {
       return this.adminProfile.photoURL;
     }
-    
+
     // ถ้าไม่มีรูป ให้ใช้ home-owner.png เป็นค่าเริ่มต้นสำหรับ admin (เนื่องจาก admin มีสิทธิ์เหมือนเจ้าของหอพัก)
     return 'assets/icon/home-owner.png';
   }
@@ -765,21 +870,20 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isMobileSidebarOpen = false;
   }
 
-
   async onLogout(): Promise<void> {
     this.closeProfileDropdown();
-    
+
     try {
       // Sign out จาก Firebase Auth
       await signOut(this.firebaseAuth);
     } catch (error) {
-      console.error('Firebase sign out error:', error);
+      // Silent error handling
     }
-    
+
     // ลบข้อมูล admin และ Firebase token จาก localStorage
     localStorage.removeItem('adminProfile');
     localStorage.removeItem('firebaseToken');
-    
+
     // Redirect ไปหน้า login
     this.router.navigate(['/admin/login']);
   }
@@ -808,19 +912,24 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // --- Helper Functions ---
   getPendingCount(): number {
-    return this.dorms.filter(dorm => dorm.approval_status === 'รออนุมัติ').length;
+    return this.dorms.filter((dorm) => dorm.approval_status === 'pending')
+      .length;
   }
 
   getApprovedCount(): number {
-    return this.dorms.filter(dorm => dorm.approval_status === 'อนุมัติ').length;
+    return this.dorms.filter((dorm) => dorm.approval_status === 'approved')
+      .length;
   }
 
   getStatusClass(status: string): string {
     switch (status) {
+      case 'approved':
       case 'อนุมัติ':
         return 'bg-green-100 text-green-800';
+      case 'pending':
       case 'รออนุมัติ':
         return 'bg-yellow-100 text-yellow-800';
+      case 'rejected':
       case 'ไม่อนุมัติ':
         return 'bg-red-100 text-red-800';
       default:
@@ -836,47 +945,42 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   // จัดรูปแบบวันที่จาก ISO format เป็น DD-MM-YYYY
   formatDate(dateString: string): string {
     if (!dateString) return '';
-    
+
     try {
       const date = new Date(dateString);
       const day = date.getDate().toString().padStart(2, '0');
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       const year = date.getFullYear();
-      
+
       return `${day}-${month}-${year}`;
     } catch (error) {
-      console.error('Error formatting date:', error);
       return dateString; // Return original string if formatting fails
     }
   }
 
   // Map initialization for review page
   private initPreviewMap(): void {
-    if (!this.reviewDormDetail?.dormitory?.latitude || !this.reviewDormDetail?.dormitory?.longitude) {
-      console.log('[Admin] No coordinates available for map');
+    if (
+      !this.reviewDormDetail?.dormitory?.latitude ||
+      !this.reviewDormDetail?.dormitory?.longitude
+    ) {
       return;
     }
 
     // ตรวจสอบว่าแมปถูกสร้างแล้วหรือไม่
     if (this.mapService.isMapInitialized('preview-map')) {
-      console.log('[Admin] Preview map already initialized');
       return;
     }
 
     try {
-      console.log('[Admin] Initializing preview map...');
-      
       const lat = this.reviewDormDetail.dormitory.latitude;
       const lng = this.reviewDormDetail.dormitory.longitude;
       const dormName = this.reviewDormDetail.dormitory.dorm_name;
       const address = this.reviewDormDetail.dormitory.address;
-      
+
       this.mapService.initializeMap('preview-map', lat, lng, dormName, address);
-      
-      console.log('[Admin] Preview map initialized successfully');
-      
     } catch (error) {
-      console.error('[Admin] Preview map initialization error:', error);
+      // Silent error handling
     }
   }
 
@@ -902,16 +1006,14 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
         this.showSuccessPopup('อนุมัติหอพักเรียบร้อยแล้ว', 'approve');
       },
       error: (error) => {
-        console.error('เกิดข้อผิดพลาดในการอนุมัติ:', error);
         alert('เกิดข้อผิดพลาดในการอนุมัติหอพัก');
-      }
+      },
     });
   }
 
   // ไม่อนุมัติหอพัก
   rejectDormitory(): void {
     if (!this.reviewDormDetail?.dormitory?.dorm_id) {
-      console.error('ไม่มี ID หอพัก');
       return;
     }
 
@@ -922,19 +1024,17 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   confirmRejection(): void {
     if (!this.reviewDormDetail?.dormitory?.dorm_id) {
-      console.error('ไม่มี ID หอพัก');
       return;
     }
 
     const dormId = this.reviewDormDetail.dormitory.dorm_id;
-    const payload = { 
+    const payload = {
       status: 'ไม่อนุมัติ',
-      rejectionReason: this.rejectionReason || 'ไม่ระบุเหตุผล'
+      rejectionReason: this.rejectionReason || 'ไม่ระบุเหตุผล',
     };
 
     this.adminService.updateDormitoryApproval(dormId, payload).subscribe({
       next: (response) => {
-        console.log('ไม่อนุมัติหอพักสำเร็จ:', response);
         // รีเฟรชข้อมูล
         this.loadPendingDormitories();
         this.loadDormitories(); // รีเฟรชข้อมูลทั้งหมดเพื่ออัปเดตสถิติ
@@ -947,15 +1047,14 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
         this.showSuccessPopup('ไม่อนุมัติหอพักเรียบร้อยแล้ว', 'reject');
       },
       error: (error) => {
-        console.error('เกิดข้อผิดพลาดในการไม่อนุมัติ:', error);
         alert('เกิดข้อผิดพลาดในการไม่อนุมัติหอพัก');
-      }
+      },
     });
   }
 
   // ปิด modal ตรวจสอบ
   closeReviewModal(): void {
-    this.selectedTab = 'รออนุมัติ';
+    this.selectedTab = 'pending';
     this.reviewDormDetail = null;
     this.currentImageIndex = 0;
   }
@@ -971,31 +1070,28 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     // ตรวจสอบสมาชิกก่อนลบ
     this.adminService.checkDormitoryMembers(String(dormId)).subscribe({
       next: (response) => {
-        console.log('ตรวจสอบสมาชิก:', response);
-        
         // เก็บข้อมูลสำหรับ modal
         this.deleteDormId = dormId;
         this.deleteDormName = dormName;
         this.memberCount = response.member_count || 0;
-        
+
         if (response.has_members && response.member_count > 0) {
           this.deleteMessage = `คุณต้องการลบหอพัก "${dormName}" และ สมาชิกของหอ ใช่หรือไม่ ?`;
         } else {
           this.deleteMessage = `คุณแน่ใจหรือไม่ที่จะลบหอพัก "${dormName}" ?`;
         }
-        
+
         // แสดง delete confirmation modal
         this.showDeleteModal = true;
       },
       error: (error) => {
-        console.error('เกิดข้อผิดพลาดในการตรวจสอบสมาชิก:', error);
         // ถ้า API ไม่ทำงาน ให้ใช้ modal ปกติ
         this.deleteDormId = dormId;
         this.deleteDormName = dormName;
         this.memberCount = 0;
         this.deleteMessage = `คุณแน่ใจหรือไม่ที่จะลบหอพัก "${dormName}"?`;
         this.showDeleteModal = true;
-      }
+      },
     });
   }
 
@@ -1003,7 +1099,6 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   private performDeleteDormitory(dormId: string | number): void {
     this.adminService.deleteDormitory(String(dormId), true).subscribe({
       next: (response) => {
-        console.log('ลบหอพักสำเร็จ:', response);
         // ปิด loading และ modal
         this.isDeleting = false;
         this.showDeleteModal = false;
@@ -1014,16 +1109,14 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
         this.showSuccessPopup('ลบหอพักเรียบร้อยแล้ว', 'delete');
       },
       error: (error) => {
-        console.error('เกิดข้อผิดพลาดในการลบหอพัก:', error);
         // ปิด loading
         this.isDeleting = false;
-        
+
         if (error.status === 409) {
           this.retryCount++;
           if (this.retryCount < 3) {
             // ลองใหม่ด้วย confirm=true
-            console.log(`ลองลบหอพักอีกครั้ง (ครั้งที่ ${this.retryCount})`);
-    setTimeout(() => {
+            setTimeout(() => {
               this.performDeleteDormitory(dormId);
             }, 1000);
           } else {
@@ -1033,17 +1126,21 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
         } else {
           alert('เกิดข้อผิดพลาดในการลบหอพัก');
         }
-      }
+      },
     });
   }
 
   // อัปเดตสถิติ
   private updateStatistics(): void {
     if (!this.dorms) return;
-    
+
     this.totalDorms = this.dorms.length;
-    this.pendingDorms = this.dorms.filter(dorm => dorm.approval_status === 'รออนุมัติ').length;
-    this.approvedDorms = this.dorms.filter(dorm => dorm.approval_status === 'อนุมัติ').length;
+    this.pendingDorms = this.dorms.filter(
+      (dorm) => dorm.approval_status === 'pending',
+    ).length;
+    this.approvedDorms = this.dorms.filter(
+      (dorm) => dorm.approval_status === 'approved',
+    ).length;
   }
 
   // แสดง popup สำเร็จ

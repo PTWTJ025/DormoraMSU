@@ -38,6 +38,7 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
   images: ImageFile[] = [];
   maxImages = 20;
   minImages = 3;
+  showSuccessModal = false; // สำหรับแสดง success popup
 
   // Data from API
   zones: Zone[] = [];
@@ -74,12 +75,12 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
       // ข้อมูลหอพัก
       dorm_name: ['', [Validators.required, Validators.minLength(3)]],
       address: ['', [Validators.required, Validators.minLength(10)]],
-      zone_name: ['', Validators.required],
+      zone_id: ['', Validators.required], // เปลี่ยนจาก zone_name เป็น zone_id
       description: [''], // คำอธิบาย/กฎระเบียบ (ไม่บังคับ)
       
       // ข้อมูลติดต่อ (ไม่บังคับทั้งหมด)
       contact_name: [''],
-      contact_phone: ['', [Validators.pattern(/^[0-9]{9,10}$/)]],
+      contact_phone: ['', [Validators.pattern(/^[0-9]{10}$/)]], // ต้องเป็น 10 หลักพอดี
       contact_email: ['', [Validators.email]],
       line_id: [''],
       
@@ -93,10 +94,10 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
       summer_price: [''], // ราคาซัมเมอร์ (ไม่บังคับ)
       deposit: [''], // ค่าประกันห้อง (ไม่บังคับ)
       
-      // ค่าน้ำค่าไฟ (ไม่บังคับ)
-      electricity_price: [''], // ค่าไฟ บาท/หน่วย
-      water_price_type: [''], // ประเภทค่าน้ำ: per_unit หรือ flat_rate
-      water_price: [''], // ค่าน้ำ
+      // ค่าน้ำค่าไฟ (บังคับกรอก)
+      electricity_price: ['', Validators.required], // ค่าไฟ บาท/หน่วย - บังคับ
+      water_price_type: ['', Validators.required], // ประเภทค่าน้ำ - บังคับ
+      water_price: [{ value: '', disabled: true }, Validators.required], // ค่าน้ำ - บังคับ
       
       // สิ่งอำนวยความสะดวก (จะสร้างแบบ dynamic จาก API)
       amenities: this.fb.group({}),
@@ -105,6 +106,17 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
       latitude: [null, Validators.required],
       longitude: [null, Validators.required]
     }, { validators: this.atLeastOnePriceValidator });
+
+    // ฟังการเปลี่ยนแปลงของ water_price_type
+    this.dormForm.get('water_price_type')?.valueChanges.subscribe(value => {
+      const waterPriceControl = this.dormForm.get('water_price');
+      if (value) {
+        waterPriceControl?.enable();
+      } else {
+        waterPriceControl?.disable();
+        waterPriceControl?.setValue('');
+      }
+    });
   }
 
   // Custom validator: ต้องมีราคาอย่างน้อย 1 ตัว
@@ -240,7 +252,7 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
       case 1:
         this.dormForm.get('dorm_name')?.markAsTouched();
         this.dormForm.get('address')?.markAsTouched();
-        this.dormForm.get('zone_name')?.markAsTouched();
+        this.dormForm.get('zone_id')?.markAsTouched();
         break;
       case 2:
         // ไม่บังคับ
@@ -250,6 +262,9 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
         this.dormForm.get('room_type_other')?.markAsTouched();
         this.dormForm.get('monthly_price')?.markAsTouched();
         this.dormForm.get('daily_price')?.markAsTouched();
+        this.dormForm.get('electricity_price')?.markAsTouched();
+        this.dormForm.get('water_price_type')?.markAsTouched();
+        this.dormForm.get('water_price')?.markAsTouched();
         break;
       case 4:
         // จะแสดง error ของรูปภาพและแผนที่
@@ -268,11 +283,22 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
       case 1:
         return !!(this.dormForm.get('dorm_name')?.valid && 
                this.dormForm.get('address')?.valid && 
-               this.dormForm.get('zone_name')?.valid);
+               this.dormForm.get('zone_id')?.valid);
       case 2:
-        return true; // ข้อมูลติดต่อไม่บังคับ
+        // ข้อมูลติดต่อไม่บังคับ แต่ถ้ากรอกเบอร์โทรต้องครบ 10 หลัก
+        const phone = this.dormForm.get('contact_phone');
+        if (phone?.value && phone?.invalid) {
+          phone.markAsTouched();
+          return false;
+        }
+        const email = this.dormForm.get('contact_email');
+        if (email?.value && email?.invalid) {
+          email.markAsTouched();
+          return false;
+        }
+        return true;
       case 3:
-        // ต้องมีประเภทห้อง และราคาอย่างน้อย 1 ตัว
+        // ต้องมีประเภทห้อง, ราคาอย่างน้อย 1 ตัว, และค่าน้ำค่าไฟ
         const roomType = this.dormForm.get('room_type')?.value;
         const roomTypeOther = this.dormForm.get('room_type_other')?.value;
         const hasValidRoomType = roomType && (roomType !== 'อื่นๆ' || roomTypeOther);
@@ -281,7 +307,11 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
         const daily = this.dormForm.get('daily_price')?.value;
         const hasPrice = monthly || daily;
         
-        return hasValidRoomType && hasPrice;
+        const hasElectricity = this.dormForm.get('electricity_price')?.valid;
+        const hasWaterType = this.dormForm.get('water_price_type')?.valid;
+        const hasWaterPrice = this.dormForm.get('water_price')?.valid;
+        
+        return hasValidRoomType && hasPrice && hasElectricity && hasWaterType && hasWaterPrice;
       case 4:
         // ต้องมีรูปอย่างน้อย 3 รูป และมีพิกัด
         const hasEnoughImages = this.images.length >= this.minImages;
@@ -299,6 +329,9 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
       try {
         const formData = new FormData();
         
+        console.log('📋 Form values before submission:', this.dormForm.value);
+        console.log('📸 Images array:', this.images.length, 'files');
+        
         // เพิ่มข้อมูลฟอร์ม
         Object.keys(this.dormForm.value).forEach(key => {
           if (key === 'amenities') {
@@ -306,32 +339,87 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
             const selectedAmenities = Object.keys(this.dormForm.value.amenities)
               .filter(amenity => this.dormForm.value.amenities[amenity]);
             formData.append('amenities', JSON.stringify(selectedAmenities));
-          } else if (this.dormForm.value[key] !== null && this.dormForm.value[key] !== '') {
-            formData.append(key, this.dormForm.value[key]);
+            console.log('✅ amenities:', selectedAmenities);
+          } else if (key === 'description') {
+            // เปลี่ยน description เป็น dorm_description
+            const value = this.dormForm.value[key];
+            if (value !== null && value !== undefined && value !== '') {
+              formData.append('dorm_description', value);
+              console.log(`✅ dorm_description:`, value);
+            }
+          } else {
+            const value = this.dormForm.value[key];
+            // ส่งทุกค่ายกเว้น null, undefined, และ empty string
+            // แต่ส่ง 0 ได้ (กรณีราคาเป็น 0)
+            if (value !== null && value !== undefined && value !== '') {
+              formData.append(key, value);
+              console.log(`✅ ${key}:`, value);
+            } else {
+              console.log(`⏭️ Skipped ${key}:`, value);
+            }
           }
         });
         
-        // เพิ่มรูปภาพ
-        this.images.forEach((img, index) => {
-          formData.append('images', img.file);
-          if (img.isPrimary) {
-            formData.append('primary_image_index', index.toString());
+        // เพิ่มรูปภาพ - ต้องส่งทุกรูป
+        console.log('📸 Appending images to FormData...');
+        for (let i = 0; i < this.images.length; i++) {
+          formData.append('images', this.images[i].file, this.images[i].file.name);
+          console.log(`  ✅ Image ${i + 1}:`, this.images[i].file.name, `(${(this.images[i].file.size / 1024).toFixed(2)} KB)`);
+          
+          // ระบุรูปหลัก
+          if (this.images[i].isPrimary) {
+            formData.append('primary_image_index', i.toString());
+            console.log(`  ⭐ Primary image index: ${i}`);
+          }
+        }
+        
+        // แสดงข้อมูลทั้งหมดที่จะส่ง
+        console.log('📤 FormData summary:');
+        let imageCount = 0;
+        formData.forEach((value, key) => {
+          if (key === 'images') {
+            imageCount++;
+          } else {
+            console.log(`  ${key}:`, value);
           }
         });
+        console.log(`  images: ${imageCount} files`);
         
         // ส่งข้อมูลไป API
+        console.log('🚀 Sending to:', `${this.backendUrl}/submissions`);
         await this.http.post(`${this.backendUrl}/submissions`, formData).toPromise();
         
-        alert('ส่งข้อมูลหอพักเรียบร้อยแล้ว! ทีมงานจะตรวจสอบและติดต่อกลับภายใน 3-5 วันทำการ');
-        this.router.navigate(['/']);
+        // แสดง success modal แทน alert
+        this.showSuccessModal = true;
         
-      } catch (error) {
-        console.error('Error submitting form:', error);
-        alert('เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง');
+      } catch (error: any) {
+        console.error('❌ Error submitting form:', error);
+        console.error('❌ Error details:', error.error);
+        console.error('❌ Error message:', error.message);
+        
+        // แสดง error message จาก backend ถ้ามี
+        const errorMessage = error.error?.message || error.error?.error || 'เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง';
+        this.showToast(errorMessage, 'error');
       } finally {
         this.isSubmitting = false;
       }
+    } else {
+      console.log('⚠️ Form validation failed or already submitting');
+      console.log('Form valid:', this.dormForm.valid);
+      console.log('Form errors:', this.dormForm.errors);
+      console.log('Invalid fields:', this.getInvalidFields());
     }
+  }
+
+  getInvalidFields(): string[] {
+    const invalid: string[] = [];
+    const controls = this.dormForm.controls;
+    for (const name in controls) {
+      if (controls[name].invalid) {
+        invalid.push(name);
+      }
+    }
+    return invalid;
   }
 
   // Helper methods
@@ -350,7 +438,7 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
       case 1:
         return !!(this.dormForm.get('dorm_name')?.valid && 
                this.dormForm.get('address')?.valid && 
-               this.dormForm.get('zone_name')?.valid);
+               this.dormForm.get('zone_id')?.valid);
       case 2:
         return true; // ข้อมูลติดต่อไม่บังคับ
       case 3:
@@ -465,6 +553,11 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
       this.map.setStyle(maptilersdk.MapStyle.SATELLITE);
       this.currentMapStyle = 'satellite';
     }
+  }
+
+  closeSuccessModal() {
+    this.showSuccessModal = false;
+    this.router.navigate(['/']);
   }
 
   ngOnDestroy() {

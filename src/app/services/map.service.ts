@@ -49,7 +49,7 @@ export class MapService {
       const gl = canvas.getContext('webgl') || canvas.getContext('webgl2');
       
       if (gl && !gl.isContextLost()) {
-        console.log(`[MapService] Reusing existing map instance for container: ${containerId}`);
+        
         this.map = existingInstance.map;
         this.marker = existingInstance.marker;
         this.currentContainerId = containerId;
@@ -59,11 +59,11 @@ export class MapService {
         this.updateMarker(lat, lng, dormName, location);
         return;
       } else {
-        console.log(`[MapService] WebGL context lost, destroying existing map and creating new one`);
+        
         this.destroyMap();
       }
     } else if (existingInstance && existingInstance.map) {
-      console.log(`[MapService] Existing map instance found but not ready, destroying and creating new one`);
+      
       this.destroyMap();
     }
 
@@ -77,7 +77,7 @@ export class MapService {
     this.currentLng = lng;
     this.currentDormDetail = dormDetail || null;
 
-    console.log(`[MapService] Creating new map instance for container: ${containerId}`);
+    
 
     this.map = new maptilersdk.Map({
       container: containerId,
@@ -99,13 +99,14 @@ export class MapService {
       this.addMarker(lat, lng, dormName, location);
     });
 
-    // จัดการ WebGL context lost event
-    this.map.on('webglcontextlost', () => {
-      console.warn('[MapService] WebGL context lost, map will be recreated on next interaction');
+    // ซ่อน MapTiler warnings สำหรับ missing images
+    this.map.on('styleimagemissing', (e) => {
+      // Silent - ไม่ต้องทำอะไร เพราะเราไม่ได้ใช้ไอคอนเหล่านั้น
     });
 
-    this.map.on('webglcontextrestored', () => {
-      console.log('[MapService] WebGL context restored');
+    // ซ่อน map errors ที่ไม่สำคัญ
+    this.map.on('error', (e) => {
+      // Silent - ไม่ต้อง log error ที่ไม่สำคัญ
     });
 
     // เก็บ instance ไว้ใน Map
@@ -126,7 +127,6 @@ export class MapService {
       const gl = canvas.getContext('webgl') || canvas.getContext('webgl2');
       return !!(gl && !gl.isContextLost());
     } catch (error) {
-      console.log(`[MapService] Map context check failed for ${containerId}:`, error);
       return false;
     }
   }

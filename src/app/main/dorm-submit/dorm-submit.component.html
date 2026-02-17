@@ -83,20 +83,20 @@
                 โซน/พื้นที่ <span class="text-red-500">*</span>
               </label>
               <select
-                formControlName="zone_name"
+                formControlName="zone_id"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
               >
                 <option value="">
                   {{ isLoadingData ? "กำลังโหลด..." : "เลือกโซน/พื้นที่" }}
                 </option>
-                <option *ngFor="let zone of zones" [value]="zone.zone_name">
+                <option *ngFor="let zone of zones" [value]="zone.zone_id">
                   {{ zone.zone_name }}
                 </option>
               </select>
               <div
                 *ngIf="
-                  dormForm.get('zone_name')?.invalid &&
-                  dormForm.get('zone_name')?.touched
+                  dormForm.get('zone_id')?.invalid &&
+                  dormForm.get('zone_id')?.touched
                 "
                 class="text-red-500 text-sm mt-1"
               >
@@ -154,8 +154,10 @@
               <input
                 type="email"
                 formControlName="contact_email"
+                pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
                 placeholder="เช่น contact@example.com"
+                title="กรุณากรอกอีเมลเป็นภาษาอังกฤษและตัวเลขเท่านั้น"
               />
               <div
                 *ngIf="

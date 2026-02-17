@@ -1,6 +1,5 @@
 /* Mobile-responsive map styles */
 
-/* Ensure map container takes full available space */
 #mapContainer,
 .maplibregl-map,
 .mapboxgl-map {
@@ -8,13 +7,11 @@
   height: 100% !important;
 }
 
-/* Adjust map controls for mobile */
 .maplibregl-ctrl-group,
 .mapboxgl-ctrl-group {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
 }
 
-/* Position controls better on mobile */
 @media (max-width: 640px) {
   .maplibregl-ctrl-top-right,
   .mapboxgl-ctrl-top-right {
@@ -28,28 +25,13 @@
     right: 8px !important;
   }
 
-  /* Make control buttons slightly larger for touch */
   .maplibregl-ctrl-group button,
   .mapboxgl-ctrl-group button {
     width: 36px !important;
     height: 36px !important;
   }
-
-  /* Adjust popup max width for mobile */
-  .maplibregl-popup-content,
-  .mapboxgl-popup-content {
-    max-width: calc(100vw - 40px) !important;
-    padding: 0 !important;
-  }
-
-  /* Ensure popup is visible on small screens */
-  .maplibregl-popup,
-  .mapboxgl-popup {
-    max-width: calc(100vw - 40px) !important;
-  }
 }
 
-/* Tablet adjustments */
 @media (min-width: 641px) and (max-width: 1024px) {
   .maplibregl-ctrl-top-right,
   .mapboxgl-ctrl-top-right {
@@ -58,39 +40,32 @@
   }
 }
 
-/* Popup styling */
-.maplibregl-popup-content,
-.mapboxgl-popup-content {
-  border-radius: 8px !important;
-  overflow: hidden;
-}
-
-/* Remove default popup padding */
-.maplibregl-popup-content,
-.mapboxgl-popup-content {
-  padding: 0 !important;
-}
-
-/* Popup close button */
 .maplibregl-popup-close-button,
 .mapboxgl-popup-close-button {
-  font-size: 24px !important;
-  padding: 4px 8px !important;
+  width: 26px !important;
+  height: 26px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 16px !important;
+  padding: 0 !important;
   color: #374151 !important;
   background: rgba(255, 255, 255, 0.9) !important;
-  border-radius: 0 0 0 8px !important;
-  right: 0 !important;
-  top: 0 !important;
+  backdrop-filter: blur(4px) !important;
+  border-radius: 50% !important;
+  right: 8px !important;
+  top: 8px !important;
   z-index: 10 !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) !important;
+  line-height: 1 !important;
 }
 
 .maplibregl-popup-close-button:hover,
 .mapboxgl-popup-close-button:hover {
   background: rgba(255, 255, 255, 1) !important;
-  color: #1f2937 !important;
+  color: #111827 !important;
 }
 
-/* Attribution control - hide on mobile to save space */
 @media (max-width: 640px) {
   .maplibregl-ctrl-attrib,
   .mapboxgl-ctrl-attrib {
@@ -104,7 +79,6 @@
   }
 }
 
-/* Marker adjustments for mobile */
 @media (max-width: 640px) {
   .maplibregl-marker,
   .mapboxgl-marker {
@@ -112,12 +86,10 @@
   }
 }
 
-/* Loading and error overlays - ensure they're above everything */
 .absolute.inset-0.z-50 {
   z-index: 1000 !important;
 }
 
-/* Ensure floating header doesn't interfere with map controls */
 .fixed.bottom-4 {
   pointer-events: none;
 }
@@ -126,22 +98,19 @@
   pointer-events: auto;
 }
 
-/* Adjust map controls to not overlap with bottom header */
 @media (max-width: 640px) {
   .maplibregl-ctrl-bottom-right,
   .mapboxgl-ctrl-bottom-right {
-    bottom: 80px !important; /* Move up to avoid header */
+    bottom: 80px !important;
     right: 8px !important;
   }
 }
 
-/* Smooth transitions */
 .maplibregl-map,
 .mapboxgl-map {
   transition: none !important;
 }
 
-/* Prevent text selection on map */
 .maplibregl-map *,
 .mapboxgl-map * {
   -webkit-user-select: none;
@@ -150,11 +119,3 @@
   user-select: none;
 }
 
-/* Allow text selection in popups */
-.maplibregl-popup-content *,
-.mapboxgl-popup-content * {
-  -webkit-user-select: text;
-  -moz-user-select: text;
-  -ms-user-select: text;
-  user-select: text;
-}

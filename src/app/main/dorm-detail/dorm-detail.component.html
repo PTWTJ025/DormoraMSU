@@ -279,19 +279,43 @@
                 priceRange || dormPrice
               }}</span>
             </div>
+
+            <div class="flex flex-col" *ngIf="dormDetail?.room_type">
+              <span class="text-[#4F5356] font-bold text-sm mb-1"
+                >ประเภทห้อง</span
+              >
+              <span class="font-medium text-[#4F5356] text-lg">
+                {{ dormDetail?.room_type }}
+              </span>
+            </div>
           </div>
 
           <!-- Dorm Description -->
-          <div
-            *ngIf="dormDetail?.dorm_description || dormDetail?.description"
-            class="mb-6"
-          >
+          <div *ngIf="dormDetail?.description" class="mb-6">
             <span class="text-[#4F5356] font-bold text-sm mb-2 block"
               >รายละเอียดหอพัก</span
             >
-            <p class="text-[#4F5356] leading-relaxed">
-              {{ dormDetail?.dorm_description || dormDetail?.description }}
+            <p class="text-[#4F5356] leading-relaxed mb-3">
+              {{ dormDetail?.description }}
             </p>
+            <!-- คำอธิบายระยะทาง -->
+            <div
+              *ngIf="calculateDistanceDescription()"
+              class="mt-4 p-4 rounded-xl border border-blue-100 bg-blue-50/80 shadow-sm"
+            >
+              <div class="flex items-start gap-3">
+                <div class="space-y-1">
+                  <p
+                    class="text-[11px] font-semibold tracking-wide text-blue-900 uppercase"
+                  >
+                    ทำเล & ระยะทาง
+                  </p>
+                  <p class="text-blue-900 text-sm leading-relaxed">
+                    {{ calculateDistanceDescription() }}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="grid grid-cols-1 gap-6 mb-6">
@@ -318,155 +342,10 @@
           </div>
 
           <div class="mt-6">
-            <h4 class="font-bold text-[#4F5356] mb-4 text-lg">ประเภทห้อง</h4>
-            <!-- Room Types Table -->
-            <div
-              class="overflow-x-auto rounded-lg shadow-sm border border-gray-200"
-            >
-              <table class="min-w-full text-left">
-                <thead
-                  class="bg-gradient-to-r from-blue-50 to-indigo-50 text-[#4F5356]"
-                >
-                  <tr>
-                    <th
-                      class="px-6 py-4 font-semibold text-sm uppercase tracking-wider"
-                    >
-                      ชื่อห้อง
-                    </th>
-                    <th
-                      class="px-6 py-4 font-semibold text-sm uppercase tracking-wider"
-                    >
-                      ประเภทเตียง
-                    </th>
-                    <th
-                      class="px-6 py-4 font-semibold text-sm uppercase tracking-wider text-center"
-                    >
-                      รายเดือน
-                    </th>
-                    <th
-                      class="px-6 py-4 font-semibold text-sm uppercase tracking-wider text-center"
-                    >
-                      รายวัน
-                    </th>
-                    <th
-                      class="px-6 py-4 font-semibold text-sm uppercase tracking-wider text-center"
-                    >
-                      รายเทอม
-                    </th>
-                    <th
-                      class="px-6 py-4 font-semibold text-sm uppercase tracking-wider text-center"
-                    >
-                      ซัมเมอร์
-                    </th>
-                  </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                  <tr
-                    *ngFor="let rt of roomTypes; let i = index"
-                    [class.bg-gray-50]="i % 2 === 1"
-                  >
-                    <td class="px-6 py-4 font-medium text-gray-600">
-                      <span
-                        *ngIf="
-                          (rt.name && rt.name.trim()) ||
-                            (rt.name && rt.name.trim());
-                          else noName
-                        "
-                        >{{ rt.name || rt.name }}</span
-                      >
-                      <ng-template #noName>
-                        <span>
-                          {{
-                            rt.bed_type
-                              ? "ห้อง" + rt.bed_type
-                              : "ห้อง " + rt.room_type_id
-                          }}
-                        </span>
-                      </ng-template>
-                    </td>
-                    <td class="px-6 py-4 text-gray-600">
-                      <span *ngIf="rt.bed_type; else noBedType">{{
-                        rt.bed_type
-                      }}</span>
-                      <ng-template #noBedType>
-                        <span class="italic">ไม่ระบุ</span>
-                      </ng-template>
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                      <span
-                        *ngIf="rt.monthly_price; else noPrice"
-                        class="text-gray-600"
-                      >
-                        {{ rt.monthly_price | number }} บาท
-                      </span>
-                      <ng-template #noPrice>
-                        <span class="text-gray-600">ติดต่อสอบถาม</span>
-                      </ng-template>
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                      <span
-                        *ngIf="rt.daily_price; else noPrice"
-                        class="text-gray-600"
-                      >
-                        {{ rt.daily_price | number }} บาท
-                      </span>
-                      <ng-template #noPrice>
-                        <span class="text-gray-600">ติดต่อสอบถาม</span>
-                      </ng-template>
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                      <span
-                        *ngIf="rt.term_price; else noPrice"
-                        class="text-gray-600"
-                      >
-                        {{ rt.term_price | number }} บาท
-                      </span>
-                      <ng-template #noPrice>
-                        <span class="text-gray-600">ติดต่อสอบถาม</span>
-                      </ng-template>
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                      <span
-                        *ngIf="rt.summer_price; else noPrice"
-                        class="text-gray-600"
-                      >
-                        {{ rt.summer_price | number }} บาท
-                      </span>
-                      <ng-template #noPrice>
-                        <span class="text-gray-600">ติดต่อสอบถาม</span>
-                      </ng-template>
-                    </td>
-                  </tr>
-                  <tr *ngIf="!roomTypes || roomTypes.length === 0">
-                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                      <div class="flex flex-col items-center">
-                        <svg
-                          class="w-12 h-12 text-gray-300 mb-2"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                          ></path>
-                        </svg>
-                        <span class="text-sm">ไม่มีข้อมูลประเภทห้อง</span>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="mt-6">
             <h4 class="font-bold text-[#4F5356] mb-4">ค่าใช้จ่าย</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div
-                *ngIf="dormDetail?.water_rate"
+                *ngIf="dormDetail?.water_price || dormDetail?.water_rate"
                 class="bg-blue-50 p-4 rounded-lg border border-blue-200"
               >
                 <div class="flex flex-col">
@@ -477,7 +356,9 @@
                 </div>
               </div>
               <div
-                *ngIf="dormDetail?.electricity_rate"
+                *ngIf="
+                  dormDetail?.electricity_price || dormDetail?.electricity_rate
+                "
                 class="bg-yellow-50 p-4 rounded-lg border border-yellow-200"
               >
                 <div class="flex flex-col">
@@ -490,13 +371,7 @@
             </div>
           </div>
 
-          <!-- Description -->
-          <div *ngIf="dormDetail && dormDetail.description" class="mt-6">
-            <h4 class="font-semibold text-[#4F5356] mb-3">รายละเอียดหอพัก</h4>
-            <p class="text-[#4F5356] leading-relaxed">
-              {{ dormDetail.description }}
-            </p>
-          </div>
+          <!-- ลบส่วนนี้ออกเพราะซ้ำกับด้านบน -->
         </div>
       </div>
 
@@ -508,33 +383,13 @@
           </h3>
         </div>
         <div class="p-6">
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-            <div *ngFor="let amenity of amenities" class="flex items-center">
-              <div
-                *ngIf="amenity.available"
-                class="w-5 h-5 rounded bg-red-500 flex items-center justify-center mr-2"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="3"
-                  stroke="white"
-                  class="w-3 h-3"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M4.5 12.75l6 6 9-13.5"
-                  />
-                </svg>
-              </div>
-              <div
-                *ngIf="!amenity.available"
-                class="w-5 h-5 rounded border border-gray-300 mr-2"
-              ></div>
-              <span class="text-[#4F5356] text-sm">{{ amenity.name }}</span>
-            </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            <app-amenity-icon
+              *ngFor="let amenity of amenities"
+              [name]="amenity.name"
+              [available]="amenity.available"
+            >
+            </app-amenity-icon>
           </div>
         </div>
       </div>
@@ -582,33 +437,39 @@
           </div>
         </div>
       </div>
+    </div>
+    <!-- End of Left Side -->
 
-      <!-- Right Side - Sidebar -->
-      <div class="lg:mt-6 min-w-0 overflow-hidden">
-        <!-- Owner Profile Card -->
-        <div class="bg-white shadow-sm p-4 mb-4">
-          <div class="flex flex-col items-center">
-            <!-- Profile Image with Yellow Border -->
-            <div
-              class="w-24 h-24 rounded-full overflow-hidden mb-3 border-2"
-              style="border-color: #fbbf24"
-            >
-              <img
-                [src]="getOwnerContactAvatarUrl()"
-                alt="Owner Profile"
-                class="w-full h-full object-cover"
-              />
-            </div>
+    <!-- Right Side - Sidebar -->
+    <div class="min-w-0 overflow-hidden">
+      <!-- Owner Profile Card - Responsive -->
+      <div class="bg-white shadow-sm rounded-lg p-4 sm:p-6 mb-4">
+        <div class="flex flex-col items-center">
+          <!-- Profile Image with Yellow Border -->
+          <div
+            class="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden mb-3 border-2"
+            style="border-color: #fbbf24"
+          >
+            <img
+              [src]="getOwnerContactAvatarUrl()"
+              alt="Owner Profile"
+              class="w-full h-full object-cover"
+            />
+          </div>
 
-            <!-- Owner Name -->
-            <h3 class="font-semibold text-lg text-[#4F5356] mb-3">
-              {{ ownerContact.name }}
-            </h3>
+          <!-- Owner Name -->
+          <h3
+            class="font-semibold text-base sm:text-lg text-[#4F5356] mb-3 text-center"
+          >
+            {{ ownerContact.name }}
+          </h3>
 
+          <!-- Contact Buttons - Full width on mobile -->
+          <div class="w-full max-w-[300px] space-y-2">
             <!-- Phone Button -->
             <button
               (click)="contactOwner()"
-              class="w-60 bg-[#31AA52] hover:bg-[#289244] text-[14px] text-white py-2.5 rounded-lg mb-2 font-medium flex items-center justify-center transition-colors duration-200 shadow-sm"
+              class="w-full bg-[#31AA52] hover:bg-[#289244] text-sm sm:text-[14px] text-white py-2.5 rounded-lg font-medium flex items-center justify-center transition-colors duration-200 shadow-sm"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -616,7 +477,7 @@
                 viewBox="0 0 24 24"
                 stroke-width="1.5"
                 stroke="currentColor"
-                class="w-5 h-5 mr-2"
+                class="w-4 h-4 sm:w-5 sm:h-5 mr-2"
               >
                 <path
                   stroke-linecap="round"
@@ -624,14 +485,16 @@
                   d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"
                 />
               </svg>
-              {{ ownerContact.phone || "ติดต่อสอบถาม" }}
+              <span class="truncate">{{
+                ownerContact.phone || "ติดต่อสอบถาม"
+              }}</span>
             </button>
 
             <!-- Secondary Phone Button (if exists) -->
             <button
               *ngIf="ownerContact.secondaryPhone"
               (click)="contactOwnerSecondary()"
-              class="w-60 bg-[#4A90E2] hover:bg-[#357ABD] text-[14px] text-white py-2.5 rounded-lg mb-2 font-medium flex items-center justify-center transition-colors duration-200 shadow-sm"
+              class="w-full bg-[#4A90E2] hover:bg-[#357ABD] text-sm sm:text-[14px] text-white py-2.5 rounded-lg font-medium flex items-center justify-center transition-colors duration-200 shadow-sm"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -639,7 +502,7 @@
                 viewBox="0 0 24 24"
                 stroke-width="1.5"
                 stroke="currentColor"
-                class="w-5 h-5 mr-2"
+                class="w-4 h-4 sm:w-5 sm:h-5 mr-2"
               >
                 <path
                   stroke-linecap="round"
@@ -647,328 +510,353 @@
                   d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"
                 />
               </svg>
-              {{ ownerContact.secondaryPhone }}
+              <span class="truncate">{{ ownerContact.secondaryPhone }}</span>
             </button>
 
             <!-- Line ID Box -->
             <div
               *ngIf="ownerContact.lineId && ownerContact.lineId !== 'ไม่มี'"
-              class="w-60 border border-[#434FAA] text-center text-[14px] py-2.5 rounded-lg flex items-center justify-center font-medium text-[#434FAA] cursor-pointer hover:border-[#2c3e8a] transition-colors duration-200"
+              class="w-full border border-[#434FAA] text-center text-sm sm:text-[14px] py-2.5 rounded-lg flex items-center justify-center font-medium text-[#434FAA] cursor-pointer hover:border-[#2c3e8a] transition-colors duration-200"
               (click)="openLineChat()"
               title="คลิกเพื่อแอดเพื่อนใน Line"
             >
               <img
                 src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg"
                 alt="Line"
-                class="w-5 h-5 mr-2"
+                class="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0"
               />
-              Line ID : {{ ownerContact.lineId }}
+              <span class="truncate">Line ID : {{ ownerContact.lineId }}</span>
             </div>
             <div
               *ngIf="!ownerContact.lineId || ownerContact.lineId === 'ไม่มี'"
-              class="w-60 border border-gray-300 text-center text-[14px] py-2.5 rounded-lg flex items-center justify-center font-medium text-gray-500"
+              class="w-full border border-gray-300 text-center text-sm sm:text-[14px] py-2.5 rounded-lg flex items-center justify-center font-medium text-gray-500"
             >
               <img
                 src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg"
                 alt="Line"
-                class="w-5 h-5 mr-2 opacity-50"
+                class="w-4 h-4 sm:w-5 sm:h-5 mr-2 opacity-50 flex-shrink-0"
               />
-              Line ID : ไม่มี
+              <span>Line ID : ไม่มี</span>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Similar Properties -->
-        <div class="bg-white shadow-sm">
-          <h3
-            class="font-bold text-lg px-4 py-3 border-b border-gray-200 text-[#4F5356]"
-          >
-            หอพักที่คล้ายกัน
-          </h3>
+      <!-- Similar Properties - Responsive Grid -->
+      <div class="bg-white shadow-sm rounded-lg overflow-hidden">
+        <h3
+          class="font-bold text-base sm:text-lg px-4 py-3 border-b border-gray-200 text-[#4F5356]"
+        >
+          หอพักที่คล้ายกัน
+        </h3>
 
-          <!-- Loading State -->
-          <div *ngIf="loadingState.similar" class="p-4 text-center">
-            <div
-              class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"
-            ></div>
-            <p class="text-sm text-gray-600 mt-2">
-              กำลังโหลดหอพักที่คล้ายกัน...
-            </p>
-          </div>
-
-          <!-- Empty State -->
+        <!-- Loading State -->
+        <div *ngIf="loadingState.similar" class="p-4 text-center">
           <div
-            *ngIf="!loadingState.similar && similarProperties.length === 0"
-            class="p-4 text-center text-gray-500"
-          >
-            <p class="text-sm">ไม่พบหอพักที่คล้ายกัน</p>
-          </div>
+            class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"
+          ></div>
+          <p class="text-sm text-gray-600 mt-2">กำลังโหลดหอพักที่คล้ายกัน...</p>
+        </div>
 
-          <!-- Similar Properties List -->
-          <div
-            *ngIf="!loadingState.similar && similarProperties.length > 0"
-            class="p-3 space-y-3"
+        <!-- Empty State -->
+        <div
+          *ngIf="!loadingState.similar && similarProperties.length === 0"
+          class="p-4 text-center text-gray-500"
+        >
+          <svg
+            class="w-12 h-12 text-gray-300 mb-2 mx-auto"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            <!-- Debug Info (ลบออกได้เมื่อแก้ไขเสร็จ) -->
-            <div class="text-xs text-gray-400 mb-2">
-              Debug: พบหอพักที่คล้ายกัน {{ similarProperties.length }} รายการ
-            </div>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+            ></path>
+          </svg>
+          <p class="text-sm">ไม่พบหอพักที่คล้ายกัน</p>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div
+        *ngIf="!loadingState.similar && similarProperties.length === 0"
+        class="p-4 text-center text-gray-500"
+      >
+        <svg
+          class="w-12 h-12 text-gray-300 mb-2 mx-auto"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+          ></path>
+        </svg>
+        <p class="text-sm">ไม่พบหอพักที่คล้ายกัน</p>
+      </div>
+
+      <!-- Similar Properties Grid - Responsive -->
+      <div
+        *ngIf="!loadingState.similar && similarProperties.length > 0"
+        class="p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3"
+      >
+        <div
+          *ngFor="let property of similarProperties"
+          (click)="viewSimilarDorm(property.id)"
+          class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02]"
+        >
+          <!-- Image section -->
+          <div
+            class="w-full h-32 sm:h-36 overflow-hidden"
+            [style.background-image]="'url(' + property.image + ')'"
+            style="
+              background-size: cover;
+              background-position: center;
+              background-repeat: no-repeat;
+            "
+          ></div>
+          <!-- Content section -->
+          <div class="p-3">
+            <!-- ราคารายวัน -->
             <div
-              *ngFor="let property of similarProperties"
-              (click)="viewSimilarDorm(property.id)"
-              class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow duration-200 cursor-pointer max-w-[300px]"
+              *ngIf="property.dailyPrice"
+              class="text-xs sm:text-sm font-semibold text-[#4F5356] mb-1"
             >
-              <!-- Image section -->
-              <div
-                class="w-full h-36 overflow-hidden rounded-t-lg hover:scale-105 transition-transform duration-500"
-                [style.background-image]="'url(' + property.image + ')'"
-                style="
-                  background-size: cover;
-                  background-position: center;
-                  background-repeat: no-repeat;
-                "
-              ></div>
-              <!-- Content section -->
-              <div class="p-3">
-                <!-- ราคารายวัน -->
-                <div
-                  *ngIf="property.dailyPrice"
-                  class="text-sm font-semibold text-[#4F5356] mb-1"
+              {{ property.dailyPrice }}
+            </div>
+            <!-- ราคารายเดือน -->
+            <div
+              *ngIf="property.monthlyPrice"
+              class="text-base sm:text-lg font-bold text-[#4F5356] mb-1"
+            >
+              {{ property.monthlyPrice }}
+            </div>
+            <!-- Fallback ราคาเดิม -->
+            <div
+              *ngIf="!property.dailyPrice && !property.monthlyPrice"
+              class="text-base sm:text-lg font-bold text-[#4F5356] mb-1"
+            >
+              {{ property.price }}
+            </div>
+            <div class="text-lg font-medium text-[#4F5356] mb-1 line-clamp-1">
+              {{ property.name }}
+            </div>
+            <div class="text-sm text-[#4F5356] mb-1 line-clamp-1">
+              {{ property.zone }}
+            </div>
+            <div class="text-xs text-[#4F5356] mb-2">
+              {{ property.date }}
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <span
+                  class="text-sm font-bold text-[#4F5356] relative top-0.5"
+                  >{{ property.rating.toFixed(1) }}</span
                 >
-                  {{ property.dailyPrice }}
-                </div>
-                <!-- ราคารายเดือน -->
-                <div
-                  *ngIf="property.monthlyPrice"
-                  class="text-lg font-bold text-[#4F5356] mb-1"
-                >
-                  {{ property.monthlyPrice }}
-                </div>
-                <!-- Fallback ราคาเดิม -->
-                <div
-                  *ngIf="!property.dailyPrice && !property.monthlyPrice"
-                  class="text-lg font-bold text-[#4F5356] mb-1"
-                >
-                  {{ property.price }}
-                </div>
-                <div
-                  class="text-lg font-medium text-[#4F5356] mb-1 line-clamp-1"
-                >
-                  {{ property.name }}
-                </div>
-                <div class="text-sm text-[#4F5356] mb-1 line-clamp-1">
-                  {{ property.zone }}
-                </div>
-                <div class="text-xs text-[#4F5356] mb-2">
-                  {{ property.date }}
-                </div>
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center">
-                    <span
-                      class="text-sm font-bold text-[#4F5356] relative top-0.5"
-                      >{{ property.rating.toFixed(1) }}</span
+                <div class="ml-2 flex relative top-[0.05rem]">
+                  <!-- ดาวเต็ม -->
+                  <ng-container *ngFor="let star of getStars(property.rating)">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="#FDD836"
+                      viewBox="0 0 20 20"
+                      class="w-4 h-4 relative"
                     >
-                    <div class="ml-2 flex relative top-[0.05rem]">
-                      <!-- ดาวเต็ม -->
-                      <ng-container
-                        *ngFor="let star of getStars(property.rating)"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="#FDD836"
-                          viewBox="0 0 20 20"
-                          class="w-4 h-4 relative"
-                        >
-                          <path
-                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.454a1 1 0 00-1.175 0l-3.38 2.454c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"
-                          />
-                        </svg>
-                      </ng-container>
-                      <!-- ดาวว่าง -->
-                      <ng-container
-                        *ngFor="let emptyStar of getEmptyStars(property.rating)"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="#E5E7EB"
-                          viewBox="0 0 20 20"
-                          class="w-4 h-4 relative"
-                        >
-                          <path
-                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.454a1 1 0 00-1.175 0l-3.38 2.454c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"
-                          />
-                        </svg>
-                      </ng-container>
-                    </div>
-                  </div>
+                      <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.454a1 1 0 00-1.175 0l-3.38 2.454c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"
+                      />
+                    </svg>
+                  </ng-container>
+                  <!-- ดาวว่าง -->
+                  <ng-container
+                    *ngFor="let emptyStar of getEmptyStars(property.rating)"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="#E5E7EB"
+                      viewBox="0 0 20 20"
+                      class="w-4 h-4 relative"
+                    >
+                      <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.454a1 1 0 00-1.175 0l-3.38 2.454c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"
+                      />
+                    </svg>
+                  </ng-container>
                 </div>
               </div>
             </div>
-
-            <!-- ปุ่มดูเพิ่มเติม -->
-            <div class="text-center pt-2">
-              <button
-                (click)="viewMoreSimilarDorms()"
-                class="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline transition-colors duration-200"
-              >
-                ดูหอพักที่คล้ายกันเพิ่มเติม
-              </button>
-            </div>
           </div>
         </div>
-      </div>
-    </div>
-    <!-- End of Main Content Grid -->
 
-    <!-- Compare Popup -->
-    <app-compare-popup></app-compare-popup>
-
-    <!-- Inline Popup / Toast -->
-    <div *ngIf="isPopupVisible" class="fixed bottom-6 right-6 z-50">
-      <div
-        class="min-w-[260px] max-w-sm px-4 py-3 rounded-lg shadow-lg text-white flex items-start space-x-3"
-        [ngClass]="{
-          'bg-green-600': popupType === 'success',
-          'bg-red-600': popupType === 'error',
-          'bg-yellow-600': popupType === 'warning',
-          'bg-blue-600': popupType === 'info',
-        }"
-      >
-        <i
-          class="mt-0.5"
-          [ngClass]="{
-            'fa-solid fa-circle-check': popupType === 'success',
-            'fa-solid fa-triangle-exclamation': popupType === 'warning',
-            'fa-solid fa-circle-info': popupType === 'info',
-            'fa-solid fa-circle-xmark': popupType === 'error',
-          }"
-        ></i>
-        <div class="flex-1 text-sm leading-5">
-          {{ popupMessage }}
+        <!-- ปุ่มดูเพิ่มเติม -->
+        <div class="text-center pt-2">
+          <button
+            (click)="viewMoreSimilarDorms()"
+            class="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline transition-colors duration-200"
+          >
+            ดูหอพักที่คล้ายกันเพิ่มเติม
+          </button>
         </div>
-        <button
-          class="ml-2 text-white/80 hover:text-white"
-          (click)="hidePopup()"
-          aria-label="ปิด"
-        >
-          <i class="fa-solid fa-xmark"></i>
-        </button>
       </div>
     </div>
+  </div>
+  <!-- End of Right Side -->
+</div>
+<!-- End of Main Content Grid -->
 
-    <!-- Image Modal -->
-    <div
-      *ngIf="showImageModal"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90"
-      (click)="closeImageModal()"
-      (keydown)="onModalKeydown($event)"
-      tabindex="0"
+<!-- Compare Popup -->
+<app-compare-popup></app-compare-popup>
+
+<!-- Inline Popup / Toast -->
+<div *ngIf="isPopupVisible" class="fixed bottom-6 right-6 z-50">
+  <div
+    class="min-w-[260px] max-w-sm px-4 py-3 rounded-lg shadow-lg text-white flex items-start space-x-3"
+    [ngClass]="{
+      'bg-green-600': popupType === 'success',
+      'bg-red-600': popupType === 'error',
+      'bg-yellow-600': popupType === 'warning',
+      'bg-blue-600': popupType === 'info',
+    }"
+  >
+    <i
+      class="mt-0.5"
+      [ngClass]="{
+        'fa-solid fa-circle-check': popupType === 'success',
+        'fa-solid fa-triangle-exclamation': popupType === 'warning',
+        'fa-solid fa-circle-info': popupType === 'info',
+        'fa-solid fa-circle-xmark': popupType === 'error',
+      }"
+    ></i>
+    <div class="flex-1 text-sm leading-5">
+      {{ popupMessage }}
+    </div>
+    <button
+      class="ml-2 text-white/80 hover:text-white"
+      (click)="hidePopup()"
+      aria-label="ปิด"
     >
-      <!-- Modal Content -->
-      <div
-        class="relative max-w-7xl max-h-full w-full h-full flex items-center justify-center p-4"
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+</div>
+
+<!-- Image Modal -->
+<div
+  *ngIf="showImageModal"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90"
+  (click)="closeImageModal()"
+  (keydown)="onModalKeydown($event)"
+  tabindex="0"
+>
+  <!-- Modal Content -->
+  <div
+    class="relative max-w-7xl max-h-full w-full h-full flex items-center justify-center p-4"
+  >
+    <!-- Close Button -->
+    <button
+      class="absolute top-4 right-4 z-10 bp-3 text-white transition-all duration-200"
+      (click)="closeImageModal()"
+      aria-label="ปิด"
+    >
+      <svg
+        class="w-6 h-6"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
       >
-        <!-- Close Button -->
-        <button
-          class="absolute top-4 right-4 z-10 bp-3 text-white transition-all duration-200"
-          (click)="closeImageModal()"
-          aria-label="ปิด"
-        >
-          <svg
-            class="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
-            ></path>
-          </svg>
-        </button>
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M6 18L18 6M6 6l12 12"
+        ></path>
+      </svg>
+    </button>
 
-        <!-- Previous Button -->
-        <button
-          *ngIf="images.length > 1"
-          class="absolute left-4 top-1/2 transform -translate-y-1/2 p-4 text-white z-10 transition-all duration-200"
-          (click)="prevModalImage(); $event.stopPropagation()"
-          aria-label="ภาพก่อนหน้า"
-        >
-          <svg
-            class="w-8 h-8"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 19l-7-7 7-7"
-            ></path>
-          </svg>
-        </button>
+    <!-- Previous Button -->
+    <button
+      *ngIf="images.length > 1"
+      class="absolute left-4 top-1/2 transform -translate-y-1/2 p-4 text-white z-10 transition-all duration-200"
+      (click)="prevModalImage(); $event.stopPropagation()"
+      aria-label="ภาพก่อนหน้า"
+    >
+      <svg
+        class="w-8 h-8"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M15 19l-7-7 7-7"
+        ></path>
+      </svg>
+    </button>
 
-        <!-- Next Button -->
-        <button
-          *ngIf="images.length > 1"
-          class="absolute right-4 top-1/2 transform -translate-y-1/2 p-4 text-white z-10 transition-all duration-200"
-          (click)="nextModalImage(); $event.stopPropagation()"
-          aria-label="ภาพถัดไป"
-        >
-          <svg
-            class="w-8 h-8"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 5l7 7-7 7"
-            ></path>
-          </svg>
-        </button>
+    <!-- Next Button -->
+    <button
+      *ngIf="images.length > 1"
+      class="absolute right-4 top-1/2 transform -translate-y-1/2 p-4 text-white z-10 transition-all duration-200"
+      (click)="nextModalImage(); $event.stopPropagation()"
+      aria-label="ภาพถัดไป"
+    >
+      <svg
+        class="w-8 h-8"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 5l7 7-7 7"
+        ></path>
+      </svg>
+    </button>
 
-        <!-- Main Image -->
+    <!-- Main Image -->
+    <img
+      [src]="images[modalImageIndex]"
+      alt="Dorm Image Full Size"
+      class="max-w-full max-h-full object-contain"
+      (click)="$event.stopPropagation()"
+    />
+
+    <!-- Image Counter -->
+    <div
+      *ngIf="images.length > 1"
+      class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full text-sm"
+    >
+      {{ modalImageIndex + 1 }} / {{ images.length }}
+    </div>
+
+    <!-- Thumbnail Strip (Optional) -->
+    <div
+      *ngIf="images.length > 1 && images.length <= 10"
+      class="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex space-x-2 bg-black/30 p-2 rounded-sm"
+    >
+      <div
+        *ngFor="let image of images; let i = index"
+        class="w-12 h-8 cursor-pointer transition-all duration-200 border-2 flex items-center justify-center overflow-hidden"
+        [class.border-white]="i === modalImageIndex"
+        [class.border-transparent]="i !== modalImageIndex"
+        [class.opacity-60]="i !== modalImageIndex"
+        (click)="modalImageIndex = i; $event.stopPropagation()"
+      >
         <img
-          [src]="images[modalImageIndex]"
-          alt="Dorm Image Full Size"
-          class="max-w-full max-h-full object-contain"
-          (click)="$event.stopPropagation()"
+          [src]="image"
+          alt="Thumbnail"
+          class="w-full h-full object-cover object-center rounded-sm"
         />
-
-        <!-- Image Counter -->
-        <div
-          *ngIf="images.length > 1"
-          class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full text-sm"
-        >
-          {{ modalImageIndex + 1 }} / {{ images.length }}
-        </div>
-
-        <!-- Thumbnail Strip (Optional) -->
-        <div
-          *ngIf="images.length > 1 && images.length <= 10"
-          class="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex space-x-2 bg-black/30 p-2 rounded-sm"
-        >
-          <div
-            *ngFor="let image of images; let i = index"
-            class="w-12 h-8 cursor-pointer transition-all duration-200 border-2 flex items-center justify-center overflow-hidden"
-            [class.border-white]="i === modalImageIndex"
-            [class.border-transparent]="i !== modalImageIndex"
-            [class.opacity-60]="i !== modalImageIndex"
-            (click)="modalImageIndex = i; $event.stopPropagation()"
-          >
-            <img
-              [src]="image"
-              alt="Thumbnail"
-              class="w-full h-full object-cover object-center rounded-sm"
-            />
-          </div>
-        </div>
       </div>
     </div>
   </div>

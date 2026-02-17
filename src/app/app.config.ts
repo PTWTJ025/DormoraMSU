@@ -28,7 +28,6 @@ export function initializeAuthFactory(authService: AuthService) {
         resolve();
       })
       .catch(error => {
-        console.error('[APP_INITIALIZER] Error initializing auth state:', error);
         resolve(); // Resolve anyway to prevent app from hanging
       });
     

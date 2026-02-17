@@ -18,7 +18,7 @@ export interface Dormitory {
   owner_username: string;
   owner_name: string;
   address: string;
-  approval_status: 'อนุมัติ' | 'รออนุมัติ' | 'ไม่อนุมัติ';
+  approval_status: 'approved' | 'pending' | 'rejected';
   submitted_date: string;
   zone_name: string;
   main_image_url: string;
@@ -51,6 +51,10 @@ export interface DormitoryDetail {
     owner_email: string;
     owner_phone: string;
   };
+  // เพิ่มฟิลด์ระดับบนสุดเพื่อให้ template เข้าถึงได้ง่าย
+  water_price?: number;
+  water_price_type?: string;
+  electricity_price?: number;
   images: Array<{
     image_id: number;
     image_url: string;
@@ -112,9 +116,16 @@ export class AdminService {
       (async () => {
         try {
           const headers = await this.getAuthHeadersAsync();
-          this.http.get<Dormitory[]>(`${this.backendUrl}/admin/submissions`, { headers })
+          this.http.get<any[]>(`${this.backendUrl}/admin/submissions`, { headers })
             .subscribe({
-              next: (data) => subscriber.next(data),
+              next: (data) => {
+                // Map ข้อมูลเพื่อดึง main_image_url จาก images array
+                const mappedData = data.map(dorm => ({
+                  ...dorm,
+                  main_image_url: this.extractMainImageUrl(dorm.images)
+                }));
+                subscriber.next(mappedData);
+              },
               error: (err) => subscriber.error(err),
               complete: () => subscriber.complete()
             });
@@ -133,9 +144,16 @@ export class AdminService {
       (async () => {
         try {
           const headers = await this.getAuthHeadersAsync();
-          this.http.get<Dormitory[]>(`${this.backendUrl}/admin/submissions?status=รออนุมัติ`, { headers })
+          this.http.get<any[]>(`${this.backendUrl}/admin/submissions?status=pending`, { headers })
             .subscribe({
-              next: (data) => subscriber.next(data),
+              next: (data) => {
+                // Map ข้อมูลเพื่อดึง main_image_url จาก images array
+                const mappedData = data.map(dorm => ({
+                  ...dorm,
+                  main_image_url: this.extractMainImageUrl(dorm.images)
+                }));
+                subscriber.next(mappedData);
+              },
               error: (err) => subscriber.error(err),
               complete: () => subscriber.complete()
             });
@@ -147,6 +165,36 @@ export class AdminService {
   }
 
   /**
+   * Helper method: ดึง main image URL จาก images array
+   */
+  private extractMainImageUrl(images: any): string {
+    // ถ้าไม่มี images หรือเป็น null
+    if (!images) {
+      return '';
+    }
+
+    // ถ้าเป็น array of objects
+    if (Array.isArray(images)) {
+      // หารูปที่เป็น primary ก่อน
+      const primaryImage = images.find(img => img.is_primary === true || img.is_primary === 1);
+      if (primaryImage?.image_url) {
+        return primaryImage.image_url;
+      }
+      
+      // ถ้าไม่มี primary ให้เอารูปแรก
+      if (images.length > 0 && images[0]?.image_url) {
+        return images[0].image_url;
+      }
+    }
+
+    // ถ้าเป็น string อยู่แล้ว
+    if (typeof images === 'string') {
+      return images;
+    }
+
+    return '';
+  }
+  /**
    * อนุมัติหอพัก
    */
   approveDormitory(dormId: string): Observable<any> {
@@ -154,8 +202,8 @@ export class AdminService {
       (async () => {
         try {
           const headers = await this.getAuthHeadersAsync();
-          this.http.put(`${this.backendUrl}/dormitories/${dormId}/approval-status`, 
-            { approval_status: 'อนุมัติแล้ว' }, 
+          this.http.put(`${this.backendUrl}/admin/dormitories/${dormId}/approval`, 
+            { status: 'approved' }, 
             { headers })
             .subscribe({
               next: (data) => subscriber.next(data),
@@ -177,9 +225,9 @@ export class AdminService {
       (async () => {
         try {
           const headers = await this.getAuthHeadersAsync();
-          this.http.put(`${this.backendUrl}/dormitories/${dormId}/approval-status`, 
+          this.http.put(`${this.backendUrl}/admin/dormitories/${dormId}/approval`, 
             { 
-              approval_status: 'ปฏิเสธ',
+              status: 'rejected',
               rejection_reason: reason 
             }, 
             { headers })
@@ -208,6 +256,8 @@ export class AdminService {
             .subscribe({
               next: (data) => {
                 // แปลง response format ให้ตรงกับ DormitoryDetail interface
+                console.log('🔍 [AdminService] Raw API Response:', data);
+                
                 const detail: DormitoryDetail = {
                   dormitory: {
                     dorm_id: data.dorm_id || data.id,
@@ -230,14 +280,19 @@ export class AdminService {
                     owner_email: data.owner_email || data.contact_email,
                     owner_phone: data.owner_phone || data.primary_phone || data.contact_phone
                   },
+                  // เพิ่มข้อมูลระดับบนสุดเพื่อให้ template เข้าถึงได้ง่าย
+                  water_price: data.water_price,
+                  water_price_type: data.water_price_type,
+                  electricity_price: data.electricity_price,
                   images: data.images || [],
                   room_types: data.room_types || [],
                   amenities: data.amenities || { ภายใน: [], ภายนอก: [], common: [] }
                 };
+                
+                console.log('✅ [AdminService] Processed Detail:', detail);
                 subscriber.next(detail);
               },
               error: (err) => {
-                console.error('[AdminService] Error fetching dormitory detail:', err);
                 subscriber.error(err);
               },
               complete: () => subscriber.complete()
@@ -258,16 +313,16 @@ export class AdminService {
         try {
           const headers = await this.getAuthHeadersAsync();
           
-          // แปลง status เป็น approval_status ตามที่ Backend ต้องการ
+          // แปลง status เป็นรูปแบบที่ API ต้องการ
           const backendPayload: any = {
-            approval_status: payload.status === 'อนุมัติ' ? 'อนุมัติแล้ว' : 'ปฏิเสธ'
+            status: payload.status === 'อนุมัติ' ? 'approved' : 'rejected'
           };
           
           if (payload.rejectionReason) {
             backendPayload.rejection_reason = payload.rejectionReason;
           }
           
-          this.http.put(`${this.backendUrl}/dormitories/${dormId}/approval-status`, backendPayload, { headers })
+          this.http.put(`${this.backendUrl}/admin/dormitories/${dormId}/approval`, backendPayload, { headers })
             .subscribe({
               next: (data) => subscriber.next(data),
               error: (err) => subscriber.error(err),
@@ -284,19 +339,45 @@ export class AdminService {
    * แก้ไขหอพักโดยแอดมิน (ข้อมูลทั้งหมด)
    */
   updateDormitory(dormId: string | number, payload: any): Observable<any> {
-    const headers = this.getAuthHeaders();
-    return this.http.put(`${this.backendUrl}/admin/dormitories/${dormId}`, payload, { headers });
+    return new Observable((subscriber) => {
+      (async () => {
+        try {
+          const headers = await this.getAuthHeadersAsync();
+          this.http.put(`${this.backendUrl}/admin/dormitories/${dormId}`, payload, { headers })
+            .subscribe({
+              next: (data) => subscriber.next(data),
+              error: (err) => subscriber.error(err),
+              complete: () => subscriber.complete()
+            });
+        } catch (err) {
+          subscriber.error(err);
+        }
+      })();
+    });
   }
 
   /**
    * ลบหอพัก
    */
   deleteDormitory(dormId: string, confirm: boolean = false): Observable<any> {
-    const headers = this.getAuthHeaders();
-    const params = confirm ? { confirm: 'true' } : {};
-    return this.http.delete(`${this.backendUrl}/admin/dormitories/${dormId}`, { 
-      headers, 
-      params: params
+    return new Observable((subscriber) => {
+      (async () => {
+        try {
+          const headers = await this.getAuthHeadersAsync();
+          const params = confirm ? { confirm: 'true' } : {};
+          this.http.delete(`${this.backendUrl}/admin/dormitories/${dormId}`, { 
+            headers, 
+            params: params
+          })
+            .subscribe({
+              next: (data) => subscriber.next(data),
+              error: (err) => subscriber.error(err),
+              complete: () => subscriber.complete()
+            });
+        } catch (err) {
+          subscriber.error(err);
+        }
+      })();
     });
   }
 
@@ -336,8 +417,21 @@ export class AdminService {
 
   // ตรวจสอบสมาชิกในหอพักก่อนลบ
   checkDormitoryMembers(dormId: string | number): Observable<any> {
-    const headers = this.getAuthHeaders();
-    return this.http.get(`${this.backendUrl}/admin/dormitories/${dormId}/check-members`, { headers });
+    return new Observable((subscriber) => {
+      (async () => {
+        try {
+          const headers = await this.getAuthHeadersAsync();
+          this.http.get(`${this.backendUrl}/admin/dormitories/${dormId}/check-members`, { headers })
+            .subscribe({
+              next: (data) => subscriber.next(data),
+              error: (err) => subscriber.error(err),
+              complete: () => subscriber.complete()
+            });
+        } catch (err) {
+          subscriber.error(err);
+        }
+      })();
+    });
   }
 
 }

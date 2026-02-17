@@ -1,9 +1,6 @@
-// Backend Configuration
-// เปลี่ยน USE_LOCAL_BACKEND เป็น false เมื่อต้องการใช้ production backend
-const USE_LOCAL_BACKEND = true;
-
+// Production Environment Configuration
 export const environment = {
-  production: false,
+  production: true,
   firebaseConfig: {
     apiKey: 'AIzaSyA8u5HYbzrlFm12sNtGTiyzLxwZ2kcS1_o',
     authDomain: 'projectroomaroo.firebaseapp.com',
@@ -14,12 +11,15 @@ export const environment = {
     measurementId: 'G-X6MZ8F81G1'
   },
   
-  // Backend API URLs - สลับระหว่าง localhost และ production
-  backendApiUrl: USE_LOCAL_BACKEND 
-    ? 'http://localhost:3000/api' 
-    : 'https://your-production-backend.com/api', // แก้ URL production ตรงนี้
+  // Production Backend API URL
+  backendApiUrl: 'https://your-production-backend.com/api', // แก้ URL production ตรงนี้
   
   fastApiUrl: 'https://roomaroo-textclassification.onrender.com/api',
   
   mapTilerApiKey: 'Gpwk2Mpi9cl8hUkVrf6f',
+  
+  // Admin Configuration
+  admin: {
+    notificationEmail: 'admin@dormroomaroo.com'
+  }
 };

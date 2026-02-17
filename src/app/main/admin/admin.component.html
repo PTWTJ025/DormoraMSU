@@ -51,9 +51,9 @@
       </button>
 
         <button
-          (click)="setTab('รออนุมัติ')"
+          (click)="setTab('pending')"
           [class]="
-            selectedTab === 'รออนุมัติ'
+            selectedTab === 'pending'
               ? 'bg-yellow-50 text-gray-900 border-yellow-300'
               : 'bg-gray-50 text-gray-600 border-gray-200'
           "
@@ -135,9 +135,9 @@
             </div>
           </button>
           <button
-            (click)="setTab('รออนุมัติ'); closeMobileSidebar()"
+            (click)="setTab('pending'); closeMobileSidebar()"
             [class]="
-              selectedTab === 'รออนุมัติ'
+              selectedTab === 'pending'
                 ? 'bg-yellow-50 text-gray-900 border-yellow-300'
                 : 'bg-gray-50 text-gray-600 border-gray-200'
             "
@@ -519,69 +519,40 @@
             <h3
               class="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b border-gray-200"
             >
-              ข้อมูลพื้นฐาน
+              ค่าใช้จ่าย
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <!-- ค่าน้ำ -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2"
-                  >ค่าน้ำ</label
-                >
-                <div
-                  class="px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg"
-                >
-                  <ng-container
-                    [ngSwitch]="
-                      reviewDormDetail?.dormitory?.water_type ||
-                      reviewDormDetail?.water_type
-                    "
-                  >
-                    <span *ngSwitchCase="'เหมาจ่าย'"
-                      >เหมาจ่าย
-                      {{
-                        reviewDormDetail?.dormitory?.water_rate ||
-                          reviewDormDetail?.water_rate ||
-                          "-"
-                      }}
-                      บาท/เดือน</span
-                    >
-                    <span *ngSwitchCase="'คิดตามหน่วย'"
-                      >{{
-                        reviewDormDetail?.dormitory?.water_rate ||
-                          reviewDormDetail?.water_rate ||
-                          "-"
-                      }}
-                      บาท/หน่วย</span
-                    >
-                    <span *ngSwitchDefault>ตามอัตราการประปา</span>
-                  </ng-container>
+              <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div class="flex flex-col">
+                  <span class="text-blue-700 font-medium mb-2">ค่าน้ำ</span>
+                  <div class="font-bold text-blue-900 text-lg">
+                    <ng-container *ngIf="reviewDormDetail?.water_price_type && reviewDormDetail?.water_price">
+                      <span *ngIf="reviewDormDetail.water_price_type === 'per_unit'">
+                        {{ reviewDormDetail.water_price }} บาท/หน่วย
+                      </span>
+                      <span *ngIf="reviewDormDetail.water_price_type === 'flat_rate'">
+                        {{ reviewDormDetail.water_price }} บาท/เดือน
+                      </span>
+                    </ng-container>
+                    <span *ngIf="!reviewDormDetail?.water_price_type || !reviewDormDetail?.water_price">
+                      ไม่ระบุ
+                    </span>
+                  </div>
                 </div>
               </div>
               <!-- ค่าไฟ -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2"
-                  >ค่าไฟ</label
-                >
-                <div
-                  class="px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg"
-                >
-                  <ng-container
-                    [ngSwitch]="
-                      reviewDormDetail?.dormitory?.electricity_type ||
-                      reviewDormDetail?.electricity_type
-                    "
-                  >
-                    <span *ngSwitchCase="'คิดตามหน่วย'"
-                      >{{
-                        reviewDormDetail?.dormitory?.electricity_rate ||
-                          reviewDormDetail?.electricity_rate ||
-                          "-"
-                      }}
-                      บาท/หน่วย</span
-                    >
-                    <span *ngSwitchCase="'ตามมิเตอร์'">ตามอัตราการไฟฟ้า</span>
-                    <span *ngSwitchDefault>ตามอัตราการไฟฟ้า</span>
-                  </ng-container>
+              <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                <div class="flex flex-col">
+                  <span class="text-yellow-700 font-medium mb-2">ค่าไฟ</span>
+                  <div class="font-bold text-yellow-900 text-lg">
+                    <span *ngIf="reviewDormDetail?.electricity_price">
+                      {{ reviewDormDetail.electricity_price }} บาท/หน่วย
+                    </span>
+                    <span *ngIf="!reviewDormDetail?.electricity_price">
+                      ไม่ระบุ
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -681,94 +652,12 @@
               สิ่งอำนวยความสะดวก
             </h3>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <!-- ภายในห้อง -->
-              <div>
-                <h4 class="text-base font-semibold text-gray-900 mb-4">
-                  ภายในห้อง
-                </h4>
-                <div class="grid grid-cols-2 gap-3">
-                  <ng-container
-                    *ngFor="let amenity of getAllAmenitiesByLocation('ภายใน')"
-                  >
-                    <div
-                      *ngIf="amenity.location_type === 'ภายใน'"
-                      class="flex items-center gap-2"
-                    >
-                      <div
-                        class="w-5 h-5 border-2 rounded flex items-center justify-center flex-shrink-0"
-                        [ngClass]="
-                          amenity.is_available
-                            ? 'border-red-500 bg-red-500'
-                            : 'border-gray-300 bg-white'
-                        "
-                      >
-                        <svg
-                          *ngIf="amenity.is_available"
-                          class="w-4 h-4 text-white"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="3"
-                            d="M5 13l4 4L19 7"
-                          ></path>
-                        </svg>
-                      </div>
-                      <span class="text-sm text-gray-700">{{
-                        amenity.amenity_name
-                      }}</span>
-                    </div>
-                  </ng-container>
-                </div>
-              </div>
-
-              <!-- ภายนอกห้อง -->
-              <div>
-                <h4 class="text-base font-semibold text-gray-900 mb-4">
-                  ภายนอกห้อง
-                </h4>
-                <div class="grid grid-cols-2 gap-3">
-                  <ng-container
-                    *ngFor="let amenity of getAllAmenitiesByLocation('ภายนอก')"
-                  >
-                    <div
-                      *ngIf="amenity.location_type === 'ภายนอก'"
-                      class="flex items-center gap-2"
-                    >
-                      <div
-                        class="w-5 h-5 border-2 rounded flex items-center justify-center flex-shrink-0"
-                        [ngClass]="
-                          amenity.is_available
-                            ? 'border-red-500 bg-red-500'
-                            : 'border-gray-300 bg-white'
-                        "
-                      >
-                        <svg
-                          *ngIf="amenity.is_available"
-                          class="w-4 h-4 text-white"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="3"
-                            d="M5 13l4 4L19 7"
-                          ></path>
-                        </svg>
-                      </div>
-                      <span class="text-sm text-gray-700">{{
-                        amenity.amenity_name
-                      }}</span>
-                    </div>
-                  </ng-container>
-                </div>
-              </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              <app-amenity-icon 
+                *ngFor="let amenity of getAllAmenitiesWithStatus()"
+                [name]="amenity.name" 
+                [available]="amenity.has">
+              </app-amenity-icon>
             </div>
           </div>
 
@@ -1099,7 +988,7 @@
 
       <!-- Pending Approval Section -->
       <div
-        *ngIf="selectedTab === 'รออนุมัติ'"
+        *ngIf="selectedTab === 'pending'"
         class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
       >
         <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
@@ -1377,7 +1266,8 @@
       <img
         [src]="getAdminAvatarUrl()"
            [alt]="adminProfile?.displayName || 'Admin Avatar'"
-        class="w-20 h-20 rounded-full mx-auto mb-4 object-cover border-4 border-gray-200"
+        class="w-20 h-20 rounded-full mx-auto mb-4 object-cover border-4 border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+        (click)="showImageModal(getAdminAvatarUrl(), adminProfile?.displayName || 'Admin Avatar')"
       />
 
       <h4 class="text-xl font-semibold text-gray-900 mb-2">

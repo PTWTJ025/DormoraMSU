@@ -107,8 +107,10 @@ export class AuthService {
                   id: profile.id,
                   email: user.email || '',
                   username: profile.username || '',
-                  displayName: profile.displayName || user.displayName || null,
-                  photoURL: user.photoURL || null,
+                  displayName:
+                    profile.displayName || user.displayName || null,
+                  // ใช้ photoURL จาก profile (ที่มาจาก backend DB) ก่อน แล้วค่อย fallback ไปที่ Firebase user
+                  photoURL: profile.photoURL ?? user.photoURL ?? null,
                   memberType: 'admin',
                   provider: 'password',
                 };
@@ -116,10 +118,6 @@ export class AuthService {
                 return;
               }
             } catch (error) {
-              console.error(
-                '[AuthService] Error parsing admin profile:',
-                error,
-              );
               localStorage.removeItem('adminProfile');
             }
           }
@@ -130,9 +128,7 @@ export class AuthService {
           }
           await this.updateCurrentUserSafely(null);
         } catch (error) {
-          console.error('[AuthService] Error in auth state change:', error);
-          // ไม่ set currentUser$ เป็น null เมื่อเกิด error เพื่อป้องกันการ redirect
-          // ให้รอ auth state ถูกต้องก่อน
+          // Silent error handling
         } finally {
           if (!this.authStateInitialized) {
             this.authStateInitialized = true;
@@ -234,9 +230,6 @@ export class AuthService {
         .get<any>(`${this.backendUrl}/auth/admin/me`, { headers })
         .toPromise();
 
-      // Debug: ดูว่า Backend ส่งอะไรกลับมา
-      console.log('🔍 Backend response:', response);
-
       // Backend ส่ง memberType: 'admin' มา
       if (!response || response.memberType !== 'admin') {
         console.error('❌ Admin verification failed:', {
@@ -254,7 +247,7 @@ export class AuthService {
         email: user.email || '',
         username: response.username || '',
         displayName: response.displayName || user.displayName || null,
-        photoURL: user.photoURL || null,
+        photoURL: response.photoURL || null,  // ใช้ photoURL จาก backend แทน Firebase Auth
         memberType: 'admin',
         provider: 'password',
       };
@@ -297,7 +290,6 @@ export class AuthService {
         }
       }
     } catch (error) {
-      console.error('[AuthService] Error signing out:', error);
       throw error;
     }
   }
@@ -340,7 +332,8 @@ export class AuthService {
               username: profile.username || '',
               displayName:
                 profile.displayName || currentUser.displayName || null,
-              photoURL: currentUser.photoURL || null,
+              // ใช้ photoURL จาก profile (ที่มาจาก backend DB) ก่อน แล้วค่อย fallback ไปที่ Firebase user
+              photoURL: profile.photoURL ?? currentUser.photoURL ?? null,
               memberType: 'admin',
               provider: 'password',
             };
@@ -348,7 +341,6 @@ export class AuthService {
             return adminData;
           }
         } catch (error) {
-          console.error('[AuthService] Error parsing admin profile:', error);
           localStorage.removeItem('adminProfile');
         }
       }
@@ -358,7 +350,6 @@ export class AuthService {
       this.currentUser$.next(null);
       return null;
     } catch (error) {
-      console.error('[AuthService] Error checking auth state:', error);
       return null;
     }
   }

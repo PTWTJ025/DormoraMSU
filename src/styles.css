@@ -54,13 +54,19 @@ input:focus:valid {
   border-color: #3b82f6 !important; /* Tailwind blue-500 */
 }
 
-/* เปลี่ยนเฉพาะส่วนนี้ */
-.maplibregl-popup-content, .mapboxgl-popup-content {
+/* ปรับ container ของ popup ให้โปร่งใส (ไม่มี card ภายใน) */
+.maplibregl-popup-content,
+.mapboxgl-popup-content {
   padding: 0 !important;
-  background: #fff !important;
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 0 !important;          /* ← ห้ามโค้ง */
-  box-shadow: 0 8px 28px rgba(0,0,0,.12) !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
-/* tip ของระบบยังคงแสดงอยู่ */
-.maplibregl-popup-tip, .mapboxgl-popup-tip { display: block !important; }
+
+/* ให้ tip ด้านล่างยังแสดงอยู่ตามปกติ */
+.maplibregl-popup-tip,
+.mapboxgl-popup-tip {
+  display: block !important;
+}
+

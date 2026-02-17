@@ -37,8 +37,8 @@ export interface Dorm {
   name?: string;
   location?: string;
   date?: string;
-  monthly_price?: string;
-  daily_price?: string;
+  monthly_price?: number; // เปลี่ยนจาก string เป็น number
+  daily_price?: number; // เปลี่ยนจาก string เป็น number
   main_image_url?: string;
   
   // เพิ่ม fields อื่นๆ ที่ backend ส่งมา (ตาม dormitoryController.js)
@@ -63,42 +63,14 @@ export interface DormImage {
   image_url: string;
 }
 
-export interface RoomType {
-  room_type_id: number;
-  // Backend currently does not return dorm_id in room types response
-  // so make it optional to prevent undefined typing issues
-  dorm_id?: number;
-  // Backend returns room_name; keep both for compatibility
-  name?: string;
-  room_name?: string;
-  bed_type: string;
-  size_sqm?: number;
-  monthly_price?: number;
-  daily_price?: number;
-  term_price?: number;
-  summer_price?: number;
-  // price_type removed: backend calculates from numeric prices
-  description?: string;
-  created_at?: string;
-  updated_at?: string;
-}
 
 export interface DormDetail extends Dorm {
-  manager_name: string;
+  // Contact information
+  manager_name?: string;
   manager_phone?: string;
-  primary_phone?: string; // Added field from API
+  primary_phone?: string;
   manager_line?: string;
-  line_id?: string; // Added field from API
-  water_bill?: string;
-  water_rate?: string; // Added field from API
-  water_type?: string; // Added field from API
-  electric_bill?: string;
-  electricity_rate?: string; // Added field from API
-  electricity_type?: string; // Added field from API
-  description?: string;
-  dorm_description?: string; // Added field from API
-  status_dorm?: string; // สถานะหอพัก: 'ว่าง' หรือ 'เต็ม'
-  statusDorm?: string; // สถานะหอพัก (camelCase)
+  line_id?: string;
   
   // Owner contact information
   owner_name?: string;
@@ -109,14 +81,43 @@ export interface DormDetail extends Dorm {
   owner_manager_name?: string;
   owner_photo_url?: string;
   
+  // Pricing (ใช้ชื่อฟิลด์ตาม API)
+  monthly_price?: number;
+  daily_price?: number;
+  summer_price?: number;
+  deposit?: number;
+  
+  // Utilities (ใช้ชื่อฟิลด์ตาม API)
+  electricity_price?: number;
+  water_price?: number;
+  water_price_type?: 'per_unit' | 'flat_rate';
+  
+  // Legacy fields (backward compatibility)
+  water_bill?: string;
+  water_rate?: string;
+  water_type?: string;
+  electric_bill?: string;
+  electricity_rate?: string;
+  electricity_type?: string;
+  
+  // Description (ใช้ชื่อฟิลด์ตาม API)
+  description?: string;
+  dorm_description?: string; // Legacy field
+  room_type?: string;
+  
+  // Status
+  status_dorm?: string; // สถานะหอพัก: 'ว่าง' หรือ 'เต็ม'
+  statusDorm?: string; // สถานะหอพัก (camelCase)
+  
+  // Images and amenities
   images: { image_id?: number; dorm_id?: number; image_url: string; image_type?: string; is_primary?: boolean; upload_date?: string }[];
   amenities: { 
     dorm_amenity_id?: number; 
     dorm_id?: number;
     amenity_id?: number;
-    name: string; 
-    is_available: boolean;
-    amenity_name?: string; // Alternative field name
+    name?: string; 
+    amenity_name?: string; // ชื่อฟิลด์ที่ API ส่งมา
+    is_available?: boolean;
   }[];
 }
 
@@ -133,9 +134,6 @@ export interface Amenity {
 @Injectable({ providedIn: 'root' })
 export class DormitoryService {
   private backendUrl = environment.backendApiUrl;
-  // Short-lived cache for eligibility checks (key: `${dormId}:${userId}`)
-  private eligibilityCache = new Map<string, { value: {canReview: boolean, message?: string}, expiresAt: number }>();
-  private readonly eligibilityTtlMs = 5 * 60 * 1000; // 5 minutes
 
   constructor(private http: HttpClient) {}
 
@@ -273,134 +271,9 @@ export class DormitoryService {
     });
   }
   
-  /** Get room types for a specific dormitory */
-  getRoomTypes(dormId: number): Observable<RoomType[]> {
-    // moved to new base: /edit-dormitory
-    return this.http.get<any[]>(`${this.backendUrl}/edit-dormitory/${dormId}/room-types`).pipe(
-      // Normalize backend fields so frontend can always use rt.name
-      map((rows: any[]) => {
-        const safeRows = Array.isArray(rows) ? rows : [];
-        return safeRows.map((rt: any) => ({
-          ...rt,
-          // prefer explicit name, otherwise map from room_name
-          name: rt?.name ?? rt?.room_name ?? '',
-          // accept missing dorm_id - backend doesn't send it in this endpoint
-          dorm_id: rt?.dorm_id,
-        })) as RoomType[];
-      }),
-      tap((resp) => {
-        console.log(`[DormitoryService] GET /edit-dormitory/${dormId}/room-types ->`, resp);
-      }),
-      catchError(err => {
-        console.error(`[DormitoryService] Error fetching room types for dorm ${dormId}:`, err);
-        return of([]);
-      })
-    );
-  }
-  
-  /** Add a new room type */
-  addRoomType(dormId: number, roomType: Partial<RoomType>): Observable<RoomType> {
-    return this.http.post<RoomType>(`${this.backendUrl}/add-dormitory/${dormId}/room-types`, roomType);
-  }
-
-  /** Add a new room type (edit flow) - ตามสเปคใหม่ */
-  addRoomTypeForEdit(dormId: number, roomType: Partial<RoomType>): Observable<RoomType> {
-    return new Observable((subscriber) => {
-      (async () => {
-        try {
-          const { getAuth } = await import('firebase/auth');
-          const auth = getAuth();
-          const currentUser = auth.currentUser;
-          if (!currentUser) {
-            subscriber.error(new Error('กรุณาเข้าสู่ระบบ'));
-            return;
-          }
-          const token = await currentUser.getIdToken();
-          const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-          this.http.post<RoomType>(`${this.backendUrl}/edit-dormitory/${dormId}/room-types`, roomType, { headers })
-            .subscribe({
-              next: (data) => subscriber.next(data),
-              error: (err) => subscriber.error(err),
-              complete: () => subscriber.complete()
-            });
-        } catch (err) {
-          subscriber.error(err);
-        }
-      })();
-
-      // teardown
-      return () => {};
-    });
-  }
-  
-  /** Add multiple room types in one request (bulk) */
-  addRoomTypesBulk(dormId: number, roomTypes: Array<Partial<RoomType>>): Observable<any> {
-    return this.http.post(`${this.backendUrl}/add-dormitory/${dormId}/room-types/bulk`, { room_types: roomTypes });
-  }
-  
-  /** Update a room type - ตามสเปคใหม่ */
-  updateRoomType(roomTypeId: number, roomType: Partial<RoomType>): Observable<RoomType> {
-    return new Observable((subscriber) => {
-      (async () => {
-        try {
-          const { getAuth } = await import('firebase/auth');
-          const auth = getAuth();
-          const currentUser = auth.currentUser;
-          if (!currentUser) {
-            subscriber.error(new Error('กรุณาเข้าสู่ระบบ'));
-            return;
-          }
-          const token = await currentUser.getIdToken();
-          const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-          this.http.put<RoomType>(`${this.backendUrl}/edit-dormitory/room-types/${roomTypeId}`, roomType, { headers })
-            .subscribe({
-              next: (data) => subscriber.next(data),
-              error: (err) => subscriber.error(err),
-              complete: () => subscriber.complete()
-            });
-        } catch (err) {
-          subscriber.error(err);
-        }
-      })();
-
-      // teardown
-      return () => {};
-    });
-  }
-  
-  /** Delete a room type - ตามสเปคใหม่ */
-  deleteRoomType(roomTypeId: number): Observable<any> {
-    return new Observable((subscriber) => {
-      (async () => {
-        try {
-          const { getAuth } = await import('firebase/auth');
-          const auth = getAuth();
-          const currentUser = auth.currentUser;
-          if (!currentUser) {
-            subscriber.error(new Error('กรุณาเข้าสู่ระบบ'));
-            return;
-          }
-          const token = await currentUser.getIdToken();
-          const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-          this.http.delete(`${this.backendUrl}/edit-dormitory/room-types/${roomTypeId}`, { headers })
-            .subscribe({
-              next: (data) => subscriber.next(data),
-              error: (err) => subscriber.error(err),
-              complete: () => subscriber.complete()
-            });
-        } catch (err) {
-          subscriber.error(err);
-        }
-      })();
-
-      // teardown
-      return () => {};
-    });
-  }
-
   /** Get all amenities from the database */
   getAllAmenities(): Observable<Amenity[]> {
-    return this.http.get<{ total: number; amenities: Amenity[] }>(`${this.backendUrl}/dormitories/amenities/all`).pipe(
+    return this.http.get<{ total: number; amenities: Amenity[] }>(`${this.backendUrl}/dormitories/amenities`).pipe(
       map(response => response.amenities || []),
       catchError(err => {
         console.error('[DormitoryService] Error fetching all amenities:', err);
@@ -476,139 +349,68 @@ export class DormitoryService {
   // Map API endpoints
   /** Get all dormitories for map display with coordinates */
   getAllDormitoriesForMap(): Observable<{dormitories: Dorm[], total: number}> {
-    return this.http.get<any>(`${this.backendUrl}/dormitories/map/all`).pipe(
-      map(response => {
-        // Handle new API response format
-        const dorms = response.dormitories || [];
-        const mappedDorms = dorms.map((dorm: any) => ({
-          dorm_id: dorm.id,
-          dorm_name: dorm.name,
-          address: dorm.address,
-          latitude: dorm.position?.lat || null,
-          longitude: dorm.position?.lng || null,
-          zone_name: dorm.zone,
-          thumbnail_url: dorm.image_url,
-          main_image_url: dorm.image_url,
-          min_price: dorm.price_range?.min,
-          max_price: dorm.price_range?.max,
-          rating: dorm.avg_rating ? Number(dorm.avg_rating) : (dorm.rating?.average || 0),
-          price_display: dorm.price_range ? 
-            `${dorm.price_range.min.toLocaleString()} - ${dorm.price_range.max.toLocaleString()} บาท/เดือน` : 
-            'ติดต่อสอบถาม'
-        }));
-        
+    // ใช้ endpoint /dormitories ปกติ แล้ว map ให้เหมาะกับการแสดงบนแผนที่
+    return this.http.get<any>(`${this.backendUrl}/dormitories`).pipe(
+      map((response: any) => {
+        // รองรับทั้งกรณี backend ส่งมาเป็น array ตรง ๆ หรือห่อใน object
+        const dorms: any[] = Array.isArray(response)
+          ? response
+          : response?.dormitories || [];
+
+        const mappedDorms: Dorm[] = (dorms || []).map((d: any) => {
+          // แปลง latitude / longitude ให้เป็น number เสมอ
+          let lat: number | null = d.latitude ?? null;
+          let lng: number | null = d.longitude ?? null;
+
+          if (typeof lat === 'string') {
+            const parsed = parseFloat(lat);
+            lat = Number.isNaN(parsed) ? null : parsed;
+          }
+          if (typeof lng === 'string') {
+            const parsed = parseFloat(lng);
+            lng = Number.isNaN(parsed) ? null : parsed;
+          }
+
+          return {
+            dorm_id: d.dorm_id ?? d.id,
+            dorm_name: d.dorm_name ?? d.name,
+            address: d.address,
+            latitude: lat,
+            longitude: lng,
+            zone_name: d.zone_name ?? d.zone,
+            thumbnail_url: d.thumbnail_url || d.main_image_url || d.image_url,
+            main_image_url: d.main_image_url || d.thumbnail_url || d.image_url,
+            min_price: d.min_price,
+            max_price: d.max_price,
+            rating: d.avg_rating ? Number(d.avg_rating) : d.rating || 0,
+            price_display:
+              d.min_price && d.max_price
+                ? `${Number(d.min_price).toLocaleString()} - ${Number(
+                    d.max_price
+                  ).toLocaleString()} บาท/เดือน`
+                : d.price_display || 'ติดต่อสอบถาม',
+          } as Dorm;
+        });
+
+        const total =
+          (Array.isArray(response) ? response.length : response?.total) ??
+          mappedDorms.length;
+
         return {
           dormitories: mappedDorms,
-          total: response.pagination?.total || mappedDorms.length
+          total,
         };
       }),
-      catchError(err => {
-        console.error('[DormitoryService] Error fetching dormitories for map:', err);
+      catchError((err) => {
+        console.error(
+          '[DormitoryService] Error fetching dormitories for map:',
+          err
+        );
         return of({ dormitories: [], total: 0 });
       })
     );
   }
 
-  /** Get dormitory popup data for map */
-  getDormitoryPopup(dormId: number): Observable<DormDetail> {
-    return this.http.get<any>(`${this.backendUrl}/dormitories/map/popup/${dormId}`).pipe(
-      map(response => {
-        // Handle new API response format
-        const dorm = response;
-        return {
-          dorm_id: dorm.id,
-          dorm_name: dorm.name,
-          address: dorm.address,
-          dorm_description: dorm.description,
-          latitude: dorm.position?.lat || null,
-          longitude: dorm.position?.lng || null,
-          zone_name: dorm.zone,
-          thumbnail_url: dorm.image_url,
-          main_image_url: dorm.image_url,
-          min_price: dorm.price_range?.min,
-          max_price: dorm.price_range?.max,
-          rating: dorm.avg_rating ? Number(dorm.avg_rating) : (dorm.rating?.average || 0),
-          price_display: dorm.price_range ? 
-            `${dorm.price_range.min.toLocaleString()} - ${dorm.price_range.max.toLocaleString()} บาท/เดือน` : 
-            'ติดต่อสอบถาม',
-          // Add other required fields for DormDetail
-          manager_name: 'เจ้าของหอพัก',
-          images: dorm.image_url ? [{ image_url: dorm.image_url }] : [],
-          amenities: []
-        } as DormDetail;
-      }),
-      catchError(err => {
-        console.error(`[DormitoryService] Error fetching dormitory popup for dorm ${dormId}:`, err);
-        throw err;
-      })
-    );
-  }
-
-  /** Check if user can review this dormitory (with short-lived cache) */
-  checkReviewEligibility(dormId: number, userId?: number | string): Observable<{canReview: boolean, message?: string}> {
-    const cacheKey = `${dormId}:${userId ?? 'anon'}`;
-
-    // Return cached value if valid
-    const now = Date.now();
-    const cached = this.eligibilityCache.get(cacheKey);
-    if (cached && cached.expiresAt > now) {
-      return of(cached.value);
-    }
-
-    return this.http.get<any>(`${this.backendUrl}/reviews/dormitory/${dormId}/eligibility`).pipe(
-      map(response => ({
-        canReview: response.can_review || response.canReview || false,
-        message: response.reason || response.message
-      })),
-      tap(result => {
-        this.eligibilityCache.set(cacheKey, { value: result, expiresAt: now + this.eligibilityTtlMs });
-      }),
-      catchError(err => {
-        console.error(`[DormitoryService] Error checking review eligibility for dorm ${dormId}:`, err);
-        return of({ canReview: false, message: 'ไม่สามารถตรวจสอบสิทธิ์การรีวิวได้' });
-      })
-    );
-  }
-
-  /** Get reviews for a dormitory */
-  getDormitoryReviews(dormId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.backendUrl}/reviews/dormitory/${dormId}`).pipe(
-      catchError(err => {
-        console.error(`[DormitoryService] Error fetching reviews for dorm ${dormId}:`, err);
-        return of([]);
-      })
-    );
-  }
-
-  /** Create a new review - ส่งเฉพาะ comment (AI จะทำการ auto-rating) */
-  createReview(dormId: number, reviewData: {comment: string}): Observable<any> {
-    return this.http.post<any>(`${this.backendUrl}/reviews/dormitory/${dormId}`, reviewData).pipe(
-      catchError(err => {
-        console.error(`[DormitoryService] Error creating review for dorm ${dormId}:`, err);
-        throw err;
-      })
-    );
-  }
-
-  /** Update an existing review */
-  updateReview(reviewId: number, reviewData: {comment: string}): Observable<any> {
-    return this.http.put<any>(`${this.backendUrl}/reviews/${reviewId}`, reviewData).pipe(
-      catchError(err => {
-        console.error(`[DormitoryService] Error updating review ${reviewId}:`, err);
-        throw err;
-      })
-    );
-  }
-
-  /** Delete a review */
-  deleteReview(reviewId: number): Observable<any> {
-    return this.http.delete<any>(`${this.backendUrl}/reviews/${reviewId}`).pipe(
-      catchError(err => {
-        console.error(`[DormitoryService] Error deleting review ${reviewId}:`, err);
-        throw err;
-      })
-    );
-  }
 
   /** Compare dormitories - Get comparison data for multiple dormitories */
   compareDormitories(dormIds: number[]): Observable<any> {
@@ -637,7 +439,7 @@ export class DormitoryService {
     );
   }
 
-  /** Unified filter method - รองรับการกรองทั้งเดี่ยวและรวม */
+  /** Unified filter method - map frontend filters -> backend /dormitories/filter */
   filterDormitories(params: {
     zoneIds?: number[];
     minPrice?: number;
@@ -654,85 +456,98 @@ export class DormitoryService {
     status?: string;
     limit?: number;
     offset?: number;
+    // ใหม่: ส่งชื่อสิ่งอำนวยความสะดวกตามที่ backend ต้องการ
+    amenities?: string | string[];
+    // เผื่อกรณีมีการส่ง price_type/room_type ตรง ๆ
+    price_type?: 'monthly' | 'daily';
+    room_type?: string;
   }): Observable<any> {
     let httpParams = new HttpParams();
-    
-    // Zone IDs
+
+    // --- โซน ---
+    // Backend คาดหวัง zone_id (เดี่ยว) หรือจะรองรับ comma-separated ก็ได้
     if (params.zoneIds && params.zoneIds.length > 0) {
-      httpParams = httpParams.set('zoneIds', params.zoneIds.join(','));
+      httpParams = httpParams.set('zone_id', params.zoneIds.join(','));
     }
-    
-    // Price range
-    if (params.minPrice !== undefined) {
-      httpParams = httpParams.set('minPrice', params.minPrice.toString());
+
+    // --- ช่วงราคา ---
+    if (params.minPrice !== undefined && params.minPrice !== null) {
+      httpParams = httpParams.set('min_price', params.minPrice.toString());
     }
-    if (params.maxPrice !== undefined) {
-      httpParams = httpParams.set('maxPrice', params.maxPrice.toString());
+    if (params.maxPrice !== undefined && params.maxPrice !== null) {
+      httpParams = httpParams.set('max_price', params.maxPrice.toString());
     }
-    
-    // Rent type
-    if (params.daily !== undefined) {
-      httpParams = httpParams.set('daily', params.daily.toString());
-    }
-    if (params.monthly !== undefined) {
-      httpParams = httpParams.set('monthly', params.monthly.toString());
-    }
-    
-    // Rating stars
-    if (params.stars && params.stars.length > 0) {
-      httpParams = httpParams.set('stars', params.stars.join(','));
-    }
-    
-    // Amenities
-    if (params.amenityIds && params.amenityIds.length > 0) {
-      httpParams = httpParams.set('amenityIds', params.amenityIds.join(','));
-      if (params.amenityMatch) {
-        httpParams = httpParams.set('amenityMatch', params.amenityMatch);
+
+    // --- ประเภทค่าเช่า: monthly / daily ---
+    let priceType = params.price_type;
+    if (!priceType) {
+      if (params.monthly && !params.daily) {
+        priceType = 'monthly';
+      } else if (params.daily && !params.monthly) {
+        priceType = 'daily';
       }
     }
-    
-    // Additional filters
-    if (params.location) {
-      httpParams = httpParams.set('location', params.location);
+    if (priceType) {
+      httpParams = httpParams.set('price_type', priceType);
     }
-    if (params.onlyAvailable !== undefined) {
-      httpParams = httpParams.set('onlyAvailable', params.onlyAvailable.toString());
+
+    // --- ประเภทห้อง (optional) ---
+    if (params.room_type) {
+      httpParams = httpParams.set('room_type', params.room_type);
+    } else if (params.bedType) {
+      // fallback: ใช้ bedType เป็น room_type ถ้า UI ยังใช้ชื่อเดิม
+      httpParams = httpParams.set('room_type', params.bedType);
     }
-    if (params.bedType) {
-      httpParams = httpParams.set('bedType', params.bedType);
+
+    // --- สิ่งอำนวยความสะดวก (ชื่อ) ---
+    let amenityNames: string[] = [];
+
+    if (params.amenities) {
+      if (Array.isArray(params.amenities)) {
+        amenityNames = params.amenities;
+      } else {
+        amenityNames = params.amenities
+          .split(',')
+          .map((n) => n.trim())
+          .filter((n) => n.length > 0);
+      }
     }
-    if (params.roomName) {
-      httpParams = httpParams.set('roomName', params.roomName);
-    }
-    if (params.status) {
-      httpParams = httpParams.set('status', params.status);
-    }
-    
-    // Pagination
-    if (params.limit) {
+
+    // หมายเหตุ: current implementation ใช้ชื่อ amenity จาก component อยู่แล้ว
+    amenityNames.forEach((name) => {
+      httpParams = httpParams.append('amenities', name);
+    });
+
+    // --- Pagination ---
+    if (params.limit !== undefined && params.limit !== null) {
       httpParams = httpParams.set('limit', params.limit.toString());
     }
-    if (params.offset) {
+    if (params.offset !== undefined && params.offset !== null) {
       httpParams = httpParams.set('offset', params.offset.toString());
     }
-    
-    return this.http.get<any>(`${this.backendUrl}/dormitories/filter`, { params: httpParams }).pipe(
-      map(response => {
-        // Handle both array response and object wrapper response
-        if (Array.isArray(response)) {
-          return response;
-        } else if (response && response.dormitories) {
-          return response;
-        } else {
-          console.warn('Unexpected response format from filter API:', response);
-          return { dormitories: [], total: 0, limit: 0, offset: 0 };
-        }
-      }),
-      catchError(err => {
-        console.error('[DormitoryService] Error filtering dormitories:', err);
-        return of({ dormitories: [], total: 0, limit: 0, offset: 0 });
-      })
-    );
+
+    return this.http
+      .get<any>(`${this.backendUrl}/dormitories/filter`, { params: httpParams })
+      .pipe(
+        map((response) => {
+          // Handle both array response and object wrapper response
+          if (Array.isArray(response)) {
+            return response;
+          } else if (response && response.dormitories) {
+            return response;
+          } else {
+            console.warn(
+              'Unexpected response format from filter API:',
+              response
+            );
+            return { dormitories: [], total: 0, limit: 0, offset: 0 };
+          }
+        }),
+        catchError((err) => {
+          console.error('[DormitoryService] Error filtering dormitories:', err);
+          return of({ dormitories: [], total: 0, limit: 0, offset: 0 });
+        })
+      );
   }
 
   /** Get amenity mapping for frontend */

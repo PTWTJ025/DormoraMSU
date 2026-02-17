@@ -42,32 +42,20 @@ export function authInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn):
           return next(clonedRequest);
         }),
         catchError((error) => {
-          console.error('[AuthInterceptor] Error getting auth token:', error);
-          
           // แยกประเภท error ออกจากกัน - ห้าม retry 400 errors
           if (error instanceof HttpErrorResponse) {
             if (error.status === 400) {
               // 400 Bad Request ไม่ควร retry และไม่เกี่ยวกับ auth
-              if (!environment.production) {
-                console.log('[AuthInterceptor] 400 Bad Request - not retrying');
-              }
               return throwError(() => error);
             }
             // Handle 401 Unauthorized or 403 Forbidden responses
             if (error.status === 401 || error.status === 403) {
-              if (!environment.production) {
-                console.log('[AuthInterceptor] Token expired or invalid, redirecting to admin login');
-              }
               router.navigate(['/admin/login']);
             }
           }
           return throwError(() => error);
         })
       );
-    }
-    // ไม่มี currentUser ให้ log ไว้สำหรับ debug
-    if (!environment.production) {
-      console.warn('[AuthInterceptor]', req.method, req.url, '| No current user -> sending without Authorization header');
     }
   }
   
@@ -102,30 +90,19 @@ export class AuthInterceptor implements HttpInterceptor {
             });
             try {
               const role = this.authService.currentUser$.value?.memberType ?? 'unknown';
-              // Only log in development mode and without sensitive data
-              if (!environment.production) {
-                console.log('[AuthInterceptor:class]', request.method, request.url, '| Attached Authorization Bearer token | role =', role);
-              }
             } catch {}
             return next.handle(clonedRequest);
           }),
           catchError((error) => {
-            console.error('[AuthInterceptor] Error getting auth token:', error);
             
             if (error instanceof HttpErrorResponse) {
               // แยกประเภท error ออกจากกัน - ห้าม retry 400 errors
               if (error.status === 400) {
                 // 400 Bad Request ไม่ควร retry และไม่เกี่ยวกับ auth
-                if (!environment.production) {
-                  console.log('[AuthInterceptor] 400 Bad Request - not retrying');
-                }
                 return throwError(() => error);
               }
               // Handle 401 Unauthorized or 403 Forbidden responses
               if (error.status === 401 || error.status === 403) {
-                if (!environment.production) {
-                  console.log('[AuthInterceptor] Token expired or invalid, redirecting to admin login');
-                }
                 this.router.navigate(['/admin/login']);
               }
             }

@@ -10,7 +10,6 @@ import {
 import {
   DormitoryService,
   DormDetail,
-  RoomType,
 } from '../../services/dormitory.service';
 import { Subscription, forkJoin } from 'rxjs';
 
@@ -23,12 +22,12 @@ interface CompareDormData extends CompareDormItem {
   reviewCount: number;
   amenities: string[];
   ownerName: string;
-  ownerPhone: string;
+  ownerPhone: string; 
   ownerLineId?: string;
   distance: string;
   electricityCost: string;
   waterCost: string;
-  roomTypes: RoomType[];
+  roomTypes: any[]; // เปลี่ยนจาก RoomType[] เพราะ Backend ไม่มี room types API
 }
 
 @Component({
@@ -40,7 +39,8 @@ interface CompareDormData extends CompareDormItem {
 })
 export class DormCompareComponent implements OnInit, OnDestroy {
   compareDorms: CompareDormData[] = [];
-  sortBy: string = 'rating';
+  // ตอนนี้ให้เรียงเฉพาะ "ราคา" อย่างเดียว
+  sortBy: string = 'price';
   sortOrder: 'asc' | 'desc' = 'asc';
   isLoading: boolean = false;
 
@@ -134,63 +134,109 @@ export class DormCompareComponent implements OnInit, OnDestroy {
   private loadCompareData(ids: number[]): void {
     this.isLoading = true;
 
-    // จำลองการโหลดเพื่อให้เห็น skeleton (สำหรับ demo)
-    // ใน production ให้เอาบรรทัดนี้ออก
-    setTimeout(() => {
-      // ใช้ API endpoint ใหม่ที่ดึงข้อมูลเปรียบเทียบทั้งหมดในครั้งเดียว
-      this.dormitoryService.compareDormitories(ids).subscribe({
-        next: (response) => {
-          if (response.success && response.dormitories) {
-            this.compareDorms = response.dormitories.map((dorm: any) => {
-              // Map API response to CompareDormData format
-              const priceRange = this.formatPriceRange(dorm.price_range);
+    // ใช้ API endpoint เปรียบเทียบหอพักจาก backend
+    this.dormitoryService.compareDormitories(ids).subscribe({
+      next: (response) => {
+        // Backend อาจส่งเป็น array ตรง ๆ หรือห่อใน field dormitories
+        const dormList = Array.isArray(response)
+          ? response
+          : response?.dormitories || [];
 
-              const mappedDorm = {
-                id: dorm.id,
-                name: dorm.name,
-                image:
-                  dorm.image_url ||
-                  'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267',
-                price: priceRange.display,
-                location: dorm.address,
-                zone: dorm.zone?.name || 'ไม่ระบุโซน',
-                description: dorm.description || 'ไม่มีคำอธิบาย',
-                dailyPrice: this.extractDailyPrice(dorm.room_types),
-                monthlyPrice: priceRange.min,
-                termPrice: this.extractTermPrice(dorm.room_types),
-                rating: dorm.avg_rating ? Number(dorm.avg_rating) : (dorm.rating?.average || 0),
-                reviewCount: dorm.review_count ? Number(dorm.review_count) : (dorm.rating?.count || 0),
-                amenities: dorm.amenities?.map((a: any) => a.name) || [],
-                ownerName: 'เจ้าของหอพัก',
-                ownerPhone: 'ติดต่อสอบถาม',
-                distance: this.calculateDistance(
-                  dorm.location?.lat,
-                  dorm.location?.lng
-                ),
-                electricityCost: this.formatUtilityCost(
-                  dorm.utilities?.electricity?.type,
-                  dorm.utilities?.electricity?.rate
-                ),
-                waterCost: this.formatUtilityCost(
-                  dorm.utilities?.water?.type,
-                  dorm.utilities?.water?.rate
-                ),
-                roomTypes: dorm.room_types || [],
-              };
-              return mappedDorm;
-            });
+        this.compareDorms = dormList.map((dorm: any) => {
+          // รองรับทั้งโครงสร้างเก่าและใหม่ของ API
+          const id = dorm.dorm_id ?? dorm.id;
+          const name = dorm.dorm_name ?? dorm.name ?? 'ไม่ทราบชื่อหอพัก';
+          const description =
+            dorm.description ?? dorm.dorm_description ?? 'ไม่มีคำอธิบาย';
 
-            this.sortDorms();
-          }
-          this.isLoading = false;
-        },
-        error: (error) => {
-          console.error('Error loading compare data:', error);
-          this.compareDorms = [];
-          this.isLoading = false;
-        },
-      });
-    }, 1500); // จำลองการโหลด 1.5 วินาที
+          const monthlyPrice: number | undefined =
+            dorm.monthly_price ?? dorm.min_price ?? dorm.max_price;
+          const dailyPrice: number | undefined = dorm.daily_price ?? undefined;
+          const termPrice: number | undefined =
+            dorm.term_price ?? dorm.summer_price ?? undefined;
+
+          const imageUrl =
+            dorm.main_image_url ||
+            dorm.thumbnail_url ||
+            dorm.image_url ||
+            dorm.images?.[0]?.image_url ||
+            'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267';
+
+          const amenities: string[] =
+            dorm.amenities
+              ?.map(
+                (a: any) =>
+                  a.amenity_name || a.name || a.display_name || null
+              )
+              .filter((x: string | null) => !!x) || [];
+
+          const rating =
+            dorm.avg_rating != null
+              ? Number(dorm.avg_rating)
+              : dorm.rating?.average != null
+              ? Number(dorm.rating.average)
+              : dorm.rating != null
+              ? Number(dorm.rating)
+              : 0;
+
+          const reviewCount =
+            dorm.review_count != null
+              ? Number(dorm.review_count)
+              : dorm.rating?.count != null
+              ? Number(dorm.rating.count)
+              : 0;
+
+          const electricityType =
+            dorm.electricity_type ?? dorm.electricity_price_type;
+          const electricityRate =
+            dorm.electricity_price ?? dorm.electricity_rate;
+          const waterType = dorm.water_type ?? dorm.water_price_type;
+          const waterRate = dorm.water_price ?? dorm.water_rate;
+
+          const mappedDorm: CompareDormData = {
+            id,
+            name,
+            image: imageUrl,
+            price: monthlyPrice
+              ? `${monthlyPrice.toLocaleString()} บาท/เดือน`
+              : 'ติดต่อสอบถาม',
+            location: dorm.address ?? '',
+            zone: dorm.zone_name ?? dorm.zone?.name ?? 'ไม่ระบุโซน',
+            description,
+            dailyPrice,
+            monthlyPrice,
+            termPrice,
+            rating,
+            reviewCount,
+            amenities,
+            ownerName: dorm.owner_name ?? 'เจ้าของหอพัก',
+            ownerPhone:
+              dorm.owner_phone ??
+              dorm.manager_phone ??
+              dorm.primary_phone ??
+              'ติดต่อสอบถาม',
+            ownerLineId: dorm.owner_line_id ?? dorm.line_id ?? undefined,
+            distance: this.calculateDistance(dorm.latitude, dorm.longitude),
+            electricityCost: this.formatUtilityCost(
+              electricityType,
+              electricityRate
+            ),
+            waterCost: this.formatUtilityCost(waterType, waterRate),
+            roomTypes: dorm.room_types || [],
+          };
+
+          return mappedDorm;
+        });
+
+        this.sortDorms();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading compare data:', error);
+        this.compareDorms = [];
+        this.isLoading = false;
+      },
+    });
   }
 
   private formatPriceRange(priceRange: any): {
@@ -220,20 +266,20 @@ export class DormCompareComponent implements OnInit, OnDestroy {
     }
   }
 
-  private extractDailyPrice(roomTypes: any[]): number | undefined {
-    if (!roomTypes || roomTypes.length === 0) return undefined;
+  private extractDailyPrice(s: any[]): number | undefined {
+    if (!s || s.length === 0) return undefined;
 
-    const dailyPrices = roomTypes
+    const dailyPrices = s
       .map((rt) => rt.daily_price)
       .filter((p): p is number => p != null && p > 0);
 
     return dailyPrices.length > 0 ? Math.min(...dailyPrices) : undefined;
   }
 
-  private extractTermPrice(roomTypes: any[]): number | undefined {
-    if (!roomTypes || roomTypes.length === 0) return undefined;
+  private extractTermPrice(s: any[]): number | undefined {
+    if (!s || s.length === 0) return undefined;
 
-    const termPrices = roomTypes
+    const termPrices = s
       .map((rt) => rt.term_price || rt.summer_price)
       .filter((p): p is number => p != null && p > 0);
 

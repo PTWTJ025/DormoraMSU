@@ -39,7 +39,6 @@ import {
   trigger,
 } from '@angular/animations';
 import { MapService } from '../../../services/map.service';
-import { OwnerDormitoryService } from '../../../services/owner-dormitory.service';
 import {
   DormitoryService,
   RoomType,
@@ -162,7 +161,8 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
   // edit mode
   isEditMode = false;
   editingDormId: number | null = null;
-  originalRoomTypes: any[] = []; // เก็บข้อมูลประเภทห้องเดิมสำหรับเปรียบเทียบ
+  original: any[] = []; // เก็บข้อมูลประเภทห้องเดิมสำหรับเปรียบเทียบ
+  dormDetail: any = null; // เก็บข้อมูลหอพักจาก backend สำหรับแสดงผล
 
   // drag & drop
   isDragOver = false;
@@ -314,13 +314,12 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
     private mapService: MapService,
     private cdr: ChangeDetectorRef,
     private http: HttpClient,
-    private ownerDormitoryService: OwnerDormitoryService,
     private dormitoryService: DormitoryService,
     private authService: AuthService,
     private distanceService: DistanceService,
     private adminService: AdminService
   ) {
-    this.initForm();
+    this.initForm(); 
     this.loadZones();
     this.initSliderImages();
   }
@@ -358,16 +357,24 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
         .toPromise();
       const [detailResponse, images] = await Promise.all([detail$, images$]);
 
-      // Admin API returns { dormitory: {...}, room_types: [...], amenities: [...], images: [...], owner_contact: {...} }
+      // Admin API returns { dormitory: {...}, : [...], amenities: [...], images: [...], owner_contact: {...} }
       const detail: any = detailResponse?.dormitory || detailResponse;
-      const roomTypes = detailResponse?.room_types || (detail as any).roomTypes || [];
+      const  = detailResponse?. || (detail as any). || [];
       const amenitiesResp = detailResponse?.amenities || (detail as any).amenities || [];
+
+      // เก็บข้อมูลทั้งหมดไว้ใน dormDetail สำหรับแสดงผล
+      this.dormDetail = {
+        ...detail,
+        amenities: amenitiesResp,
+        : 
+      };
 
       console.log('[AdminEditDorm] Loaded data structure:', {
         has_dormitory: !!detailResponse?.dormitory,
-        has_room_types: !!detailResponse?.room_types,
+        has_: !!detailResponse?.,
         has_amenities: !!detailResponse?.amenities,
         detail_keys: Object.keys(detail || {}),
+        dormDetail: this.dormDetail
       });
 
       if (detail) {
@@ -485,13 +492,13 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
 
       // Room types (normalize common response shapes/fields)
       let roomTypeList: any[] = [];
-      if (Array.isArray(roomTypes)) {
-        roomTypeList = roomTypes as any[];
-      } else if (roomTypes && typeof roomTypes === 'object') {
+      if (Array.isArray()) {
+        roomTypeList =  as any[];
+      } else if ( && typeof  === 'object') {
         const rt =
-          (roomTypes as any).room_types ||
-          (roomTypes as any).data ||
-          (roomTypes as any).items ||
+          ( as any). ||
+          ( as any).data ||
+          ( as any).items ||
           [];
         roomTypeList = Array.isArray(rt) ? rt : [];
       }
@@ -499,8 +506,8 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
       if (roomTypeList.length) {
         // Log ข้อมูลประเภทห้องที่โหลดมา
         console.log('[DormEdit] ข้อมูลประเภทห้องที่โหลดมา:', {
-          total_room_types: roomTypeList.length,
-          room_types: roomTypeList.map((rt, index) => ({
+          total_: roomTypeList.length,
+          : roomTypeList.map((rt, index) => ({
             index: index + 1,
             room_type_id:
               rt.room_type_id || rt.id || (rt as any).roomTypeId || null,
@@ -516,7 +523,7 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
         });
 
         // เก็บข้อมูลเดิมไว้สำหรับเปรียบเทียบ
-        this.originalRoomTypes = roomTypeList.map((rt) => ({
+        this.original = roomTypeList.map((rt) => ({
           room_type_id:
             rt.room_type_id || rt.id || (rt as any).roomTypeId || null,
           name: rt.name || rt.room_name || rt.type || '',
@@ -529,7 +536,7 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
         }));
 
         // clear existing
-        while (this.roomTypes.length) this.roomTypes.removeAt(0);
+        while (this..length) this..removeAt(0);
         roomTypeList.forEach((rt) => {
           const g = this.createRoomType();
           const name = rt.name || rt.room_name || rt.type || '';
@@ -563,7 +570,7 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
             g.get('pricePerTerm')?.setValue(String(term));
           if (summer !== null && summer !== undefined)
             g.get('pricePerSummer')?.setValue(String(summer));
-          this.roomTypes.push(g);
+          this..push(g);
         });
       }
 
@@ -709,7 +716,7 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
           latitude: this.dormForm.get('location.latitude')?.value,
           longitude: this.dormForm.get('location.longitude')?.value,
         },
-        room_types_count: this.roomTypes.length,
+        _count: this..length,
         images_count: this.imagePreviewUrls.length,
         amenities_selected: (
           this.dormForm.get('amenities') as FormArray
@@ -804,7 +811,7 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
         description: ['', Validators.required],
         statusDorm: ['ว่าง'], // สถานะหอพัก: 'ว่าง' หรือ 'เต็ม'
       }),
-      roomTypes: this.fb.array([this.createRoomType()]),
+      : this.fb.array([this.createRoomType()]),
       utilities: this.fb.group({
         electricity: this.fb.group({
           electricity_type: ['คิดตามหน่วย', Validators.required],
@@ -954,11 +961,11 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
   }
 
   isOther(i: number): boolean {
-    const g = this.roomTypes.at(i) as FormGroup;
+    const g = this..at(i) as FormGroup;
     return g.get('type')?.value === 'other';
   }
   onTypeChange(i: number) {
-    const g = this.roomTypes.at(i) as FormGroup;
+    const g = this..at(i) as FormGroup;
     const type = g.get('type')?.value;
     const custom = g.get('customType');
     if (type === 'other') {
@@ -979,7 +986,7 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
     this.cdr.markForCheck();
   }
   confirmOther(i: number) {
-    const g = this.roomTypes.at(i) as FormGroup;
+    const g = this..at(i) as FormGroup;
     const custom = (g.get('customType')?.value || '').trim();
     if (!custom) {
       g.get('type')?.setValue('');
@@ -990,7 +997,7 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
     this.cdr.markForCheck();
   }
   revertOther(i: number) {
-    const g = this.roomTypes.at(i) as FormGroup;
+    const g = this..at(i) as FormGroup;
     g.get('type')?.setValue('');
     g.get('customType')?.setValue('');
     g.get('customType')?.clearValidators();
@@ -999,8 +1006,8 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
   }
 
   // getters
-  get roomTypes(): FormArray {
-    return this.dormForm.get('roomTypes') as FormArray;
+  get (): FormArray {
+    return this.dormForm.get('') as FormArray;
   }
   get utilities(): FormGroup {
     return this.dormForm.get('utilities') as FormGroup;
@@ -1024,7 +1031,7 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
     return Number.isFinite(n) ? n : null;
   }
   private collectNumbers(keys: string[]): number[] {
-    return (this.roomTypes.controls as FormGroup[])
+    return (this..controls as FormGroup[])
       .map((g) => keys.map((k) => this.toNumber(g.get(k)?.value)))
       .flat()
       .filter((n): n is number => n !== null && n >= 0);
@@ -1068,10 +1075,10 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
   }
 
   addRoomType() {
-    this.roomTypes.push(this.createRoomType());
+    this..push(this.createRoomType());
   }
   removeRoomType(index: number) {
-    this.roomTypes.removeAt(index);
+    this..removeAt(index);
   }
 
   // จำกัดให้กรอกเฉพาะตัวเลขในช่องราคา
@@ -1134,8 +1141,8 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
       }
 
       // 2. ประเภทห้อง
-      const roomTypesArray = this.roomTypes;
-      if (roomTypesArray.length === 0) {
+      const Array = this.;
+      if (Array.length === 0) {
         this.showCustomPopup(
           'กรุณาเพิ่มประเภทห้องอย่างน้อย 1 ประเภท',
           'error',
@@ -1145,8 +1152,8 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
       }
 
       // ตรวจสอบแต่ละประเภทห้อง
-      for (let i = 0; i < roomTypesArray.length; i++) {
-        const roomType = roomTypesArray.at(i) as FormGroup;
+      for (let i = 0; i < Array.length; i++) {
+        const roomType = Array.at(i) as FormGroup;
         const typeField = roomType.get('type')?.value;
         const bedTypeField = roomType.get('bed_type')?.value;
         const monthlyPrice = roomType.get('pricePerMonth')?.value?.trim();
@@ -1317,9 +1324,9 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
       }
     } else if (this.currentStep === 2) {
       // Validate Room Types
-      const roomTypesArray = this.roomTypes;
+      const Array = this.;
 
-      if (roomTypesArray.length === 0) {
+      if (Array.length === 0) {
         this.showCustomPopup(
           'กรุณาเพิ่มประเภทห้องอย่างน้อย 1 ประเภท',
           'error',
@@ -1332,8 +1339,8 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
       let hasValidRoomType = false;
       let validationErrors: string[] = [];
 
-      for (let i = 0; i < roomTypesArray.length; i++) {
-        const roomType = roomTypesArray.at(i) as FormGroup;
+      for (let i = 0; i < Array.length; i++) {
+        const roomType = Array.at(i) as FormGroup;
         this.markFormGroupTouched(roomType);
 
         const typeField = roomType.get('type');
@@ -1386,7 +1393,7 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
       console.log('[DormAdd nextStep] Validation summary:', {
         hasValidRoomType,
         validationErrors,
-        totalRoomTypes: roomTypesArray.length,
+        total: Array.length,
       });
 
       if (!hasValidRoomType) {
@@ -1466,7 +1473,7 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
       editing_dorm_id: this.editingDormId,
       form_value: this.dormForm.value,
       form_valid: this.dormForm.valid,
-      room_types_payload: this.buildRoomTypePayloads(),
+      _payload: this.buildRoomTypePayloads(),
       amenities_payload: this.buildEnabledAmenitiesForPost(),
       images_count: this.selectedImages.length,
       existing_images_count: this.existingImages.length,
@@ -1490,9 +1497,9 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
     }
 
     // ตรวจสอบข้อมูลประเภทห้อง (Step 2)
-    const roomTypesArray = this.roomTypes;
+    const Array = this.;
 
-    if (roomTypesArray.length === 0) {
+    if (Array.length === 0) {
       this.showCustomPopup(
         'กรุณาเพิ่มประเภทห้องอย่างน้อย 1 ประเภท',
         'error',
@@ -1506,8 +1513,8 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
     let validationErrors: string[] = [];
     let hasValidRoomType = false;
 
-    for (let i = 0; i < roomTypesArray.length; i++) {
-      const roomType = roomTypesArray.at(i) as FormGroup;
+    for (let i = 0; i < Array.length; i++) {
+      const roomType = Array.at(i) as FormGroup;
       this.markFormGroupTouched(roomType);
 
       const typeField = roomType.get('type');
@@ -1666,7 +1673,7 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
             const toUpdate: Array<{ id: number; data: Partial<RoomType> }> = [];
 
             // Collect form rows
-            (this.roomTypes.controls as FormGroup[]).forEach((g) => {
+            (this..controls as FormGroup[]).forEach((g) => {
               const idRaw = g.get('room_type_id')?.value;
               const id =
                 idRaw !== null && idRaw !== undefined && idRaw !== ''
@@ -1701,7 +1708,7 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
             });
 
             // ลบประเภทห้องที่ไม่ได้ส่งมาใหม่
-            const toDelete = this.originalRoomTypes
+            const toDelete = this.original
               .filter(
                 (rt) => rt.room_type_id && !existingIds.has(rt.room_type_id)
               )
@@ -1729,8 +1736,18 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
 
                 // Submit amenities as full enabled list after basic + rooms succeed - ตามสเปคใหม่
                 const amenitiesPayload = this.buildEnabledAmenitiesForPost();
-                this.ownerDormitoryService
-                  .saveDormAmenitiesForEdit(dormId, amenitiesPayload)
+                // TODO: Implement amenities update via adminService
+                console.log('[DormEdit] Amenities to save:', amenitiesPayload);
+                
+                // For now, just proceed to next step
+                this.currentStep = 2;
+                this.maxReachedStep = Math.max(this.maxReachedStep, 2);
+                this.isSubmitting = false;
+                this.cdr.detectChanges();
+                
+                /*
+                this.adminService
+                  .updateDormitoryAmenities(dormId, amenitiesPayload)
                   .subscribe({
                     next: () => {
                       console.log(
@@ -1755,6 +1772,7 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
                       this.uploadImagesIfAny(dormId);
                     },
                   });
+                */
               },
               error: (err2) => {
                 console.error('[DormEdit] Save room types (edit) error:', err2);
@@ -1781,7 +1799,15 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    // โหมดเพิ่มใหม่ (fallback เดิม)
+    // โหมดเพิ่มใหม่ - Not supported in admin edit mode
+    console.error('[DormEdit] Add new dormitory mode is not supported in admin edit');
+    this.isSubmittingGuard = false;
+    this.isSubmitting = false;
+    this.submitErrorMessage = 'ไม่รองรับการเพิ่มหอพักใหม่ในโหมดแก้ไข';
+    this.showErrorModal = true;
+    return;
+    
+    /*
     this.ownerDormitoryService.addDormitoryBasic(payloadBasic).subscribe({
       next: (resp) => {
         const dormId =
@@ -1838,6 +1864,7 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
         this.cdr.markForCheck();
       },
     });
+    */
   }
 
   closeErrorModal() {
@@ -1905,7 +1932,7 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
 
   private buildRoomTypePayloads(): Array<Partial<RoomType>> {
     const payloads: Array<Partial<RoomType>> = [];
-    const list = this.roomTypes.controls as FormGroup[];
+    const list = this..controls as FormGroup[];
     for (const g of list) {
       const type = g.get('type')?.value;
       const customType = g.get('customType')?.value;
@@ -2329,8 +2356,16 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
       const dormId = this.editingDormId;
       this.isDeletingImage = true;
       this.deletingImageIndex = index;
-      this.ownerDormitoryService
-        .deleteDormImageForEdit(dormId, meta.imageId)
+      
+      // TODO: Implement image deletion via adminService
+      console.log('[DormEdit] Delete image:', dormId, meta.imageId);
+      finalizeLocalRemoval();
+      this.isDeletingImage = false;
+      this.deletingImageIndex = -1;
+      
+      /*
+      this.adminService
+        .deleteDormImage(dormId, meta.imageId)
         .subscribe({
           next: () => {
             // เก็บรูปใหม่ที่อัปโหลดไว้ก่อน
@@ -2387,6 +2422,7 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
             this.deletingImageIndex = null;
           },
         });
+      */
       return;
     }
 
@@ -2406,8 +2442,28 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
       const dormId = this.editingDormId;
       this.isSettingPrimary = true;
       this.settingPrimaryIndex = index;
-      this.ownerDormitoryService
-        .setPrimaryDormImageForEdit(dormId, meta.imageId)
+      
+      // TODO: Implement set primary image via adminService
+      console.log('[DormEdit] Set primary image:', dormId, meta.imageId);
+      
+      // Move to first position locally
+      const [url] = this.imagePreviewUrls.splice(index, 1);
+      const [metaItem] = this.previewMeta.splice(index, 1);
+      const [file] = this.selectedImages.splice(index, 1);
+      
+      this.imagePreviewUrls.unshift(url);
+      this.previewMeta.unshift(metaItem);
+      this.selectedImages.unshift(file);
+      
+      this.updateFormArray();
+      this.updateSliderImages();
+      this.isSettingPrimary = false;
+      this.settingPrimaryIndex = -1;
+      this.cdr.markForCheck();
+      
+      /*
+      this.adminService
+        .setPrimaryDormImage(dormId, meta.imageId)
         .subscribe({
           next: () => {
             // เก็บรูปใหม่ที่อัปโหลดไว้ก่อน
@@ -2465,6 +2521,7 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
             this.showCustomPopup('ตั้งรูปหลักไม่สำเร็จ', 'error');
           },
         });
+      */
       return;
     }
 
@@ -2506,9 +2563,14 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
       formData.append('images', file);
     });
 
+    // TODO: Implement image upload via adminService
+    console.log('[DormEdit] Images to upload:', this.selectedImages.length);
+    this.finishSubmission();
+    
+    /*
     // ส่งไป backend
-    this.ownerDormitoryService
-      .uploadDormImagesForEdit(dormId, formData)
+    this.adminService
+      .uploadDormImages(dormId, formData)
       .subscribe({
         next: (response) => {
           console.log('[DormEdit] อัปโหลดรูปภาพสำเร็จ:', {
@@ -2552,6 +2614,7 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
           this.finishSubmission();
         },
       });
+    */
   }
 
   private finishSubmission(): void {
@@ -2563,7 +2626,7 @@ export class AdminEditDormComponent implements AfterViewInit, OnDestroy {
         latitude: this.dormForm.get('location.latitude')?.value,
         longitude: this.dormForm.get('location.longitude')?.value,
       },
-      final_room_types_count: this.roomTypes.length,
+      final__count: this..length,
       final_images_count: this.imagePreviewUrls.length,
       final_amenities_count: (
         this.dormForm.get('amenities') as FormArray

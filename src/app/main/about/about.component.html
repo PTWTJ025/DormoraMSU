@@ -2,56 +2,30 @@
 <footer class="w-full bg-white border-t border-gray-200">
   <!-- Main Footer Content -->
   <div class="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-6 md:py-10">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-      <!-- Left Side - Logo -->
-      <div class="space-y-3 md:space-y-4 text-center md:text-left">
-        <div class="flex items-center justify-center md:justify-start">
-          <img
-            src="assets/images/logo.png"
-            alt="DormoraMSU Logo"
-            class="w-auto object-contain h-[40px] md:h-[48px] mr-2 md:mr-3"
-            loading="eager"
-          />
-          <h2 class="text-xl md:text-2xl font-bold text-gray-900">
-            <span class="font-normal text-gray-700">Dormora</span><span class="font-bold" style="color: #FFCD22;">MSU</span>
-          </h2>
-        </div>
-      </div>
-
-      <!-- Center - Contact Info -->
-      <div class="space-y-2 md:space-y-3 text-center md:text-left">
-        <h3 class="text-sm md:text-base font-semibold text-gray-900 mb-2 md:mb-3">
-          ติดต่อเราได้ที่
-        </h3>
-        <div class="space-y-1.5 md:space-y-2">
-          <a
-            href="mailto:info.roomaroo&#64;gmail.com"
-            class="block text-gray-600 hover:text-cyan-500 text-xs md:text-sm transition-colors break-all"
-          >
-            info.roomaroo&#64;gmail.com
-          </a>
-          <a
-            href="https://www.youtube.com/shorts/f5uYyhd8UwM"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="block text-gray-600 hover:text-cyan-500 text-xs md:text-sm transition-colors"
-          >
-            061-635-8542
-          </a>
-        </div>
-      </div>
-
+    <div class="flex flex-col md:flex-row gap-6 md:gap-8">
       <!-- Right Side - Social Media -->
       <div class="space-y-2 md:space-y-3 text-center md:text-left">
-        <h3 class="text-sm md:text-base font-semibold text-gray-900 mb-2 md:mb-3">ติดตามเรา</h3>
+        <h3
+          class="text-sm md:text-base font-semibold text-gray-900 mb-2 md:mb-3"
+        >
+          ติดตามเรา
+        </h3>
         <div class="flex space-x-3 justify-center md:justify-start">
           <!-- Facebook -->
           <button
-            (click)="openImagePopup('https://i.pinimg.com/736x/84/87/ee/8487ee8c95e7a14945c944256c6e6b51.jpg')"
+            (click)="
+              openImagePopup(
+                'https://i.pinimg.com/736x/84/87/ee/8487ee8c95e7a14945c944256c6e6b51.jpg'
+              )
+            "
             class="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
             aria-label="Facebook"
           >
-            <svg fill="currentColor" viewBox="0 0 24 24" class="w-5 h-5 md:w-6 md:h-6">
+            <svg
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              class="w-5 h-5 md:w-6 md:h-6"
+            >
               <path
                 d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
               ></path>
@@ -60,11 +34,19 @@
 
           <!-- LINE -->
           <button
-            (click)="openImagePopup('https://i.pinimg.com/736x/0c/91/04/0c91042b2aed45d7dd31b58463731a38.jpg')"
+            (click)="
+              openImagePopup(
+                'https://i.pinimg.com/736x/0c/91/04/0c91042b2aed45d7dd31b58463731a38.jpg'
+              )
+            "
             class="w-10 h-10 md:w-12 md:h-12 bg-green-500 rounded-lg flex items-center justify-center text-white hover:bg-green-600 transition-colors shadow-md hover:shadow-lg"
             aria-label="LINE"
           >
-            <svg fill="currentColor" viewBox="0 0 24 24" class="w-5 h-5 md:w-6 md:h-6">
+            <svg
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              class="w-5 h-5 md:w-6 md:h-6"
+            >
               <path
                 d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .63.285.63.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"
               ></path>
@@ -77,7 +59,11 @@
             class="w-10 h-10 md:w-12 md:h-12 bg-red-600 rounded-lg flex items-center justify-center text-white hover:bg-red-700 transition-colors shadow-md hover:shadow-lg"
             aria-label="YouTube"
           >
-            <svg fill="currentColor" viewBox="0 0 24 24" class="w-5 h-5 md:w-6 md:h-6">
+            <svg
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              class="w-5 h-5 md:w-6 md:h-6"
+            >
               <path
                 d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"
               ></path>
@@ -90,19 +76,19 @@
   <!-- </div> -->
 
   <!-- Image Popup Modal - Responsive -->
-  <div 
-    *ngIf="showImagePopup" 
+  <div
+    *ngIf="showImagePopup"
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
     (click)="closeImagePopup()"
   >
-    <div 
+    <div
       class="bg-white rounded-lg p-3 md:p-4 max-w-4xl w-full max-h-[90vh] overflow-auto"
       (click)="$event.stopPropagation()"
     >
       <div class="flex justify-center">
-        <img 
-          [src]="popupImageUrl" 
-          alt="QR Code" 
+        <img
+          [src]="popupImageUrl"
+          alt="QR Code"
           class="max-w-full max-h-[70vh] object-contain rounded-lg"
         />
       </div>
@@ -110,18 +96,20 @@
   </div>
 
   <!-- YouTube Popup Modal - Responsive -->
-  <div 
-    *ngIf="showYouTubePopup" 
+  <div
+    *ngIf="showYouTubePopup"
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
     (click)="closeYouTubePopup()"
   >
-    <div 
+    <div
       class="bg-white rounded-lg p-3 md:p-4 max-w-4xl w-full max-h-[90vh] overflow-auto"
       (click)="$event.stopPropagation()"
     >
       <div class="flex justify-between items-center mb-3 md:mb-4">
-        <h3 class="text-base md:text-lg font-semibold text-gray-900">YouTube Video</h3>
-        <button 
+        <h3 class="text-base md:text-lg font-semibold text-gray-900">
+          YouTube Video
+        </h3>
+        <button
           (click)="closeYouTubePopup()"
           class="text-gray-500 hover:text-gray-700 text-2xl font-bold"
         >
@@ -129,12 +117,20 @@
         </button>
       </div>
       <div class="flex justify-center">
-        <iframe 
+        <iframe
           class="w-full aspect-video max-w-[560px] rounded-lg"
-          src="https://www.youtube.com/embed/f5uYyhd8UwM" 
-          title="YouTube video player" 
-          frameborder="0" 
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+          src="https://www.youtube.com/embed/f5uYyhd8UwM"
+          title="YouTube video player"
+          frameborder="0"
+          allow="
+            accelerometer;
+            autoplay;
+            clipboard-write;
+            encrypted-media;
+            gyroscope;
+            picture-in-picture;
+            web-share;
+          "
           allowfullscreen
         ></iframe>
       </div>
@@ -145,7 +141,7 @@
   <div class="w-full bg-gray-100 border-t border-gray-200 py-3 md:py-4">
     <div class="max-w-6xl mx-auto px-4 text-center">
       <p class="text-xs md:text-sm text-gray-600 leading-relaxed">
-        © 2025 DormRoomaroo -
+        © 2025 Dormora MSU -
         แพลตฟอร์มค้นหาหอพักสำหรับนักศึกษามหาวิทยาลัยมหาสารคาม
       </p>
     </div>

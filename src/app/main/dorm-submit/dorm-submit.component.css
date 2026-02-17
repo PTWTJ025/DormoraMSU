@@ -201,8 +201,8 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  ring: 2px;
-  ring-color: #eab308;
+  kerning: 2px;
+  lighting-color: #eab308;
   border-color: transparent;
 }
 

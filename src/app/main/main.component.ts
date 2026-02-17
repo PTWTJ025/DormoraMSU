@@ -187,7 +187,6 @@ export class MainComponent implements OnInit, OnDestroy {
       // Start slideshow after images are ready
       this.startSlideshow();
     } catch (err) {
-      console.error('[MainComponent] Failed to load slider images from dorms:', err);
       // Fallback to a single placeholder to avoid empty slider state
       this.sliderImages = [
         { src: 'assets/images/photo.png', alt: 'Dormitory', title: 'DormRoomaroo', subtitle: 'ค้นหาหอที่ใช่สำหรับคุณ' },
@@ -209,7 +208,7 @@ export class MainComponent implements OnInit, OnDestroy {
         this.loadImagesForList(this.displayedRecommended);
       }
     } catch (error) {
-      console.error('Error loading recommended dormitories:', error);
+      // Silent error handling
     } finally {
       this.isLoadingRecommended = false;
     }
@@ -222,7 +221,7 @@ export class MainComponent implements OnInit, OnDestroy {
         this.loadImagesForList(this.displayedLatest);
       }
     } catch (error) {
-      console.error('Error loading latest dormitories:', error);
+      // Silent error handling
     } finally {
       this.isLoadingLatest = false;
     }

@@ -400,6 +400,15 @@ export class MainComponent implements OnInit, OnDestroy {
     const avgRating = (d as any).avg_rating;
     const finalRating = avgRating ? Number(avgRating) : (d.rating || 0.0);
 
+    const rawDate =
+      d.updated_date ||
+      (d as any).updated_at ||
+      (d as any).updatedAt ||
+      (d as any).created_at ||
+      (d as any).createdAt ||
+      (d as any).submitted_date ||
+      '';
+
     return {
       id: d.dorm_id,
       image: d.thumbnail_url || d.main_image_url || 'assets/images/photo.png',
@@ -407,7 +416,7 @@ export class MainComponent implements OnInit, OnDestroy {
       name: d.dorm_name,
       location: locationDisplay,
       zone: d.zone_name || 'ไม่ระบุโซน',
-      date: d.updated_date ? this.formatThaiDate(d.updated_date) : '',
+      date: rawDate ? this.formatThaiDate(String(rawDate)) : '',
       rating: finalRating
     };
   }

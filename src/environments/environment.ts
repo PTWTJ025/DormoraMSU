@@ -10,7 +10,8 @@ export const environment = {
     measurementId: 'G-X6MZ8F81G1',
   },
   // Backend API URLs - สลับระหว่าง localhost และ production
-  backendApiUrl: 'https://dormora-msu-back-end.vercel.app/api', // ✅ เพิ่ม /api
+  // backendApiUrl: 'https://dormora-msu-back-end.vercel.app/api', // ✅ เพิ่ม /api
+  backendApiUrl: 'https://dormroomaroo-backend.onrender.com/api', // ✅ เพิ่ม /api roomaroo
   // backendApiUrl: 'http://localhost:3000/api', // comment localhost ไว้
   
   fastApiUrl: 'https://roomaroo-textclassification.onrender.com/api',

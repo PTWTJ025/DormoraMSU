@@ -67,8 +67,8 @@
         *ngFor="let img of sliderImages; let i = index"
         class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-white/70 border border-gray-300 transition-all duration-200"
         [class.bg-yellow-400]="i === currentSlide"
-        [class.w-3]="i === currentSlide"
-        [class.sm:w-3.5]="i === currentSlide"
+        [class.w-2]="i === currentSlide"
+        [class.sm:w-2.5]="i === currentSlide"
         (click)="goToSlide(i)"
       ></button>
     </div>

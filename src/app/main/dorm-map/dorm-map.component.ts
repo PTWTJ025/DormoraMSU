@@ -237,7 +237,12 @@ export class DormMapComponent implements OnInit, OnDestroy {
     const imageUrl =
       dormDetail.main_image_url || dormDetail.thumbnail_url || '';
     const priceDisplay = this.getPriceDisplay(dormDetail);
-    const rating = (dormDetail.rating ?? 0).toFixed(1);
+    const lat = dormDetail.latitude ?? null;
+    const lng = dormDetail.longitude ?? null;
+    const navUrl =
+      lat != null && lng != null
+        ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
+        : '';
 
     return `
       <div style="font-family:'Noto Sans Thai','Inter',sans-serif; width:260px; background:#ffffff;">
@@ -257,10 +262,19 @@ export class DormMapComponent implements OnInit, OnDestroy {
           <div style="font-size:12px; color:#6b7280; margin-bottom:6px;">
             ${dormDetail.zone_name || 'ไม่ระบุโซน'}
           </div>
-          <div style="display:flex; align-items:center; gap:6px; margin-top:4px;">
-            <span style="font-size:13px; font-weight:700; color:#111827;">${rating}</span>
-            <span style="display:flex; align-items:center; gap:2px;">${this.getStarIcons(Number(rating))}</span>
-          </div>
+          ${
+            navUrl
+              ? `
+          <div style="margin-top:6px;">
+            <a href="${navUrl}" target="_blank" rel="noopener"
+               style="display:flex; align-items:center; justify-content:center; gap:6px; padding:8px 10px; border-radius:999px; background:#2563eb; text-decoration:none; color:#ffffff; font-size:12px; font-weight:600;">
+              <span>Google Maps</span>
+              
+            </a>
+          </div>`
+              : `
+          <div style="margin-top:4px; font-size:11px; color:#9ca3af;">ไม่มีพิกัดสำหรับนำทาง</div>`
+          }
         </div>
       </div>
     `;
@@ -269,7 +283,12 @@ export class DormMapComponent implements OnInit, OnDestroy {
   /** Popup Card — Basic Fallback (ไม่มีรูป) */
   private createBasicPopupContent(dorm: Dorm): string {
     const priceDisplay = this.getPriceDisplay(dorm);
-    const rating = (dorm.rating ?? 0).toFixed(1);
+    const lat = dorm.latitude ?? null;
+    const lng = dorm.longitude ?? null;
+    const navUrl =
+      lat != null && lng != null
+        ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
+        : '';
 
     return `
       <div style="font-family:'Noto Sans Thai','Inter',sans-serif; width:260px; background:#ffffff;">
@@ -283,27 +302,21 @@ export class DormMapComponent implements OnInit, OnDestroy {
           <div style="font-size:12px; color:#6b7280; margin-bottom:6px;">
             ${dorm.zone_name || 'ไม่ระบุโซน'}
           </div>
-          <div style="display:flex; align-items:center; gap:6px; margin-top:4px;">
-            <span style="font-size:13px; font-weight:700; color:#111827;">${rating}</span>
-            <span style="display:flex; align-items:center; gap:2px;">${this.getStarIcons(Number(rating))}</span>
-          </div>
+          ${
+            navUrl
+              ? `
+          <div style="margin-top:6px;">
+            <a href="${navUrl}" target="_blank" rel="noopener"
+               style="display:flex; align-items:center; justify-content:center; gap:6px; padding:8px 10px; border-radius:999px; background:#2563eb; text-decoration:none; color:#ffffff; font-size:12px; font-weight:600;">
+              <span>Google Maps</span>
+            </a>
+          </div>`
+              : `
+          <div style="margin-top:4px; font-size:11px; color:#9ca3af;">ไม่มีพิกัดสำหรับนำทาง</div>`
+          }
         </div>
       </div>
     `;
-  }
-
-  /** ดาว rating — ใช้ inline style เพื่อ bypass ViewEncapsulation */
-  private getStarIcons(rating: number): string {
-    const full = Math.floor(rating);
-    const half = rating % 1 >= 0.5 ? 1 : 0;
-    const empty = 5 - full - half;
-
-    const starStyle = 'font-size:16px; line-height:1;';
-    const fullStar = `<span style="${starStyle} color:#facc15;">★</span>`;
-    const halfStar = `<span style="${starStyle} color:#facc15;">★</span>`;
-    const emptyStar = `<span style="${starStyle} color:#cbd5e1;">★</span>`;
-
-    return `${fullStar.repeat(full)}${half ? halfStar : ''}${emptyStar.repeat(empty)}`;
   }
 
   private getPriceDisplay(dorm: Dorm | DormDetail): string {

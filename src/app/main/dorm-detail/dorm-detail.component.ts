@@ -1047,11 +1047,11 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     );
 
     if (nearest.distance < 1) {
-      return `หอพักแห่งนี้ตั้งอยู่ใกล้${nearest.name} เพียง ${Math.round(nearest.distance * 1000)} เมตร เดินทางสะดวก เหมาะสำหรับนิสิต`;
+      return `หอพักตั้งอยู่ใกล้${nearest.name} เพียง ${Math.round(nearest.distance * 1000)} เมตร เดินทางสะดวก เหมาะสำหรับนิสิต`;
     } else if (nearest.distance < 5) {
-      return `หอพักแห่งนี้ห่างจาก${nearest.name} ประมาณ ${nearest.distance} กิโลเมตร สามารถเดินทางได้สะดวก`;
+      return `หอพักห่างจาก${nearest.name} ประมาณ ${nearest.distance} กิโลเมตร สามารถเดินทางได้สะดวก`;
     } else {
-      return `หอพักแห่งนี้ตั้งอยู่ในพื้นที่ ${this.dormDetail?.zone_name} ห่างจาก${nearest.name} ประมาณ ${nearest.distance} กิโลเมตร`;
+      return `หอพักตั้งอยู่ในพื้นที่ ${this.dormDetail?.zone_name} ห่างจาก${nearest.name} ประมาณ ${nearest.distance} กิโลเมตร`;
     }
   }
 

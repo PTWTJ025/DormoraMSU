@@ -33,18 +33,41 @@
       <form [formGroup]="dormForm" (ngSubmit)="onSubmit()">
         <!-- Step 1: ข้อมูลหอพัก -->
         <div *ngIf="currentStep === 1" class="space-y-6">
-          <h2 class="text-xl font-semibold text-gray-900 mb-4">ข้อมูลหอพัก</h2>
+          <h2 class="text-xl font-semibold text-gray-900 mb-4">ข้อมูล{{ getAccommodationType() }}</h2>
 
           <div class="grid grid-cols-1 gap-6">
+            <!-- เลือกประเภทที่พัก -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                ชื่อหอพัก <span class="text-red-500">*</span>
+                ประเภทที่พัก <span class="text-red-500">*</span>
+              </label>
+              <select
+                formControlName="accommodation_type"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              >
+                <option value="หอ">หอพัก</option>
+                <option value="บ้าน">บ้าน</option>
+              </select>
+              <div
+                *ngIf="
+                  dormForm.get('accommodation_type')?.invalid &&
+                  dormForm.get('accommodation_type')?.touched
+                "
+                class="text-red-500 text-sm mt-1"
+              >
+                กรุณาเลือกประเภทที่พัก
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                {{ getAccommodationNameLabel() }} <span class="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 formControlName="dorm_name"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                placeholder="เช่น อันดา เพลส ขามเรียง ซอยเซเว่น 1"
+                [placeholder]="isHouse() ? 'เช่น หมู่บ้านลักษณาวดี เฟส 1 ขามเรียง' : 'เช่น อันดา เพลส ขามเรียง ซอยเซเว่น 1'"
               />
               <div
                 *ngIf="
@@ -53,19 +76,19 @@
                 "
                 class="text-red-500 text-sm mt-1"
               >
-                กรุณากรอกชื่อหอพัก (อย่างน้อย 3 ตัวอักษร)
+                กรุณากรอก{{ getAccommodationNameLabel().toLowerCase() }} (อย่างน้อย 3 ตัวอักษร)
               </div>
             </div>
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                ที่อยู่หอพัก <span class="text-red-500">*</span>
+                {{ getAccommodationAddressLabel() }} <span class="text-red-500">*</span>
               </label>
               <textarea
                 formControlName="address"
                 rows="3"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                placeholder="ระบุที่อยู่หอพักให้ละเอียด"
+                [placeholder]="isHouse() ? 'ระบุที่อยู่บ้านให้ละเอียด' : 'ระบุที่อยู่หอพักให้ละเอียด'"
               ></textarea>
               <div
                 *ngIf="
@@ -109,13 +132,13 @@
         <!-- Step 2: ข้อมูลติดต่อ -->
         <div *ngIf="currentStep === 2" class="space-y-6">
           <h2 class="text-xl font-semibold text-gray-900 mb-4">
-            ข้อมูลติดต่อ (ไม่บังคับ)
+            ข้อมูลติดต่อเจ้าของ{{ getAccommodationType() }} (ไม่บังคับ)
           </h2>
 
           <div class="grid grid-cols-1 gap-6">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                ชื่อผู้ติดต่อ
+                ชื่อเจ้าของ{{ getAccommodationType() }}
               </label>
               <input
                 type="text"
@@ -127,7 +150,7 @@
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                เบอร์โทรศัพท์
+                เบอร์โทรศัพท์เจ้าของ{{ getAccommodationType() }}
               </label>
               <input
                 type="tel"
@@ -149,7 +172,7 @@
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                อีเมล
+                อีเมลเจ้าของ{{ getAccommodationType() }}
               </label>
               <input
                 type="email"
@@ -172,7 +195,7 @@
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Line ID
+                Line ID เจ้าของ{{ getAccommodationType() }}
               </label>
               <input
                 type="text"
@@ -187,20 +210,20 @@
         <!-- Step 3: ประเภทห้องและราคา -->
         <div *ngIf="currentStep === 3" class="space-y-6">
           <h2 class="text-xl font-semibold text-gray-900 mb-4">
-            ประเภทห้องและราคา
+            {{ getRoomTypeLabel() }}และราคา
           </h2>
 
           <!-- ประเภทห้อง -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
-              ประเภทห้อง <span class="text-red-500">*</span>
+              {{ getRoomTypeLabel() }} <span class="text-red-500">*</span>
             </label>
             <select
               formControlName="room_type"
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
             >
-              <option value="">เลือกประเภทห้อง</option>
-              <option *ngFor="let type of roomTypes" [value]="type">
+              <option value="">เลือก{{ getRoomTypeLabel() }}</option>
+              <option *ngFor="let type of getRoomTypes()" [value]="type">
                 {{ type }}
               </option>
             </select>
@@ -211,20 +234,20 @@
               "
               class="text-red-500 text-sm mt-1"
             >
-              กรุณาเลือกประเภทห้อง
+              กรุณาเลือก{{ getRoomTypeLabel() }}
             </div>
           </div>
 
           <!-- ช่องกรอกประเภทห้องอื่นๆ -->
           <div *ngIf="dormForm.get('room_type')?.value === 'อื่นๆ'">
             <label class="block text-sm font-medium text-gray-700 mb-2">
-              ระบุประเภทห้อง <span class="text-red-500">*</span>
+              ระบุ{{ getRoomTypeLabel() }} <span class="text-red-500">*</span>
             </label>
             <input
               type="text"
               formControlName="room_type_other"
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-              placeholder="เช่น ห้องสตูดิโอ"
+              [placeholder]="isHouse() ? 'เช่น 4 ห้องนอน 3 ห้องน้ำ' : 'เช่น ห้องสตูดิโอ'"
             />
             <div
               *ngIf="
@@ -233,7 +256,7 @@
               "
               class="text-red-500 text-sm mt-1"
             >
-              กรุณาระบุประเภทห้อง
+              กรุณาระบุ{{ getRoomTypeLabel() }}
             </div>
           </div>
 
@@ -262,13 +285,13 @@
 
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  ราคาต่อวัน (บาท)
+                  ราคาต่อเทอม (บาท)
                 </label>
                 <input
                   type="number"
-                  formControlName="daily_price"
+                  formControlName="term_price"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                  placeholder="เช่น 150"
+                  placeholder="เช่น 15000"
                   min="0"
                 />
               </div>
@@ -288,7 +311,7 @@
 
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  ค่าประกันห้อง (บาท)
+                  {{ getDepositLabel() }} (บาท)
                 </label>
                 <input
                   type="number"
@@ -305,11 +328,11 @@
               *ngIf="
                 dormForm.errors?.['atLeastOnePrice'] &&
                 (dormForm.get('monthly_price')?.touched ||
-                  dormForm.get('daily_price')?.touched)
+                  dormForm.get('term_price')?.touched)
               "
               class="text-red-500 text-sm mt-2 font-medium"
             >
-              กรุณากรอกราคาอย่างน้อย 1 รายการ (รายเดือน หรือ รายวัน)
+              กรุณากรอกราคาอย่างน้อย 1 รายการ (รายเดือน หรือ รายเทอม)
             </div>
           </div>
 
@@ -321,6 +344,21 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  ประเภทค่าไฟ
+                </label>
+                <select
+                  formControlName="electricity_price_type"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                >
+                  <option value="">เลือกประเภท</option>
+                  <option *ngFor="let type of getElectricityPriceTypes()" [value]="type">
+                    {{ type }}
+                  </option>
+                </select>
+              </div>
+
+              <div *ngIf="dormForm.get('electricity_price_type')?.value !== 'ตามอัตราการไฟฟ้า'">
                 <label class="block text-sm font-medium text-gray-700 mb-2">
                   ค่าไฟ (บาท/หน่วย)
                 </label>
@@ -343,17 +381,18 @@
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
                 >
                   <option value="">เลือกประเภท</option>
-                  <option value="per_unit">คิดตามหน่วย (บาท/หน่วย)</option>
-                  <option value="flat_rate">คิดรายเดือน (บาท/เดือน)</option>
+                  <option *ngFor="let type of getWaterPriceTypes()" [value]="type">
+                    {{ type }}
+                  </option>
                 </select>
               </div>
 
-              <div class="sm:col-span-2">
+              <div *ngIf="dormForm.get('water_price_type')?.value !== 'ตามอัตราการประปา'">
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  <span *ngIf="dormForm.get('water_price_type')?.value === 'per_unit'">
+                  <span *ngIf="dormForm.get('water_price_type')?.value === 'คิดตามหน่วย (บาท/หน่วย)'">
                     ค่าน้ำ (บาท/หน่วย)
                   </span>
-                  <span *ngIf="dormForm.get('water_price_type')?.value === 'flat_rate'">
+                  <span *ngIf="dormForm.get('water_price_type')?.value === 'คิดรายเดือน (บาท/เดือน)'">
                     ค่าน้ำ (บาท/เดือน)
                   </span>
                   <span *ngIf="!dormForm.get('water_price_type')?.value">
@@ -364,8 +403,7 @@
                   type="number"
                   formControlName="water_price"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                  [placeholder]="dormForm.get('water_price_type')?.value === 'per_unit' ? 'เช่น 25' : dormForm.get('water_price_type')?.value === 'flat_rate' ? 'เช่น 100' : 'เลือกประเภทค่าน้ำก่อน'"
-                  [disabled]="!dormForm.get('water_price_type')?.value"
+                  [placeholder]="dormForm.get('water_price_type')?.value === 'คิดตามหน่วย (บาท/หน่วย)' ? 'เช่น 25' : dormForm.get('water_price_type')?.value === 'คิดรายเดือน (บาท/เดือน)' ? 'เช่น 100' : 'เลือกประเภทค่าน้ำก่อน'"
                   min="0"
                   step="0.01"
                 />
@@ -401,7 +439,7 @@
               <button
                 type="button"
                 (click)="openCamera()"
-                [disabled]="images.length >= maxImages"
+                [disabled]="images.length >= maxImages || isUploadingImages"
                 class="flex-1 flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg
@@ -414,7 +452,7 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h.93a2 2 0 001.664.89l.812 1.22A2 2 0 013 9z"
                   ></path>
                   <path
                     stroke-linecap="round"
@@ -423,13 +461,15 @@
                     d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
                   ></path>
                 </svg>
-                <span class="text-sm font-medium text-gray-700">ถ่ายรูป</span>
+                <span class="text-sm font-medium text-gray-700">
+                  {{ isUploadingImages ? 'กำลังอัปโหลด...' : 'ถ่ายรูป' }}
+                </span>
               </button>
 
               <button
                 type="button"
                 (click)="openGallery()"
-                [disabled]="images.length >= maxImages"
+                [disabled]="images.length >= maxImages || isUploadingImages"
                 class="flex-1 flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg
@@ -442,12 +482,12 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586 1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                   ></path>
                 </svg>
-                <span class="text-sm font-medium text-gray-700"
-                  >เลือกจากเครื่อง</span
-                >
+                <span class="text-sm font-medium text-gray-700">
+                  {{ isUploadingImages ? 'กำลังอัปโหลด...' : 'เลือกจากเครื่อง' }}
+                </span>
               </button>
             </div>
 
@@ -495,11 +535,17 @@
                   [class.border-gray-200]="!image.isPrimary"
                 />
 
+                <!-- Upload Status -->
+                <div *ngIf="isUploadingImages" class="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
+                  <div class="text-white text-sm">กำลังอัปโหลด...</div>
+                </div>
+
                 <!-- Remove Button -->
                 <button
                   type="button"
                   (click)="removeImage(i)"
-                  class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  [disabled]="isUploadingImages"
+                  class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                 >
                   <svg
                     class="w-4 h-4"
@@ -529,7 +575,8 @@
                   *ngIf="!image.isPrimary"
                   type="button"
                   (click)="setPrimaryImage(i)"
-                  class="absolute bottom-1 left-1 px-2 py-1 bg-black bg-opacity-50 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                  [disabled]="isUploadingImages"
+                  class="absolute bottom-1 left-1 px-2 py-1 bg-black bg-opacity-50 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                 >
                   ตั้งเป็นรูปหลัก
                 </button>

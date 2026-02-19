@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { SupabaseService } from '../../services/supabase.service';
 import * as maptilersdk from '@maptiler/sdk';
 import '@maptiler/sdk/dist/maptiler-sdk.css';
 
@@ -36,9 +37,11 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
   totalSteps = 4;
   isSubmitting = false;
   images: ImageFile[] = [];
+  imageUrls: string[] = []; // เก็บ URL จาก Supabase
   maxImages = 20;
   minImages = 3;
   showSuccessModal = false; // สำหรับแสดง success popup
+  isUploadingImages = false; // สถานะการอัปโหลดรูป
 
   // Data from API
   zones: Zone[] = [];
@@ -61,7 +64,8 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
   constructor(
     private fb: FormBuilder,
     public router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    private supabaseService: SupabaseService
   ) {}
 
   ngOnInit() {
@@ -73,6 +77,7 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
   initForm() {
     this.dormForm = this.fb.group({
       // ข้อมูลหอพัก
+      accommodation_type: ['หอ', Validators.required], // เพิ่มประเภทที่พัก (หอ/บ้าน)
       dorm_name: ['', [Validators.required, Validators.minLength(3)]],
       address: ['', [Validators.required, Validators.minLength(10)]],
       zone_id: ['', Validators.required], // เปลี่ยนจาก zone_name เป็น zone_id
@@ -90,12 +95,13 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
       
       // ราคา (ต้องเลือกอย่างน้อย 1)
       monthly_price: [''],
-      daily_price: [''],
+      term_price: [''], // เปลี่ยนจาก daily_price เป็น term_price
       summer_price: [''], // ราคาซัมเมอร์ (ไม่บังคับ)
       deposit: [''], // ค่าประกันห้อง (ไม่บังคับ)
       
       // ค่าน้ำค่าไฟ (บังคับกรอก)
-      electricity_price: ['', Validators.required], // ค่าไฟ บาท/หน่วย - บังคับ
+      electricity_price_type: ['', Validators.required], // เพิ่มประเภทค่าไฟ
+      electricity_price: [{ value: '', disabled: true }, Validators.required], // ค่าไฟ บาท/หน่วย - บังคับ
       water_price_type: ['', Validators.required], // ประเภทค่าน้ำ - บังคับ
       water_price: [{ value: '', disabled: true }, Validators.required], // ค่าน้ำ - บังคับ
       
@@ -117,14 +123,44 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
         waterPriceControl?.setValue('');
       }
     });
+
+    // ฟังการเปลี่ยนแปลงของ electricity_price_type
+    this.dormForm.get('electricity_price_type')?.valueChanges.subscribe(value => {
+      const electricityPriceControl = this.dormForm.get('electricity_price');
+      if (value === 'ตามอัตราการไฟฟ้า') {
+        electricityPriceControl?.setValue('ตามอัตราการไฟฟ้า');
+        electricityPriceControl?.disable();
+      } else if (value) {
+        electricityPriceControl?.enable();
+        electricityPriceControl?.setValue('');
+      } else {
+        electricityPriceControl?.disable();
+        electricityPriceControl?.setValue('');
+      }
+    });
+
+    // ฟังการเปลี่ยนแปลงของ water_price_type สำหรับอัตราการประปา
+    this.dormForm.get('water_price_type')?.valueChanges.subscribe(value => {
+      const waterPriceControl = this.dormForm.get('water_price');
+      if (value === 'ตามอัตราการประปา') {
+        waterPriceControl?.setValue('ตามอัตราการประปา');
+        waterPriceControl?.disable();
+      } else if (value) {
+        waterPriceControl?.enable();
+        waterPriceControl?.setValue('');
+      } else {
+        waterPriceControl?.disable();
+        waterPriceControl?.setValue('');
+      }
+    });
   }
 
   // Custom validator: ต้องมีราคาอย่างน้อย 1 ตัว
   atLeastOnePriceValidator(group: FormGroup): {[key: string]: boolean} | null {
     const monthly = group.get('monthly_price')?.value;
-    const daily = group.get('daily_price')?.value;
+    const term = group.get('term_price')?.value; // เปลี่ยนจาก daily เป็น term
     
-    if (!monthly && !daily) {
+    if (!monthly && !term) {
       return { atLeastOnePrice: true };
     }
     return null;
@@ -163,6 +199,42 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
   }
 
   // การจัดการรูปภาพ
+  async uploadImagesToSupabase() {
+    if (this.images.length === 0) return;
+    
+    this.isUploadingImages = true;
+    
+    try {
+      const files = this.images.map(img => img.file);
+      const result = await this.supabaseService.uploadMultipleImages(
+        files, 
+        'dorm-drafts/'
+      );
+      
+      if (result.errors.length > 0) {
+        console.error('Some images failed to upload:', result.errors);
+        this.showToast('บางรูปอัปโหลดไม่สำเร็จ', 'error');
+        return;
+      }
+      
+      this.imageUrls = result.urls;
+      console.log('✅ Images uploaded to Supabase:', this.imageUrls);
+      
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      this.showToast('อัปโหลดรูปไม่สำเร็จ', 'error');
+    } finally {
+      this.isUploadingImages = false;
+    }
+  }
+
+  // อัปโหลดรูปทันทีที่เพิ่มรูป (auto-upload)
+  async autoUploadImages() {
+    if (this.images.length > 0 && this.imageUrls.length === 0) {
+      await this.uploadImagesToSupabase();
+    }
+  }
+
   openCamera() {
     this.cameraInput.nativeElement.click();
   }
@@ -210,6 +282,9 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
         preview: e.target?.result as string,
         isPrimary: this.images.length === 0 // รูปแรกเป็นรูปหลัก
       });
+      
+      // อัปโหลดรูปทันทีที่เพิ่ม
+      this.autoUploadImages();
     };
     reader.readAsDataURL(file);
   }
@@ -218,9 +293,19 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
     const wasPrimary = this.images[index].isPrimary;
     this.images.splice(index, 1);
     
+    // ลบ URL ด้วยถ้ามี
+    if (this.imageUrls.length > index) {
+      this.imageUrls.splice(index, 1);
+    }
+    
     // ถ้าลบรูปหลัก ให้รูปแรกเป็นรูปหลักแทน
     if (wasPrimary && this.images.length > 0) {
       this.images[0].isPrimary = true;
+    }
+    
+    // อัปโหลดใหม่ถ้ายังมีรูปอยู่
+    if (this.images.length > 0) {
+      this.autoUploadImages();
     }
   }
 
@@ -250,6 +335,7 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
   markStepFieldsAsTouched() {
     switch (this.currentStep) {
       case 1:
+        this.dormForm.get('accommodation_type')?.markAsTouched();
         this.dormForm.get('dorm_name')?.markAsTouched();
         this.dormForm.get('address')?.markAsTouched();
         this.dormForm.get('zone_id')?.markAsTouched();
@@ -261,7 +347,8 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
         this.dormForm.get('room_type')?.markAsTouched();
         this.dormForm.get('room_type_other')?.markAsTouched();
         this.dormForm.get('monthly_price')?.markAsTouched();
-        this.dormForm.get('daily_price')?.markAsTouched();
+        this.dormForm.get('term_price')?.markAsTouched(); // เปลี่ยนจาก daily_price
+        this.dormForm.get('electricity_price_type')?.markAsTouched();
         this.dormForm.get('electricity_price')?.markAsTouched();
         this.dormForm.get('water_price_type')?.markAsTouched();
         this.dormForm.get('water_price')?.markAsTouched();
@@ -281,8 +368,9 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
   validateCurrentStep(): boolean {
     switch (this.currentStep) {
       case 1:
-        return !!(this.dormForm.get('dorm_name')?.valid && 
-               this.dormForm.get('address')?.valid && 
+        return !!(this.dormForm.get('accommodation_type')?.valid &&
+               this.dormForm.get('dorm_name')?.valid &&
+               this.dormForm.get('address')?.valid &&
                this.dormForm.get('zone_id')?.valid);
       case 2:
         // ข้อมูลติดต่อไม่บังคับ แต่ถ้ากรอกเบอร์โทรต้องครบ 10 หลัก
@@ -304,17 +392,18 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
         const hasValidRoomType = roomType && (roomType !== 'อื่นๆ' || roomTypeOther);
         
         const monthly = this.dormForm.get('monthly_price')?.value;
-        const daily = this.dormForm.get('daily_price')?.value;
-        const hasPrice = monthly || daily;
+        const term = this.dormForm.get('term_price')?.value; // เปลี่ยนจาก daily เป็น term
+        const hasPrice = monthly || term;
         
+        const hasElectricityType = this.dormForm.get('electricity_price_type')?.valid;
         const hasElectricity = this.dormForm.get('electricity_price')?.valid;
         const hasWaterType = this.dormForm.get('water_price_type')?.valid;
         const hasWaterPrice = this.dormForm.get('water_price')?.valid;
         
-        return hasValidRoomType && hasPrice && hasElectricity && hasWaterType && hasWaterPrice;
+        return hasValidRoomType && hasPrice && hasElectricityType && hasElectricity && hasWaterType && hasWaterPrice;
       case 4:
         // ต้องมีรูปอย่างน้อย 3 รูป และมีพิกัด
-        const hasEnoughImages = this.images.length >= this.minImages;
+        const hasEnoughImages = this.imageUrls.length >= this.minImages;
         const hasLocation = this.dormForm.get('latitude')?.value && this.dormForm.get('longitude')?.value;
         return hasEnoughImages && hasLocation;
       default:
@@ -327,69 +416,32 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
       this.isSubmitting = true;
       
       try {
-        const formData = new FormData();
-        
-        console.log('📋 Form values before submission:', this.dormForm.value);
-        console.log('📸 Images array:', this.images.length, 'files');
-        
-        // เพิ่มข้อมูลฟอร์ม
-        Object.keys(this.dormForm.value).forEach(key => {
-          if (key === 'amenities') {
-            // แปลง amenities เป็น array ของชื่อที่เลือก
-            const selectedAmenities = Object.keys(this.dormForm.value.amenities)
-              .filter(amenity => this.dormForm.value.amenities[amenity]);
-            formData.append('amenities', JSON.stringify(selectedAmenities));
-            console.log('✅ amenities:', selectedAmenities);
-          } else if (key === 'description') {
-            // เปลี่ยน description เป็น dorm_description
-            const value = this.dormForm.value[key];
-            if (value !== null && value !== undefined && value !== '') {
-              formData.append('dorm_description', value);
-              console.log(`✅ dorm_description:`, value);
-            }
-          } else {
-            const value = this.dormForm.value[key];
-            // ส่งทุกค่ายกเว้น null, undefined, และ empty string
-            // แต่ส่ง 0 ได้ (กรณีราคาเป็น 0)
-            if (value !== null && value !== undefined && value !== '') {
-              formData.append(key, value);
-              console.log(`✅ ${key}:`, value);
-            } else {
-              console.log(`⏭️ Skipped ${key}:`, value);
-            }
-          }
-        });
-        
-        // เพิ่มรูปภาพ - ต้องส่งทุกรูป
-        console.log('📸 Appending images to FormData...');
-        for (let i = 0; i < this.images.length; i++) {
-          formData.append('images', this.images[i].file, this.images[i].file.name);
-          console.log(`  ✅ Image ${i + 1}:`, this.images[i].file.name, `(${(this.images[i].file.size / 1024).toFixed(2)} KB)`);
-          
-          // ระบุรูปหลัก
-          if (this.images[i].isPrimary) {
-            formData.append('primary_image_index', i.toString());
-            console.log(`  ⭐ Primary image index: ${i}`);
-          }
+        // อัปโหลดรูปขึ้น Supabase ก่อน (ถ้ายังไม่ได้อัปโหลด)
+        if (this.imageUrls.length === 0 && this.images.length > 0) {
+          await this.uploadImagesToSupabase();
         }
         
-        // แสดงข้อมูลทั้งหมดที่จะส่ง
-        console.log('📤 FormData summary:');
-        let imageCount = 0;
-        formData.forEach((value, key) => {
-          if (key === 'images') {
-            imageCount++;
-          } else {
-            console.log(`  ${key}:`, value);
-          }
-        });
-        console.log(`  images: ${imageCount} files`);
+        // ถ้าอัปโหลดรูปไม่สำเร็จ ให้หยุด
+        if (this.imageUrls.length === 0 && this.images.length > 0) {
+          this.showToast('กรุณาอัปโหลดรูปก่อนส่งข้อมูล', 'error');
+          return;
+        }
         
-        // ส่งข้อมูลไป API
+        // สร้าง payload สำหรับส่ง JSON
+        const payload = {
+          ...this.dormForm.value,
+          images: this.imageUrls,
+          primary_image_index: this.images.findIndex(img => img.isPrimary)
+        };
+        
+        console.log('📋 Form values before submission:', payload);
+        console.log('📸 Images URLs:', this.imageUrls);
+        
+        // ส่ง JSON ไป backend
         console.log('🚀 Sending to:', `${this.backendUrl}/submissions`);
-        await this.http.post(`${this.backendUrl}/submissions`, formData).toPromise();
+        await this.http.post(`${this.backendUrl}/submissions`, payload).toPromise();
         
-        // แสดง success modal แทน alert
+        // แสดง success modal
         this.showSuccessModal = true;
         
       } catch (error: any) {
@@ -431,6 +483,61 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
       case 4: return 'รูปภาพและข้อมูลเพิ่มเติม';
       default: return '';
     }
+  }
+
+  // Helper methods for dynamic labels
+  getAccommodationType(): string {
+    return this.dormForm.get('accommodation_type')?.value || 'หอ';
+  }
+
+  isHouse(): boolean {
+    return this.getAccommodationType() === 'บ้าน';
+  }
+
+  getAccommodationNameLabel(): string {
+    return this.isHouse() ? 'ชื่อบ้าน' : 'ชื่อหอพัก';
+  }
+
+  getAccommodationAddressLabel(): string {
+    return this.isHouse() ? 'ที่อยู่บ้าน' : 'ที่อยู่หอพัก';
+  }
+
+  getRoomTypeLabel(): string {
+    return this.isHouse() ? 'จำนวนห้อง' : 'ประเภทห้อง';
+  }
+
+  getDepositLabel(): string {
+    return this.isHouse() ? 'ค่าประกันบ้าน' : 'ค่าประกันห้อง';
+  }
+
+  getRoomTypes(): string[] {
+    if (this.isHouse()) {
+      return [
+        '1 ห้องนอน 1 ห้องน้ำ',
+        '1 ห้องนอน ห้องน้ำในตัว',
+        '2 ห้องนอน 1 ห้องน้ำ',
+        '2 ห้องนอน 2 ห้องน้ำ',
+        '3 ห้องนอน 1 ห้องน้ำ',
+        '3 ห้องนอน 2 ห้องน้ำ',
+        'อื่นๆ'
+      ];
+    }
+    return ['ห้องแอร์', 'ห้องคู่', 'ห้องพัดลม', 'อื่นๆ'];
+  }
+
+  getElectricityPriceTypes(): string[] {
+    return [
+      'ตามอัตราการไฟฟ้า',
+      'คิดตามหน่วย (บาท/หน่วย)'
+    ];
+  }
+
+  getWaterPriceTypes(): string[] {
+    return [
+      'ตามอัตราการประปา',
+      'คิดตามหน่วย (บาท/หน่วย)',
+      'คิดรายเดือน (บาท/เดือน)'
+    ];
   }
 
   isStepValid(step: number): boolean {

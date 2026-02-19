@@ -28,6 +28,7 @@
     "@ng-icons/core": "^30.0.0",
     "@ng-icons/heroicons": "^30.0.0",
     "@primeng/themes": "^19.1.4",
+    "@supabase/supabase-js": "^2.97.0",
     "@types/mapbox-gl": "^3.4.1",
     "bcrypt": "^6.0.0",
     "bootstrap": "^5.3.3",

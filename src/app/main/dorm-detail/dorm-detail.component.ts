@@ -90,7 +90,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     secondaryPhone: '',
     lineId: '',
     email: '',
-    image: '../../../assets/images/photo.png'
+    image: '../../../assets/icon/home-owner.png'
   };
 
   // Map properties - ป้องกัน race conditions
@@ -341,7 +341,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         secondaryPhone: detail.owner_secondary_phone || '',
         lineId: detail.owner_line_id || '',
         email: detail.owner_email || '',
-        image: detail.owner_photo_url || '../../../assets/images/photo.png'
+        image: detail.owner_photo_url || '../../../assets/icon/home-owner.png'
       };
       
 
@@ -798,7 +798,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   // Helper methods for avatars
   getUserAvatarUrl(): string {
     // ถ้ามีรูปโปรไฟล์ ให้ใช้รูปนั้น
-    if (this.userAvatar && this.userAvatar !== '../../../assets/images/photo.png') {
+    if (this.userAvatar && this.userAvatar !== '../../../assets/icon/Rectangle 6.png') {
       return this.userAvatar;
     }
     
@@ -808,7 +808,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   getReviewerAvatarUrl(review: Review): string {
     // ถ้ามีรูปโปรไฟล์ ให้ใช้รูปนั้น
-    if (review.avatar && review.avatar !== '../../../assets/images/photo.png') {
+    if (review.avatar && review.avatar !== '../../../assets/icon/Rectangle 6.png') {
       return review.avatar;
     }
     

@@ -85,7 +85,7 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
       
       // ข้อมูลติดต่อ (ไม่บังคับทั้งหมด)
       contact_name: [''],
-      contact_phone: ['', [Validators.pattern(/^[0-9]{10}$/)]], // ต้องเป็น 10 หลักพอดี
+      contact_phone: ['', [Validators.pattern(/^[0-9]{3}-?[0-9]{3}-?[0-9]{4}$|^[0-9]{10}$/)]], // รองรับ 090-962-8055 หรือ 0909628055
       contact_email: ['', [Validators.email]],
       line_id: [''],
       
@@ -94,10 +94,10 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
       room_type_other: [''], // ถ้าเลือก "อื่นๆ"
       
       // ราคา (ต้องเลือกอย่างน้อย 1)
-      monthly_price: [''],
-      term_price: [''], // เปลี่ยนจาก daily_price เป็น term_price
-      summer_price: [''], // ราคาซัมเมอร์ (ไม่บังคับ)
-      deposit: [''], // ค่าประกันห้อง (ไม่บังคับ)
+      monthly_price: ['', [Validators.min(1000), Validators.max(100000)]],
+      term_price: ['', [Validators.min(1000), Validators.max(100000)]], // เปลี่ยนจาก daily_price เป็น term_price
+      summer_price: ['', [Validators.min(1000), Validators.max(100000)]], // ราคาซัมเมอร์ (ไม่บังคับ)
+      deposit: ['', [Validators.min(0), Validators.max(100000)]], // ค่าประกันห้อง (ไม่บังคับ)
       
       // ค่าน้ำค่าไฟ (บังคับกรอก)
       electricity_price_type: ['', Validators.required], // เพิ่มประเภทค่าไฟ
@@ -395,10 +395,15 @@ export class DormSubmitComponent implements OnInit, OnDestroy {
         const term = this.dormForm.get('term_price')?.value; // เปลี่ยนจาก daily เป็น term
         const hasPrice = monthly || term;
         
-        const hasElectricityType = this.dormForm.get('electricity_price_type')?.valid;
-        const hasElectricity = this.dormForm.get('electricity_price')?.valid;
-        const hasWaterType = this.dormForm.get('water_price_type')?.valid;
-        const hasWaterPrice = this.dormForm.get('water_price')?.valid;
+        const electricityType = this.dormForm.get('electricity_price_type')?.value;
+        const hasElectricityType = electricityType && electricityType.trim() !== '';
+        const electricityPrice = this.dormForm.get('electricity_price')?.value;
+        const hasElectricity = electricityType === 'ตามอัตราการไฟฟ้า' || (electricityPrice && electricityPrice.trim() !== '');
+        
+        const waterType = this.dormForm.get('water_price_type')?.value;
+        const hasWaterType = waterType && waterType.trim() !== '';
+        const waterPrice = this.dormForm.get('water_price')?.value;
+        const hasWaterPrice = waterType === 'ตามอัตราการประปา' || (waterPrice && waterPrice.trim() !== '');
         
         return hasValidRoomType && hasPrice && hasElectricityType && hasElectricity && hasWaterType && hasWaterPrice;
       case 4:

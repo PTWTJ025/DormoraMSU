@@ -1,0 +1,613 @@
+<!-- Loading Overlay -->
+<div *ngIf="isInitialLoading" class="loading-overlay">
+  <div class="loading-spinner"></div>
+  <p class="loading-text">กำลังโหลดข้อมูลหอพัก...</p>
+</div>
+
+<div class="edit-container" *ngIf="!isInitialLoading" [formGroup]="dormForm">
+  <!-- Header -->
+  <div class="edit-header">
+    <div class="header-left">
+      <button type="button" class="btn-back" (click)="cancelForm()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-sm">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+        </svg>
+        กลับ
+      </button>
+      <h1 class="page-title">แก้ไขหอพัก</h1>
+    </div>
+  </div>
+
+  <!-- Stepper -->
+  <div class="stepper-container">
+    <div class="stepper">
+      <div *ngFor="let step of [1, 2, 3]; let i = index" class="step"
+        [class.step-active]="currentStep === step"
+        [class.step-completed]="currentStep > step"
+        [class.step-clickable]="step <= maxReachedStep"
+        (click)="goToStep(step)">
+        <div class="step-circle">
+          <span *ngIf="currentStep <= step">{{ step }}</span>
+          <svg *ngIf="currentStep > step" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="icon-check">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+          </svg>
+        </div>
+        <span class="step-label">
+          {{ step === 1 ? 'ข้อมูลหอพัก' : step === 2 ? 'ตรวจสอบ' : 'เสร็จสิ้น' }}
+        </span>
+        <div *ngIf="i < 2" class="step-line" [class.step-line-active]="currentStep > step"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== STEP 1: ข้อมูลหอพัก ========== -->
+  <div *ngIf="currentStep === 1" class="step-content" [@slideCenter]="currentStep">
+    <form [formGroup]="dormForm">
+      <!-- ข้อมูลทั่วไป -->
+      <div class="card" formGroupName="generalInfo">
+        <h2 class="card-title">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-title">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+          </svg>
+          ข้อมูลทั่วไป
+        </h2>
+
+        <div class="form-grid">
+          <!-- ชื่อหอพัก -->
+          <div class="form-group full-width">
+            <label class="form-label">ชื่อหอพัก <span class="required">*</span></label>
+            <input type="text" formControlName="name" class="form-input" placeholder="เช่น อันดา เพลส" />
+          </div>
+
+          <!-- โซน -->
+          <div class="form-group">
+            <label class="form-label">โซน/พื้นที่ <span class="required">*</span></label>
+            <select formControlName="zone_id" class="form-input">
+              <option value="">{{ zonesLoading ? 'กำลังโหลด...' : 'เลือกโซน' }}</option>
+              <option *ngFor="let zone of zones" [value]="zone.zone_id">{{ zone.zone_name }}</option>
+            </select>
+          </div>
+
+          <!-- สถานะหอพัก -->
+          <div class="form-group">
+            <label class="form-label">สถานะหอพัก</label>
+            <select formControlName="statusDorm" class="form-input">
+              <option value="ว่าง">ว่าง</option>
+              <option value="เต็ม">เต็ม</option>
+            </select>
+          </div>
+
+          <!-- ที่อยู่ -->
+          <div class="form-group full-width">
+            <label class="form-label">ที่อยู่ <span class="required">*</span></label>
+            <input type="text" formControlName="address" class="form-input" placeholder="ระบุที่อยู่หอพักให้ละเอียด" />
+          </div>
+
+          <!-- รายละเอียด -->
+          <div class="form-group full-width">
+            <label class="form-label">รายละเอียดเพิ่มเติม <span class="required">*</span></label>
+            <textarea formControlName="description" rows="4" class="form-input" placeholder="เช่น หอพักใหม่ สะอาด ปลอดภัย..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- ประเภทห้องและราคา -->
+      <div class="card">
+        <h2 class="card-title" id="room-types-header">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-title">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+          </svg>
+          ประเภทห้องและราคา
+        </h2>
+
+        <div formArrayName="roomTypes">
+          <div *ngFor="let rt of roomTypes.controls; let i = index" [formGroupName]="i" class="room-type-card" [id]="'room-type-header-' + i">
+            <div class="room-type-header">
+              <span class="room-type-number">ห้องประเภทที่ {{ i + 1 }}</span>
+              <button *ngIf="roomTypes.length > 1" type="button" class="btn-remove-room" (click)="removeRoomType(i)">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-sm">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="form-grid">
+              <!-- ประเภทห้อง -->
+              <div class="form-group">
+                <label class="form-label">ประเภทห้อง <span class="required">*</span></label>
+                <select formControlName="type" class="form-input" (change)="onTypeChange(i)">
+                  <option value="">เลือกประเภท</option>
+                  <option value="ห้องแอร์">ห้องแอร์</option>
+                  <option value="ห้องพัดลม">ห้องพัดลม</option>
+                  <option value="ห้องพัดลม + แอร์">ห้องพัดลม + แอร์</option>
+                  <option value="other">อื่นๆ</option>
+                </select>
+              </div>
+
+              <!-- ประเภทห้อง (อื่นๆ) -->
+              <div class="form-group" *ngIf="isOther(i)">
+                <label class="form-label">ระบุประเภทห้อง <span class="required">*</span></label>
+                <div class="custom-type-input">
+                  <input type="text" formControlName="customType" class="form-input" placeholder="เช่น ห้องสตูดิโอ" />
+                </div>
+              </div>
+
+              <!-- ประเภทเตียง -->
+              <div class="form-group">
+                <label class="form-label">ประเภทเตียง <span class="required">*</span></label>
+                <select formControlName="bed_type" class="form-input">
+                  <option value="">เลือกประเภทเตียง</option>
+                  <option value="เตียงเดี่ยว">เตียงเดี่ยว</option>
+                  <option value="เตียงคู่">เตียงคู่</option>
+                  <option value="ไม่มีเตียง">ไม่มีเตียง</option>
+                </select>
+              </div>
+
+              <!-- ราคารายเดือน -->
+              <div class="form-group">
+                <label class="form-label">ราคารายเดือน (บาท)</label>
+                <input type="text" formControlName="pricePerMonth" class="form-input" placeholder="เช่น 3500" (input)="enforceNumeric($event)" />
+              </div>
+
+              <!-- ราคารายวัน -->
+              <div class="form-group">
+                <label class="form-label">ราคารายวัน (บาท)</label>
+                <input type="text" formControlName="pricePerDay" class="form-input" placeholder="เช่น 350" (input)="enforceNumeric($event)" />
+              </div>
+
+              <!-- ราคาเทอม -->
+              <div class="form-group">
+                <label class="form-label">ราคาเทอม (บาท)</label>
+                <input type="text" formControlName="pricePerTerm" class="form-input" placeholder="เช่น 15000" (input)="enforceNumeric($event)" />
+              </div>
+
+              <!-- ราคาซัมเมอร์ -->
+              <div class="form-group">
+                <label class="form-label">ราคาซัมเมอร์ (บาท)</label>
+                <input type="text" formControlName="pricePerSummer" class="form-input" placeholder="เช่น 9000" (input)="enforceNumeric($event)" />
+              </div>
+            </div>
+
+            <!-- Error: ต้องมีราคา -->
+            <div *ngIf="rt.errors?.['needMonthOrDay'] && (rt.get('pricePerMonth')?.touched || rt.get('pricePerDay')?.touched)" class="form-error">
+              กรุณากรอกราคารายเดือนหรือรายวันอย่างน้อย 1 ช่อง
+            </div>
+            <div *ngIf="hasZeroPriceError(rt)" class="form-error">
+              ราคาต้องมากกว่า 0 บาท
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="btn-add-room" (click)="addRoomType()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-sm">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          เพิ่มประเภทห้อง
+        </button>
+      </div>
+
+      <!-- สิ่งอำนวยความสะดวก -->
+      <div class="card">
+        <h2 class="card-title" id="amenities-header">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-title">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17l-5.384 3.18a1.25 1.25 0 01-1.81-1.32l1.03-5.99L.61 6.53a1.25 1.25 0 01.7-2.13l6.02-.88L10.01.39a1.25 1.25 0 012.24 0l2.69 5.13 6.02.88a1.25 1.25 0 01.7 2.13l-4.65 4.51 1.03 5.99a1.25 1.25 0 01-1.81 1.32l-5.384-3.18z" />
+          </svg>
+          สิ่งอำนวยความสะดวก
+        </h2>
+
+        <!-- ภายในห้อง -->
+        <div class="amenity-section">
+          <h3 class="amenity-section-title">ภายในห้อง</h3>
+          <div class="amenity-grid" formArrayName="amenities">
+            <ng-container *ngFor="let amenity of amenitiesList; let i = index">
+              <label *ngIf="amenity.location_type === 'ภายใน'" class="amenity-checkbox">
+                <input type="checkbox" [formControlName]="i" (change)="onAmenityChange(i, amenity.id)" />
+                <span class="amenity-name">{{ amenity.name }}</span>
+              </label>
+            </ng-container>
+          </div>
+        </div>
+
+        <!-- ภายนอก -->
+        <div class="amenity-section">
+          <h3 class="amenity-section-title">ภายนอก</h3>
+          <div class="amenity-grid" formArrayName="amenities">
+            <ng-container *ngFor="let amenity of amenitiesList; let i = index">
+              <label *ngIf="amenity.location_type === 'ภายนอก'" class="amenity-checkbox">
+                <input type="checkbox" [formControlName]="i" (change)="onAmenityChange(i, amenity.id)" />
+                <span class="amenity-name">{{ amenity.name }}</span>
+              </label>
+            </ng-container>
+          </div>
+        </div>
+
+        <!-- อื่นๆ -->
+        <div class="amenity-section" formArrayName="amenities">
+          <label class="amenity-checkbox">
+            <input type="checkbox" [formControlName]="getAmenityIndex('other')" (change)="onAmenityChange(getAmenityIndex('other'), 'other')" />
+            <span class="amenity-name">อื่นๆ</span>
+          </label>
+        </div>
+
+        <!-- ช่องกรอกอื่นๆ -->
+        <div *ngIf="amenitiesOther.length > 0" class="other-amenities" formArrayName="amenitiesOther">
+          <div *ngFor="let ctrl of amenitiesOther.controls; let j = index" [formGroupName]="j" class="other-amenity-row">
+            <input type="text" formControlName="name" class="form-input flex-1" placeholder="ชื่อสิ่งอำนวยความสะดวก" />
+            <select formControlName="location_type" class="form-input w-auto">
+              <option value="ภายใน">ภายใน</option>
+              <option value="ภายนอก">ภายนอก</option>
+            </select>
+            <button type="button" class="btn-remove-small" (click)="removeOtherAmenityField(j)">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-sm">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <button type="button" class="btn-add-other" (click)="addOtherAmenityField()">+ เพิ่มรายการ</button>
+        </div>
+      </div>
+
+      <!-- ค่าน้ำค่าไฟ -->
+      <div class="card" formGroupName="utilities">
+        <h2 class="card-title">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-title">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+          </svg>
+          ค่าน้ำค่าไฟ
+        </h2>
+
+        <div class="form-grid" formGroupName="electricity">
+          <div class="form-group">
+            <label class="form-label">ประเภทค่าไฟ <span class="required">*</span></label>
+            <select formControlName="electricity_type" class="form-input">
+              <option value="คิดตามหน่วย">คิดตามหน่วย</option>
+              <option value="ตามมิเตอร์">ตามมิเตอร์ (การไฟฟ้า)</option>
+            </select>
+          </div>
+          <div class="form-group" *ngIf="electricity.get('electricity_type')?.value === 'คิดตามหน่วย'">
+            <label class="form-label">อัตราค่าไฟ (บาท/หน่วย)</label>
+            <input type="text" formControlName="electricity_rate" class="form-input" placeholder="เช่น 8" />
+          </div>
+        </div>
+
+        <div class="form-grid" formGroupName="water">
+          <div class="form-group">
+            <label class="form-label">ประเภทค่าน้ำ <span class="required">*</span></label>
+            <select formControlName="water_type" class="form-input">
+              <option value="คิดตามหน่วย">คิดตามหน่วย</option>
+              <option value="เหมาจ่าย">เหมาจ่าย</option>
+              <option value="ตามมิเตอร์">ตามมิเตอร์ (การประปา)</option>
+            </select>
+          </div>
+          <div class="form-group" *ngIf="water.get('water_type')?.value !== 'ตามมิเตอร์'">
+            <label class="form-label">
+              {{ water.get('water_type')?.value === 'เหมาจ่าย' ? 'ค่าน้ำ (บาท/เดือน)' : 'อัตราค่าน้ำ (บาท/หน่วย)' }}
+            </label>
+            <input type="text" formControlName="water_rate" class="form-input" placeholder="เช่น 100" />
+          </div>
+        </div>
+      </div>
+
+      <!-- ตำแหน่งหอพัก -->
+      <div class="card" formGroupName="location">
+        <h2 class="card-title">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-title">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+          </svg>
+          ตำแหน่งหอพัก
+        </h2>
+
+        <div class="map-wrapper">
+          <div id="location-map" class="map-container"></div>
+        </div>
+
+        <div *ngIf="dormForm.get('location.latitude')?.value && dormForm.get('location.longitude')?.value" class="coordinates-display">
+          ✓ พิกัด: {{ dormForm.get('location.latitude')?.value | number:'1.6-6' }}, {{ dormForm.get('location.longitude')?.value | number:'1.6-6' }}
+        </div>
+
+        <p class="map-hint">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-hint">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+          </svg>
+          คลิกบนแผนที่หรือลาก marker เพื่อระบุตำแหน่ง
+        </p>
+      </div>
+
+      <!-- รูปภาพ -->
+      <div class="card">
+        <h2 class="card-title">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-title">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A1.5 1.5 0 0021.75 19.5V4.5A1.5 1.5 0 0020.25 3H3.75A1.5 1.5 0 002.25 4.5v15A1.5 1.5 0 003.75 21z" />
+          </svg>
+          รูปภาพ
+          <span class="image-count">{{ imagePreviewUrls.length }} รูป</span>
+        </h2>
+
+        <!-- Upload Area -->
+        <div class="upload-area" id="file-upload"
+          [class.drag-over]="isDragOver"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
+          (click)="triggerFileInput()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="upload-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+          </svg>
+          <p class="upload-text">คลิกหรือลากรูปภาพมาที่นี่</p>
+          <p class="upload-hint">รองรับ JPG, PNG สูงสุด 10 MB</p>
+        </div>
+        <input type="file" #fileInput class="hidden" accept="image/*" multiple (change)="onFileSelect($event)" />
+
+        <!-- Image Grid -->
+        <div *ngIf="imagePreviewUrls.length > 0" class="image-grid" cdkDropList (cdkDropListDropped)="onImageReorder($event)">
+          <div *ngFor="let url of imagePreviewUrls; let i = index" class="image-card" cdkDrag>
+            <img [src]="url" [alt]="'รูปภาพ ' + (i + 1)" class="image-preview" />
+
+            <!-- Primary Badge -->
+            <div *ngIf="isMainImage(i)" class="primary-badge">รูปหลัก</div>
+
+            <!-- Set Primary Button -->
+            <button *ngIf="!isMainImage(i)" type="button" class="btn-set-primary" (click)="setAsMainImage(i)"
+              [disabled]="isSettingPrimary">
+              {{ isSettingPrimary && settingPrimaryIndex === i ? 'กำลังตั้ง...' : 'ตั้งเป็นรูปหลัก' }}
+            </button>
+
+            <!-- Remove Button -->
+            <button type="button" class="btn-remove-image" (click)="removeImage(i)"
+              [disabled]="isDeletingImage && deletingImageIndex === i">
+              <svg *ngIf="!(isDeletingImage && deletingImageIndex === i)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-sm">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              <span *ngIf="isDeletingImage && deletingImageIndex === i" class="deleting-spinner"></span>
+            </button>
+
+            <!-- Drag Handle -->
+            <div class="drag-handle" cdkDragHandle>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-sm">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div class="nav-buttons">
+        <button type="button" class="btn-secondary" (click)="cancelForm()">ยกเลิก</button>
+        <button type="button" class="btn-primary" (click)="nextStep()">
+          ตรวจสอบข้อมูล
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-sm">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ========== STEP 2: ตรวจสอบข้อมูล ========== -->
+  <div *ngIf="currentStep === 2" class="step-content" [@slideCenter]="currentStep">
+    <div class="card preview-card">
+      <h2 class="card-title">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-title">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        ตรวจสอบข้อมูลหอพัก
+      </h2>
+
+      <!-- ข้อมูลทั่วไป -->
+      <div class="preview-section">
+        <h3 class="preview-section-title">ข้อมูลทั่วไป</h3>
+        <div class="preview-grid">
+          <div class="preview-item">
+            <span class="preview-label">ชื่อหอพัก</span>
+            <span class="preview-value">{{ dormForm.get('generalInfo.name')?.value || '-' }}</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">โซน</span>
+            <span class="preview-value">{{ zoneName || '-' }}</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">สถานะ</span>
+            <span class="preview-value">{{ dormForm.get('generalInfo.statusDorm')?.value || 'ว่าง' }}</span>
+          </div>
+          <div class="preview-item full-width">
+            <span class="preview-label">ที่อยู่</span>
+            <span class="preview-value">{{ dormForm.get('generalInfo.address')?.value || '-' }}</span>
+          </div>
+          <div class="preview-item full-width">
+            <span class="preview-label">รายละเอียด</span>
+            <span class="preview-value desc">{{ dormForm.get('generalInfo.description')?.value || '-' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ประเภทห้อง -->
+      <div class="preview-section">
+        <h3 class="preview-section-title">ประเภทห้องและราคา</h3>
+        <div class="preview-table-wrapper">
+          <table class="preview-table">
+            <thead>
+              <tr>
+                <th>ประเภทห้อง</th>
+                <th>ประเภทเตียง</th>
+                <th>รายเดือน</th>
+                <th>รายวัน</th>
+                <th>เทอม</th>
+                <th>ซัมเมอร์</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let rt of roomTypes.controls; let i = index">
+                <td>{{ getRoomDisplayName(rt) }}</td>
+                <td>{{ rt.get('bed_type')?.value || '-' }}</td>
+                <td>{{ formatNumberOrDash(rt.get('pricePerMonth')?.value) }}</td>
+                <td>{{ formatNumberOrDash(rt.get('pricePerDay')?.value) }}</td>
+                <td>{{ formatNumberOrDash(rt.get('pricePerTerm')?.value) }}</td>
+                <td>{{ formatNumberOrDash(rt.get('pricePerSummer')?.value) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="price-range-display">
+          ช่วงราคา: <strong>{{ priceRangeText }}</strong>
+        </div>
+      </div>
+
+      <!-- ค่าน้ำค่าไฟ -->
+      <div class="preview-section">
+        <h3 class="preview-section-title">ค่าน้ำค่าไฟ</h3>
+        <div class="preview-grid">
+          <div class="preview-item">
+            <span class="preview-label">ค่าไฟ</span>
+            <span class="preview-value">
+              {{ electricity.get('electricity_type')?.value }}
+              <span *ngIf="electricity.get('electricity_rate')?.value"> - {{ electricity.get('electricity_rate')?.value }} บาท/หน่วย</span>
+            </span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">ค่าน้ำ</span>
+            <span class="preview-value">
+              {{ water.get('water_type')?.value }}
+              <span *ngIf="water.get('water_rate')?.value"> - {{ water.get('water_rate')?.value }} บาท/{{ water.get('water_type')?.value === 'เหมาจ่าย' ? 'เดือน' : 'หน่วย' }}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- สิ่งอำนวยความสะดวก -->
+      <div class="preview-section">
+        <h3 class="preview-section-title">สิ่งอำนวยความสะดวก</h3>
+        <div class="amenity-preview-grid">
+          <ng-container *ngFor="let amenity of amenitiesList; let i = index">
+            <div *ngIf="amenity.id !== 'other' && dormForm.get('amenities')?.value[i]" class="amenity-tag">
+              {{ amenity.name }}
+            </div>
+          </ng-container>
+        </div>
+      </div>
+
+      <!-- ตำแหน่ง -->
+      <div class="preview-section">
+        <h3 class="preview-section-title">ตำแหน่งหอพัก</h3>
+        <div class="map-wrapper preview-map-wrapper">
+          <div id="preview-map" class="map-container"></div>
+        </div>
+        <div *ngIf="dormForm.get('location.latitude')?.value" class="coordinates-display">
+          พิกัด: {{ dormForm.get('location.latitude')?.value | number:'1.6-6' }}, {{ dormForm.get('location.longitude')?.value | number:'1.6-6' }}
+        </div>
+      </div>
+
+      <!-- รูปภาพ -->
+      <div class="preview-section" *ngIf="imagePreviewUrls.length > 0">
+        <h3 class="preview-section-title">รูปภาพ ({{ imagePreviewUrls.length }} รูป)</h3>
+
+        <!-- Image Carousel -->
+        <div class="preview-carousel" *ngIf="hasImages">
+          <button type="button" class="carousel-btn carousel-prev" (click)="onPrevImage()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+          </button>
+          <div class="carousel-images">
+            <img [src]="imagePreviewUrls[prevImageIndex]" class="carousel-img carousel-img-side" [alt]="'รูป ' + (prevImageIndex+1)" (click)="onPrevImage()" />
+            <img [src]="imagePreviewUrls[currentImageIndex]" class="carousel-img carousel-img-center" [alt]="'รูป ' + (currentImageIndex+1)" (click)="openImageModal(currentImageIndex)" />
+            <img [src]="imagePreviewUrls[nextImageIndex]" class="carousel-img carousel-img-side" [alt]="'รูป ' + (nextImageIndex+1)" (click)="onNextImage()" />
+          </div>
+          <button type="button" class="carousel-btn carousel-next" (click)="onNextImage()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+          </button>
+        </div>
+
+        <!-- Image Strip -->
+        <div class="image-strip-container" *ngIf="imagePreviewUrls.length > 3">
+          <button type="button" class="strip-btn" (click)="onStripPrev()">‹</button>
+          <div class="image-strip" #stripViewport>
+            <div *ngFor="let url of imagePreviewUrls; let i = index" class="strip-image-card"
+              [class.strip-active]="i === currentImageIndex"
+              (click)="currentImageIndex = i; cdr.markForCheck()">
+              <img [src]="url" [alt]="'thumbnail ' + (i+1)" />
+            </div>
+          </div>
+          <button type="button" class="strip-btn" (click)="onStripNext()">›</button>
+        </div>
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div class="nav-buttons">
+        <button type="button" class="btn-secondary" (click)="prevStep()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-sm">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+          </svg>
+          ย้อนกลับ
+        </button>
+        <button type="button" class="btn-primary btn-save" (click)="onSubmit()" [disabled]="isSubmitting">
+          <span *ngIf="!isSubmitting">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-sm">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
+            บันทึกการแก้ไข
+          </span>
+          <span *ngIf="isSubmitting" class="saving-state">
+            <span class="saving-spinner"></span>
+            กำลังบันทึก...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== STEP 3: เสร็จสิ้น ========== -->
+  <div *ngIf="currentStep === 3" class="step-content" [@slideCenter]="currentStep">
+    <div class="card success-card">
+      <div class="success-icon-wrapper">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="success-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <h2 class="success-title">บันทึกสำเร็จ!</h2>
+      <p class="success-message">ข้อมูลหอพักถูกอัปเดตเรียบร้อยแล้ว</p>
+      <button type="button" class="btn-primary" (click)="cancelForm()">
+        กลับไปหน้าจัดการ
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Image Modal -->
+<div *ngIf="imageModalOpen" class="image-modal-overlay" (click)="closeImageModal()">
+  <div class="image-modal" (click)="$event.stopPropagation()">
+    <button type="button" class="modal-close" (click)="closeImageModal()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+    </button>
+    <button type="button" class="modal-nav modal-nav-prev" (click)="prevModalImage()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+    </button>
+    <img [src]="imagePreviewUrls[imageModalIndex]" [alt]="'รูป ' + (imageModalIndex+1)" class="modal-image" />
+    <button type="button" class="modal-nav modal-nav-next" (click)="nextModalImage()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+    </button>
+    <div class="modal-counter">{{ imageModalIndex + 1 }} / {{ imagePreviewUrls.length }}</div>
+  </div>
+</div>
+
+<!-- Error Modal -->
+<div *ngIf="showErrorModal" class="popup-overlay">
+  <div class="popup-box popup-error">
+    <div class="popup-icon">⚠️</div>
+    <p class="popup-message">{{ submitErrorMessage }}</p>
+    <button type="button" class="btn-primary" (click)="closeErrorModal()">ตกลง</button>
+  </div>
+</div>
+
+<!-- Custom Popup -->
+<div *ngIf="showPopup" class="popup-overlay" (click)="closePopup(false)">
+  <div class="popup-box" [class.popup-error]="popupType === 'error'" [class.popup-warning]="popupType === 'warning'" [class.popup-success]="popupType === 'success'" (click)="$event.stopPropagation()">
+    <div class="popup-icon">
+      {{ popupType === 'success' ? '✅' : popupType === 'warning' ? '⚠️' : '❌' }}
+    </div>
+    <p class="popup-message" [innerHTML]="popupMessage | slice:0:500"></p>
+    <div class="popup-actions">
+      <button *ngIf="popupType !== 'success'" type="button" class="btn-secondary popup-btn" (click)="closePopup(true)">ไปที่จุดนั้น</button>
+      <button type="button" class="btn-primary popup-btn" (click)="closePopup(false)">{{ popupType === 'success' ? 'ตกลง' : 'ปิด' }}</button>
+    </div>
+  </div>
+</div>

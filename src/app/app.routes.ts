@@ -7,6 +7,7 @@ import { DormCompareComponent } from './main/dorm-compare/dorm-compare.component
 import { DormSubmitComponent } from './main/dorm-submit/dorm-submit.component';
 import { AdminComponent } from './main/admin/admin.component';
 import { AdminLoginComponent } from './main/admin/login/admin-login.component';
+import { AdminEditDormComponent } from './main/admin/admin-edit-dorm/admin-edit-dorm.component';
 import { AuthRedirectGuard } from './guards/auth-redirect.guard';
 
 export const routes: Routes = [
@@ -16,7 +17,7 @@ export const routes: Routes = [
   // Main route - เปิดให้ทุกคนเข้าได้โดยไม่ต้องล็อกอิน
   {
     path: 'main',
-    component: MainComponent
+    component: MainComponent,
   },
 
   // Dorm list route - accessible to everyone
@@ -25,7 +26,7 @@ export const routes: Routes = [
   // Dorm detail route - accessible to everyone
   {
     path: 'dorm-detail/:id',
-    component: DormDetailComponent
+    component: DormDetailComponent,
   },
 
   // Dorm compare route - accessible to everyone
@@ -42,15 +43,23 @@ export const routes: Routes = [
     path: 'admin',
     component: AdminComponent,
     canActivate: [AuthRedirectGuard],
-    data: { userType: 'admin' }
+    data: { userType: 'admin' },
+  },
+
+  // Admin edit dormitory route
+  {
+    path: 'admin/edit-dorm/:dormId',
+    component: AdminEditDormComponent,
+    canActivate: [AuthRedirectGuard],
+    data: { userType: 'admin' },
   },
 
   // Admin login route
   {
     path: 'admin/login',
-    component: AdminLoginComponent
+    component: AdminLoginComponent,
   },
 
   // Wildcard route - redirect to main
-  { path: '**', redirectTo: '/main' }
+  { path: '**', redirectTo: '/main' },
 ];

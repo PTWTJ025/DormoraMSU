@@ -882,6 +882,14 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onImageError(event: any): void {
+    // Log ค่าเพื่อตรวจสอบ
+    console.log('Image Error - Original src:', event.target.src);
+    console.log('Dorm data for debugging:', {
+      main_image_url: event.target.getAttribute('data-main-image'),
+      thumbnail_url: event.target.getAttribute('data-thumbnail'),
+      fallback: event.target.getAttribute('data-fallback')
+    });
+    
     // ถ้ารูปไม่โหลดได้ ให้ใช้รูป default
     event.target.src = 'assets/images/photo.png';
   }

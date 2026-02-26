@@ -18,6 +18,6 @@ export const environment = {
   mapTilerApiKey: 'Gpwk2Mpi9cl8hUkVrf6f',
   
   // Supabase Configuration - Production with new key
-  supabaseUrl: 'https://spismpgbkrpkhedbeevh.supabase.co',
-  supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwaXNtcGdya3Jwa2hlZGJlZXZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNzQ5MzIsImV4cCI6MjA4NjY1MDkzMn0.XT4c55qK4RfHowNfM2bjnqbXQCu09qD_qeof_pxSvAc',
+  supabaseUrl: process.env['SUPABASE_URL'] || 'https://spismpgbkrpkhedbeevh.supabase.co',
+  supabaseAnonKey: process.env['SUPABASE_ANON_KEY'] || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwaXNtcGdya3Jwa2hlZGJlZXZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNzQ5MzIsImV4cCI6MjA4NjY1MDkzMn0.XT4c55qK4RfHowNfM2bjnqbXQCu09qD_qeof_pxSvAc',
 };

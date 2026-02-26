@@ -776,18 +776,12 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getRoomTypes(): string[] {
-    if (this.isHouse()) {
-      return [
-        '1 ห้องนอน 1 ห้องน้ำ',
-        '1 ห้องนอน ห้องน้ำในตัว',
-        '2 ห้องนอน 1 ห้องน้ำ',
-        '2 ห้องนอน 2 ห้องน้ำ',
-        '3 ห้องนอน 1 ห้องน้ำ',
-        '3 ห้องนอน 2 ห้องน้ำ',
-        'อื่นๆ',
-      ];
-    }
-    return ['ห้องแอร์', 'ห้องคู่', 'ห้องพัดลม', 'อื่นๆ'];
+    return [
+      'ห้องพัดลม',
+      'ห้องแอร์',
+      'ห้องสตูดิโอ',
+      'อื่นๆ',
+    ];
   }
 
   getElectricityPriceTypes(): string[] {

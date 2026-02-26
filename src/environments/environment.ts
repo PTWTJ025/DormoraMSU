@@ -19,5 +19,5 @@ export const environment = {
   
   // Supabase Configuration
   supabaseUrl: 'https://spismpgbkrpkhedbeevh.supabase.co',
-  supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwaXNtcGdya3Jwa2hlZGJlZXZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ5NzQzMSwiZXhwIjoyMDUwNDM0MzF9.Cn7vQhK9mz8lFhXo2vF5J1mP9nL6xQ3rY8WzZ2kL7mN4pXqR9s',
+  supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwaXNtcGdya3Jwa2hlZGJlZXZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNzQ5MzIsImV4cCI6MjA4NjY1MDkzMn0.XT4c55qK4RfHowNfM2bjnqbXQCu09qD_qeof_pxSvAc',
 };

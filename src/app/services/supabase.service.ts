@@ -37,7 +37,12 @@ export class SupabaseService {
         });
 
       if (error) {
-        console.error('Error uploading image:', error);
+        console.error('❌ Error uploading image:', error);
+        console.error('❌ Error details:', {
+          message: error.message,
+          details: (error as any).details || 'N/A',
+          hint: (error as any).hint || 'N/A'
+        });
         return { url: '', error };
       }
 

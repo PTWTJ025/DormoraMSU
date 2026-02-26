@@ -9,6 +9,7 @@ import { AboutComponent } from './about/about.component';
 import { ComparePopupComponent } from './shared/compare-popup/compare-popup.component';
 import { Subscription } from 'rxjs';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { StatsService } from '../services/stats.service';
 
 // UI model used in template (all required)
 interface UIDorm {
@@ -36,7 +37,13 @@ type BannerSlide = {
 @Component({
   selector: 'app-main',
   standalone: true,
-  imports: [CommonModule, RouterModule, NavbarComponent, ComparePopupComponent, AboutComponent],
+  imports: [
+    CommonModule,
+    RouterModule,
+    NavbarComponent,
+    ComparePopupComponent,
+    AboutComponent,
+  ],
   templateUrl: './main.component.html',
   styleUrls: ['./main.component.css'],
 })
@@ -56,44 +63,54 @@ export class MainComponent implements OnInit, OnDestroy {
   // Full lists
   recommendedDorms: UIDorm[] = [];
   latestDorms: UIDorm[] = [];
-  
+
   // Loading states
   isLoadingRecommended = true;
   isLoadingLatest = true;
-  
+
   // Displayed lists (limited to 4)
   displayedRecommended: UIDorm[] = [];
   displayedLatest: UIDorm[] = [];
 
   constructor(
-    private router: Router, 
-    private authService: AuthService, 
+    private router: Router,
+    private authService: AuthService,
     private dormSvc: DormitoryService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private statsService: StatsService,
   ) {
     // แทนที่การ subscribe โดยตรง ด้วยการเก็บ subscription เพื่อ unsubscribe ใน ngOnDestroy
-    this.routerSubscription = this.router.events.pipe(
-      filter((event): event is NavigationEnd => event instanceof NavigationEnd)
-    ).subscribe((event: NavigationEnd) => {
-      this.currentRoute = event.url;
-    });
+    this.routerSubscription = this.router.events
+      .pipe(
+        filter(
+          (event): event is NavigationEnd => event instanceof NavigationEnd,
+        ),
+      )
+      .subscribe((event: NavigationEnd) => {
+        this.currentRoute = event.url;
+      });
   }
 
   ngOnInit() {
     this.loadSliderImagesFromDorms();
     this.loadDormitories();
 
-    this.authSubscription = this.authService.currentUser$.subscribe((user: AdminProfile | null | undefined) => {
-      if (user) {
-        // AdminProfile doesn't have pendingApproval property
-        this.pendingApproval = false;
-        // AdminProfile only has memberType: 'admin'
-        if (user.memberType === 'admin') {
-          // Admin stays on current page or navigate to admin dashboard
-          // this.router.navigate(['/admin']);
+    this.authSubscription = this.authService.currentUser$.subscribe(
+      (user: AdminProfile | null | undefined) => {
+        if (user) {
+          // AdminProfile doesn't have pendingApproval property
+          this.pendingApproval = false;
+          // AdminProfile only has memberType: 'admin'
+          if (user.memberType === 'admin') {
+            // Admin stays on current page or navigate to admin dashboard
+            // this.router.navigate(['/admin']);
+          }
         }
-      }
-    });
+      },
+    );
+
+    // Record visitor statistics
+    this.statsService.recordVisitor().subscribe();
   }
 
   private async loadSliderImagesFromDorms(): Promise<void> {
@@ -110,18 +127,20 @@ export class MainComponent implements OnInit, OnDestroy {
 
       // If pool empty, fallback to a general fetch (limit for performance)
       if (pool.length === 0) {
-        const all = await this.dormSvc.getAllDormitories({ limit: 50 }).toPromise();
+        const all = await this.dormSvc
+          .getAllDormitories({ limit: 50 })
+          .toPromise();
         if (Array.isArray(all)) pool = all;
       }
 
       // Build candidate slides with metadata (name, zone)
       const candidates: Array<BannerSlide | null> = pool
-        .map(d => {
+        .map((d) => {
           const src = d.main_image_url || d.thumbnail_url || '';
           if (!src) return null;
           let subtitle = '';
           const zoneText = d.zone_name ? `โซน${d.zone_name}` : 'โซนไม่ระบุ';
-          
+
           // แสดงแค่โซนเท่านั้น ไม่ต้องแสดงระยะทาง
           subtitle = zoneText;
 
@@ -131,9 +150,10 @@ export class MainComponent implements OnInit, OnDestroy {
             const minVal = Number(d.min_price);
             const maxVal = Number(d.max_price);
             if (!Number.isNaN(minVal) && !Number.isNaN(maxVal)) {
-              priceText = minVal === maxVal
-                ? `${minVal.toLocaleString()} บาท/เดือน`
-                : `${minVal.toLocaleString()}-${maxVal.toLocaleString()} บาท/เดือน`;
+              priceText =
+                minVal === maxVal
+                  ? `${minVal.toLocaleString()} บาท/เดือน`
+                  : `${minVal.toLocaleString()}-${maxVal.toLocaleString()} บาท/เดือน`;
             }
           } else if ((d as any).monthly_price != null) {
             const single = Number((d as any).monthly_price);
@@ -165,7 +185,12 @@ export class MainComponent implements OnInit, OnDestroy {
       // or use a local placeholder as a single slide
       if (candidates.length === 0) {
         this.sliderImages = [
-          { src: 'assets/images/photo.png', alt: 'Dormitory', title: 'DormRoomaroo', subtitle: 'ค้นหาหอที่ใช่สำหรับคุณ' },
+          {
+            src: 'assets/images/photo.png',
+            alt: 'Dormitory',
+            title: 'Dormora MSU',
+            subtitle: 'ค้นหาหอที่ใช่สำหรับคุณ',
+          },
         ];
       } else {
         // Deduplicate by src
@@ -189,12 +214,16 @@ export class MainComponent implements OnInit, OnDestroy {
     } catch (err) {
       // Fallback to a single placeholder to avoid empty slider state
       this.sliderImages = [
-        { src: 'assets/images/photo.png', alt: 'Dormitory', title: 'DormRoomaroo', subtitle: 'ค้นหาหอที่ใช่สำหรับคุณ' },
+        {
+          src: 'assets/images/photo.png',
+          alt: 'Dormitory',
+          title: 'DormRoomaroo',
+          subtitle: 'ค้นหาหอที่ใช่สำหรับคุณ',
+        },
       ];
       this.startSlideshow();
     }
   }
-
 
   private async loadDormitories() {
     this.isLoadingRecommended = true;
@@ -203,7 +232,7 @@ export class MainComponent implements OnInit, OnDestroy {
     try {
       const recommended = await this.dormSvc.getRecommended().toPromise();
       if (recommended) {
-        this.recommendedDorms = recommended.map(d => this.mapDormToUi(d));
+        this.recommendedDorms = recommended.map((d) => this.mapDormToUi(d));
         this.displayedRecommended = this.recommendedDorms.slice(0, 4);
         this.loadImagesForList(this.displayedRecommended);
       }
@@ -216,7 +245,7 @@ export class MainComponent implements OnInit, OnDestroy {
     try {
       const latest = await this.dormSvc.getLatest().toPromise();
       if (latest) {
-        this.latestDorms = latest.map(d => this.mapDormToUi(d));
+        this.latestDorms = latest.map((d) => this.mapDormToUi(d));
         this.displayedLatest = this.latestDorms.slice(0, 4);
         this.loadImagesForList(this.displayedLatest);
       }
@@ -230,7 +259,7 @@ export class MainComponent implements OnInit, OnDestroy {
   startSlideshow(): void {
     // ปิด slideshow เดิมก่อน (ถ้ามี) เพื่อป้องกัน memory leak
     this.stopSlideshow();
-    
+
     this.slideInterval = window.setInterval(() => {
       this.nextSlide();
     }, 3000);
@@ -246,12 +275,12 @@ export class MainComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     // ลบ slideshow interval เพื่อป้องกัน memory leak
     this.stopSlideshow();
-    
+
     // ยกเลิก subscriptions เพื่อป้องกัน memory leak
     if (this.routerSubscription) {
       this.routerSubscription.unsubscribe();
     }
-    
+
     if (this.authSubscription) {
       this.authSubscription.unsubscribe();
     }
@@ -266,46 +295,54 @@ export class MainComponent implements OnInit, OnDestroy {
   }
 
   prevSlide(): void {
-    this.currentSlide = (this.currentSlide - 1 + this.sliderImages.length) % this.sliderImages.length;
+    this.currentSlide =
+      (this.currentSlide - 1 + this.sliderImages.length) %
+      this.sliderImages.length;
   }
 
   getStars(rating: number | undefined): { filled: boolean }[] {
     const stars: { filled: boolean }[] = [];
     const actualRating = rating || 0;
-    
+
     for (let i = 1; i <= 5; i++) {
       stars.push({ filled: i <= actualRating });
     }
-    
+
     return stars;
   }
 
   isAuthPage(): boolean {
-    return this.currentRoute.includes('login') ||
+    return (
+      this.currentRoute.includes('login') ||
       this.currentRoute.includes('register') ||
-      this.currentRoute.includes('owner');
+      this.currentRoute.includes('owner')
+    );
   }
 
   getPriceHtml(price: string | undefined): string {
     if (!price) return '';
-    
+
     // แยกราคารายเดือนและรายวัน (ถ้ามี)
     const lines = price.split('\n');
     let html = '';
-    
+
     // ราคารายเดือน (บรรทัดแรก)
     if (lines[0]) {
       // แยกตัวเลขและหน่วย
-      const monthlyMatch = lines[0].match(/([\d,]+)(\s*-\s*[\d,]+)?\s*(บาท\/เดือน)/);
+      const monthlyMatch = lines[0].match(
+        /([\d,]+)(\s*-\s*[\d,]+)?\s*(บาท\/เดือน)/,
+      );
       if (monthlyMatch) {
-        if (monthlyMatch[2]) { // กรณีช่วงราคา
+        if (monthlyMatch[2]) {
+          // กรณีช่วงราคา
           const [_, start, range, unit] = monthlyMatch;
           html += `<div class="price-monthly">
             <span class="font-english">${start}</span>
             <span class="font-english">${range}</span>
             <span class="font-thai unit">${unit}</span>
           </div>`;
-        } else { // กรณีราคาเดียว
+        } else {
+          // กรณีราคาเดียว
           const [_, number, __, unit] = monthlyMatch;
           html += `<div class="price-monthly">
             <span class="font-english">${number}</span>
@@ -314,7 +351,7 @@ export class MainComponent implements OnInit, OnDestroy {
         }
       }
     }
-    
+
     // ราคารายวัน (บรรทัดที่สอง ถ้ามี)
     if (lines[1]) {
       const dailyMatch = lines[1].match(/([\d,]+)\s*(บาท\/วัน)/);
@@ -326,7 +363,7 @@ export class MainComponent implements OnInit, OnDestroy {
         </div>`;
       }
     }
-    
+
     return html;
   }
 
@@ -336,7 +373,9 @@ export class MainComponent implements OnInit, OnDestroy {
   }
 
   viewAllRecommended() {
-    this.router.navigate(['/dorm-list'], { queryParams: { type: 'recommended' } });
+    this.router.navigate(['/dorm-list'], {
+      queryParams: { type: 'recommended' },
+    });
   }
 
   viewAllLatest() {
@@ -360,12 +399,12 @@ export class MainComponent implements OnInit, OnDestroy {
   onRegister() {
     // Require explicit type; do not navigate with null
     const type = 'member';
-    this.router.navigate(['/register', type], { queryParams: { userType: type } });
+    this.router.navigate(['/register', type], {
+      queryParams: { userType: type },
+    });
   }
 
   private mapDormToUi(d: Dorm): UIDorm {
-    
-
     let priceDisplay = '';
 
     // จัดการราคารายเดือน
@@ -373,9 +412,10 @@ export class MainComponent implements OnInit, OnDestroy {
       const minVal = Number(d.min_price);
       const maxVal = Number(d.max_price);
       if (!Number.isNaN(minVal) && !Number.isNaN(maxVal)) {
-        priceDisplay = minVal === maxVal
-          ? `${minVal.toLocaleString()} บาท/เดือน`
-          : `${minVal.toLocaleString()} - ${maxVal.toLocaleString()} บาท/เดือน`;
+        priceDisplay =
+          minVal === maxVal
+            ? `${minVal.toLocaleString()} บาท/เดือน`
+            : `${minVal.toLocaleString()} - ${maxVal.toLocaleString()} บาท/เดือน`;
       }
     } else if (d.monthly_price != null) {
       const single = Number(d.monthly_price);
@@ -392,13 +432,15 @@ export class MainComponent implements OnInit, OnDestroy {
     // Format location display
     let locationDisplay = d.location_display || d.address || '';
     if (d.zone_name) {
-      locationDisplay = locationDisplay ? `${locationDisplay} (${d.zone_name})` : d.zone_name;
+      locationDisplay = locationDisplay
+        ? `${locationDisplay} (${d.zone_name})`
+        : d.zone_name;
     }
 
     // ใช้ avg_rating จาก API ใหม่ หรือ fallback ไป rating เก่า
     // แปลง string เป็น number ก่อน
     const avgRating = (d as any).avg_rating;
-    const finalRating = avgRating ? Number(avgRating) : (d.rating || 0.0);
+    const finalRating = avgRating ? Number(avgRating) : d.rating || 0.0;
 
     const rawDate =
       d.updated_date ||
@@ -417,13 +459,13 @@ export class MainComponent implements OnInit, OnDestroy {
       location: locationDisplay,
       zone: d.zone_name || 'ไม่ระบุโซน',
       date: rawDate ? this.formatThaiDate(String(rawDate)) : '',
-      rating: finalRating
+      rating: finalRating,
     };
   }
 
   private loadImagesForList(list: UIDorm[]): void {
     // Preload images
-    list.forEach(dorm => {
+    list.forEach((dorm) => {
       if (dorm.image) {
         const img = new Image();
         img.src = dorm.image;
@@ -434,17 +476,27 @@ export class MainComponent implements OnInit, OnDestroy {
   // Format date to Thai format
   formatThaiDate(dateString: string): string {
     if (!dateString) return '';
-    
+
     const date = new Date(dateString);
     const thaiMonths = [
-      'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-      'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+      'มกราคม',
+      'กุมภาพันธ์',
+      'มีนาคม',
+      'เมษายน',
+      'พฤษภาคม',
+      'มิถุนายน',
+      'กรกฎาคม',
+      'สิงหาคม',
+      'กันยายน',
+      'ตุลาคม',
+      'พฤศจิกายน',
+      'ธันวาคม',
     ];
-    
+
     const day = date.getDate();
     const month = thaiMonths[date.getMonth()];
     const year = date.getFullYear() + 543; // Convert to Buddhist Era
-    
+
     return `${day} ${month} ${year}`;
   }
 }

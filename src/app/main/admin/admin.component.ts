@@ -24,6 +24,7 @@ import { MapService } from '../../services/map.service';
 import { environment } from '../../../environments/environment';
 import { interval, Subscription } from 'rxjs';
 import { AmenityIconComponent } from '../../components/amenity-icon/amenity-icon.component';
+import { AdminEditDormComponent } from './admin-edit-dorm/admin-edit-dorm.component';
 
 interface Amenity {
   id: string;
@@ -34,7 +35,7 @@ interface Amenity {
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, AmenityIconComponent],
+  imports: [CommonModule, FormsModule, AmenityIconComponent, AdminEditDormComponent],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css',
 })
@@ -50,10 +51,15 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   showRejectionModal = false;
   rejectionReason = '';
 
+  // Selection properties for dorms (shared)
+  selectAllDorms = false;
+  areAllPendingDormsSelected = false;
+
   // Statistics properties
   totalDorms = 0;
   pendingDorms = 0;
   approvedDorms = 0;
+  rejectedCount = 0;
 
   // Success modal properties
   showSuccessModal = false;
@@ -68,6 +74,13 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   memberCount = 0;
   isDeleting = false;
   retryCount = 0;
+
+  // Bulk confirmation modal properties
+  showBulkConfirmModal = false;
+  bulkConfirmTitle = '';
+  bulkConfirmMessage = '';
+  bulkConfirmType: 'approve' | 'reject' | 'delete' | null = null;
+  isProcessingBulk = false;
 
   constructor(
     private router: Router,
@@ -229,13 +242,14 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   // --- Dormitory Data ---
   dorms: Dormitory[] = [];
   filteredDorms: Dormitory[] = [];
+  selectedDorms: string[] = []; // Track selected dormitory IDs
   isLoading = false;
   errorMessage: string | null = null;
 
   currentPage = 1;
   totalPages = 5;
 
-  selectedTab: 'all' | 'pending' | 'review' | 'edit' = 'all';
+  selectedTab: 'all' | 'pending' | 'review' | 'edit' | 'rejected' = 'all';
 
   // Review state
   reviewingDormId: string | null = null;
@@ -248,12 +262,15 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Admin Component ไม่ต้องจัดการแผนที่ เพราะ AdminEditDormComponent จะจัดการเอง
 
-  setTab(tab: 'all' | 'pending' | 'review') {
+  setTab(tab: 'all' | 'pending' | 'review' | 'edit' | 'rejected') {
     this.selectedTab = tab;
+    this.selectedDorms = []; // ล้างการเลือกเมื่อเปลี่ยนแท็บ
     if (tab === 'pending') {
       this.loadPendingDormitories();
+    } else if (tab === 'rejected') {
+      this.loadRejectedDormitories();
     } else if (tab === 'all') {
-      this.filterDorms();
+      this.loadDormitories(); // ใช้การโหลดเต็มรูปแบบสำหรับแท็บทั้งหมดเพื่อให้แน่ใจว่าข้อมูลเป็นปัจจุบัน
     }
   }
 
@@ -261,14 +278,18 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isLoading = true;
     this.errorMessage = null;
 
+    // โหลดข้อมูลทั้งหมด (approved + pending + rejected)
     this.adminService.getAllDormitories().subscribe({
-      next: (dormitories) => {
+      next: (allDormitories) => {
         // จัดรูปแบบวันที่จาก ISO format เป็น DD-MM-YYYY
-        this.dorms = dormitories.map((dorm) => ({
+        this.dorms = allDormitories.map((dorm) => ({
           ...dorm,
+          main_image_url: dorm.main_image_url || 'assets/images/photo.png',
           submitted_date: this.formatDate(dorm.submitted_date),
         }));
-        this.filteredDorms = this.dorms;
+
+        // กรองตาม tab ที่เลือก
+        this.filterDorms();
 
         // อัปเดตสถิติ
         this.updateStatistics();
@@ -304,40 +325,26 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   // Auto-refresh is now always enabled and silent
 
   refreshData(): void {
-    if (this.selectedTab === 'pending') {
-      this.loadPendingDormitoriesSilent();
-    } else {
-      this.loadDormitoriesSilent();
-    }
+    // โหลดข้อมูลทั้งหมดเสมอเพื่อให้สถิติ (Approved, Pending, Rejected) เป็นปัจจุบันตลอดเวลา
+    this.loadDormitoriesSilent();
   }
 
   // Silent refresh methods - no loading indicators
   loadDormitoriesSilent(): void {
     this.adminService.getAllDormitories().subscribe({
       next: (dormitories) => {
-        // จัดรูปแบบวันที่จาก ISO format เป็น DD-MM-YYYY และเพิ่ม fallback image
+        // จัดรูปแบบข้อมูล
         this.dorms = dormitories.map((dorm) => ({
           ...dorm,
           main_image_url: dorm.main_image_url || 'assets/images/photo.png',
           submitted_date: this.formatDate(dorm.submitted_date),
         }));
-        this.filteredDorms = this.dorms;
-      },
-      error: (error) => {
-        // Silent error handling
-      },
-    });
-  }
 
-  loadPendingDormitoriesSilent(): void {
-    this.adminService.getPendingDormitories().subscribe({
-      next: (dormitories) => {
-        // จัดรูปแบบวันที่จาก ISO format เป็น DD-MM-YYYY และเพิ่ม fallback image
-        this.filteredDorms = dormitories.map((dorm) => ({
-          ...dorm,
-          main_image_url: dorm.main_image_url || 'assets/images/photo.png',
-          submitted_date: this.formatDate(dorm.submitted_date),
-        }));
+        // อัปเดตสถิติทั้งหมด (Approved, Pending, Rejected)
+        this.updateStatistics();
+
+        // กรองข้อมูลตาม Tab ที่ใช้งานอยู่
+        this.filterDorms();
       },
       error: (error) => {
         // Silent error handling
@@ -349,24 +356,47 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isLoading = true;
     this.errorMessage = null;
 
-    this.adminService.getPendingDormitories().subscribe({
-      next: (dormitories) => {
-        // จัดรูปแบบวันที่จาก ISO format เป็น DD-MM-YYYY และเพิ่ม fallback image
-        this.filteredDorms = dormitories.map((dorm) => ({
+    this.adminService.getAllDormitories().subscribe({
+      next: (allDormitories) => {
+        this.dorms = allDormitories.map((dorm) => ({
           ...dorm,
           main_image_url: dorm.main_image_url || 'assets/images/photo.png',
           submitted_date: this.formatDate(dorm.submitted_date),
         }));
 
+        this.filterDorms();
+        this.updateStatistics();
         this.isLoading = false;
       },
       error: (error) => {
         this.errorMessage = 'เกิดข้อผิดพลาดในการโหลดข้อมูลหอพักรออนุมัติ';
         this.isLoading = false;
-        // Fallback to mock data if API fails
-        this.filteredDorms = this.dorms.filter(
-          (dorm) => dorm.approval_status === 'pending',
-        );
+      },
+    });
+  }
+
+  loadRejectedDormitories(): void {
+    this.isLoading = true;
+    this.errorMessage = null;
+
+    // ดึงข้อมูลทั้งหมดเพื่อให้ stats ถูกต้อง แต่อาจจะช้ากว่า
+    // หรือถ้าต้องการความเร็ว ให้ใช้ getRejectedDormitories() แต่ต้องยอมรับว่า stats อื่นอาจไม่อัปเดต
+    // ในที่นี้เลือกใช้ getAll เพื่อความถูกต้องของ UI
+    this.adminService.getAllDormitories().subscribe({
+      next: (allDormitories) => {
+        this.dorms = allDormitories.map((dorm) => ({
+          ...dorm,
+          main_image_url: dorm.main_image_url || 'assets/images/photo.png',
+          submitted_date: this.formatDate(dorm.submitted_date),
+        }));
+
+        this.filterDorms();
+        this.updateStatistics();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        this.errorMessage = 'เกิดข้อผิดพลาดในการโหลดข้อมูลหอพักที่ปฏิเสธ';
+        this.isLoading = false;
       },
     });
   }
@@ -376,7 +406,15 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   filterDorms(): void {
     if (this.selectedTab === 'pending') {
       this.filteredDorms = this.dorms.filter(
-        (dorm) => dorm.approval_status === 'pending',
+        (dorm) =>
+          dorm.approval_status === 'pending' ||
+          dorm.approval_status === 'รออนุมัติ',
+      );
+    } else if (this.selectedTab === 'rejected') {
+      this.filteredDorms = this.dorms.filter(
+        (dorm) =>
+          dorm.approval_status === 'rejected' ||
+          dorm.approval_status === 'ไม่อนุมัติ',
       );
     } else {
       this.filteredDorms = this.dorms;
@@ -384,7 +422,11 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getApprovedDorms(): any[] {
-    return this.dorms.filter((dorm) => dorm.approval_status === 'approved');
+    return this.dorms.filter(
+      (dorm) =>
+        dorm.approval_status === 'approved' ||
+        dorm.approval_status === 'อนุมัติ',
+    );
   }
 
   getPendingDorms(): any[] {
@@ -393,12 +435,29 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
       return this.filteredDorms;
     }
     // ถ้าไม่ใช่ ให้กรองจาก dorms ตามเดิม
-    return this.dorms.filter((dorm) => dorm.approval_status === 'pending');
+    return this.dorms.filter(
+      (dorm) =>
+        dorm.approval_status === 'pending' ||
+        dorm.approval_status === 'รออนุมัติ',
+    );
+  }
+
+  getRejectedDorms(): any[] {
+    if (this.selectedTab === 'rejected') {
+      return this.filteredDorms;
+    }
+    return this.dorms.filter(
+      (dorm) =>
+        dorm.approval_status === 'rejected' ||
+        dorm.approval_status === 'ไม่อนุมัติ',
+    );
   }
 
   editDormitory(dormId: string): void {
-    // Navigate to dedicated edit page
-    this.router.navigate(['/admin/edit-dorm', dormId]);
+    // Show inline edit form
+    this.reviewingDormId = dormId;
+    this.selectedTab = 'edit';
+    this.loadDormitoryDetail(dormId);
   }
 
   navigateToOwnerEdit(): void {
@@ -469,7 +528,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
           errorMessage = 'เกิดข้อผิดพลาดจากเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง';
         }
 
-        alert(errorMessage);
+        this.showToastNotification(errorMessage, 'error');
         this.isLoadingDetail = false;
         this.cancelReview();
       },
@@ -477,9 +536,11 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   cancelReview(): void {
+    const previousTab =
+      this.reviewDormDetail?.status === 'rejected' ? 'rejected' : 'pending';
     this.reviewingDormId = null;
     this.reviewDormDetail = null;
-    this.selectedTab = 'pending';
+    this.selectedTab = previousTab;
     this.currentReviewStep = 1;
   }
 
@@ -487,57 +548,14 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     this.currentReviewStep = step;
   }
 
-  approveDormFromReview(): void {
+  reApproveDormFromReview(): void {
     if (!this.reviewingDormId) return;
 
-    if (confirm('คุณแน่ใจหรือไม่ที่จะอนุมัติหอพักนี้?')) {
-      this.adminService
-        .updateDormitoryApproval(this.reviewingDormId, { status: 'อนุมัติ' })
-        .subscribe({
-          next: (response) => {
-            this.showToastNotification('อนุมัติหอพักเรียบร้อยแล้ว', 'success');
-            this.cancelReview();
-            this.loadDormitories();
-          },
-          error: (error) => {
-            this.showToastNotification(
-              'เกิดข้อผิดพลาดในการอนุมัติหอพัก: ' +
-                (error.error?.message || 'ไม่ทราบสาเหตุ'),
-              'error',
-            );
-          },
-        });
-    }
-  }
-
-  rejectDormFromReview(): void {
-    if (!this.reviewingDormId) return;
-
-    const reason = prompt('กรุณาระบุเหตุผลในการไม่อนุมัติ:');
-    if (reason) {
-      this.adminService
-        .updateDormitoryApproval(this.reviewingDormId, {
-          status: 'ไม่อนุมัติ',
-          rejectionReason: reason,
-        })
-        .subscribe({
-          next: (response) => {
-            this.showToastNotification(
-              'ไม่อนุมัติหอพักเรียบร้อยแล้ว',
-              'success',
-            );
-            this.cancelReview();
-            this.loadDormitories();
-          },
-          error: (error) => {
-            this.showToastNotification(
-              'เกิดข้อผิดพลาดในการไม่อนุมัติหอพัก: ' +
-                (error.error?.message || 'ไม่ทราบสาเหตุ'),
-              'error',
-            );
-          },
-        });
-    }
+    this.bulkConfirmTitle = 'ยืนยันการอนุมัติ';
+    this.bulkConfirmMessage =
+      'คุณแน่ใจหรือไม่ที่จะอนุมัติหอพักนี้ใหม่อีกครั้ง?';
+    this.bulkConfirmType = 'approve';
+    this.showBulkConfirmModal = true;
   }
 
   // Image carousel methods
@@ -705,13 +723,37 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     ];
 
     // ดึงรายการที่หอนี้มี
-    const dormAmenities = this.reviewDormDetail?.amenities || [];
-    const dormAmenityNames = dormAmenities.map((a: any) => a.amenity_name);
+    const dormAmenities = this.reviewDormDetail?.amenities || {};
+    let dormAmenityNames: string[] = [];
+
+    if (Array.isArray(dormAmenities)) {
+      dormAmenityNames = dormAmenities.map((a: any) => a.amenity_name);
+    } else {
+      // ถ้าเป็น object ที่แบ่งตามประเภท (ภายใน, ภายนอก, common)
+      const internal = dormAmenities['ภายใน'] || [];
+      const external = dormAmenities['ภายนอก'] || [];
+      const common = dormAmenities['common'] || [];
+
+      dormAmenityNames = [
+        ...internal
+          .filter((a: any) => a.is_available)
+          .map((a: any) => a.amenity_name),
+        ...external
+          .filter((a: any) => a.is_available)
+          .map((a: any) => a.amenity_name),
+        ...common
+          .filter((a: any) => a.is_available)
+          .map((a: any) => a.amenity_name),
+      ];
+    }
 
     // สร้าง array ที่มีทั้งหมด พร้อมสถานะว่ามีหรือไม่
     return allAmenityNames.map((name) => ({
       name: name,
-      has: dormAmenityNames.includes(name),
+      has: dormAmenityNames.some(
+        (apiName) =>
+          apiName && apiName.toLowerCase().includes(name.toLowerCase()),
+      ),
     }));
   }
 
@@ -809,11 +851,11 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   loadAdminProfile(): void {
     const adminProfileStr = localStorage.getItem('adminProfile');
-    
+
     if (adminProfileStr) {
       try {
         this.adminProfile = JSON.parse(adminProfileStr);
-        
+
         this.isLoggedIn = true;
         this.adminName =
           this.adminProfile?.displayName ||
@@ -916,9 +958,17 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
       .length;
   }
 
-  getApprovedCount(): number {
-    return this.dorms.filter((dorm) => dorm.approval_status === 'approved')
+  getRejectedCount(): number {
+    return this.dorms.filter((dorm) => dorm.approval_status === 'rejected')
       .length;
+  }
+
+  getApprovedCount(): number {
+    return this.dorms.filter(
+      (dorm) =>
+        dorm.approval_status === 'approved' ||
+        dorm.approval_status === 'อนุมัติ',
+    ).length;
   }
 
   getStatusClass(status: string): string {
@@ -1006,7 +1056,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
         this.showSuccessPopup('อนุมัติหอพักเรียบร้อยแล้ว', 'approve');
       },
       error: (error) => {
-        alert('เกิดข้อผิดพลาดในการอนุมัติหอพัก');
+        this.showToastNotification('เกิดข้อผิดพลาดในการอนุมัติหอพัก', 'error');
       },
     });
   }
@@ -1047,16 +1097,17 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
         this.showSuccessPopup('ไม่อนุมัติหอพักเรียบร้อยแล้ว', 'reject');
       },
       error: (error) => {
-        alert('เกิดข้อผิดพลาดในการไม่อนุมัติหอพัก');
+        this.showToastNotification(
+          'เกิดข้อผิดพลาดในการไม่อนุมัติหอพัก',
+          'error',
+        );
       },
     });
   }
 
   // ปิด modal ตรวจสอบ
   closeReviewModal(): void {
-    this.selectedTab = 'pending';
-    this.reviewDormDetail = null;
-    this.currentImageIndex = 0;
+    this.cancelReview();
   }
 
   // ปิด rejection modal
@@ -1067,32 +1118,10 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ลบหอพักพร้อมตรวจสอบสมาชิก
   deleteDormitoryWithCheck(dormId: string | number, dormName: string): void {
-    // ตรวจสอบสมาชิกก่อนลบ
-    this.adminService.checkDormitoryMembers(String(dormId)).subscribe({
-      next: (response) => {
-        // เก็บข้อมูลสำหรับ modal
-        this.deleteDormId = dormId;
-        this.deleteDormName = dormName;
-        this.memberCount = response.member_count || 0;
-
-        if (response.has_members && response.member_count > 0) {
-          this.deleteMessage = `คุณต้องการลบหอพัก "${dormName}" และ สมาชิกของหอ ใช่หรือไม่ ?`;
-        } else {
-          this.deleteMessage = `คุณแน่ใจหรือไม่ที่จะลบหอพัก "${dormName}" ?`;
-        }
-
-        // แสดง delete confirmation modal
-        this.showDeleteModal = true;
-      },
-      error: (error) => {
-        // ถ้า API ไม่ทำงาน ให้ใช้ modal ปกติ
-        this.deleteDormId = dormId;
-        this.deleteDormName = dormName;
-        this.memberCount = 0;
-        this.deleteMessage = `คุณแน่ใจหรือไม่ที่จะลบหอพัก "${dormName}"?`;
-        this.showDeleteModal = true;
-      },
-    });
+    this.deleteDormId = dormId;
+    this.deleteDormName = dormName;
+    this.deleteMessage = `คุณแน่ใจหรือไม่ที่จะลบหอพัก "${dormName}"?`;
+    this.showDeleteModal = true;
   }
 
   // ลบหอพักจริง
@@ -1120,11 +1149,14 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
               this.performDeleteDormitory(dormId);
             }, 1000);
           } else {
-            alert('หอพักนี้มีสมาชิกอาศัยอยู่ กรุณายืนยันการลบอีกครั้ง');
+            this.showToastNotification(
+              'หอพักนี้มีสมาชิกอาศัยอยู่ กรุณายืนยันการลบอีกครั้ง',
+              'error',
+            );
             this.retryCount = 0;
           }
         } else {
-          alert('เกิดข้อผิดพลาดในการลบหอพัก');
+          this.showToastNotification('เกิดข้อผิดพลาดในการลบหอพัก', 'error');
         }
       },
     });
@@ -1136,10 +1168,19 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.totalDorms = this.dorms.length;
     this.pendingDorms = this.dorms.filter(
-      (dorm) => dorm.approval_status === 'pending',
+      (dorm) =>
+        dorm.approval_status === 'pending' ||
+        dorm.approval_status === 'รออนุมัติ',
     ).length;
     this.approvedDorms = this.dorms.filter(
-      (dorm) => dorm.approval_status === 'approved',
+      (dorm) =>
+        dorm.approval_status === 'approved' ||
+        dorm.approval_status === 'อนุมัติ',
+    ).length;
+    this.rejectedCount = this.dorms.filter(
+      (dorm) =>
+        dorm.approval_status === 'rejected' ||
+        dorm.approval_status === 'ไม่อนุมัติ',
     ).length;
   }
 
@@ -1173,5 +1214,233 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     this.deleteDormName = '';
     this.deleteMessage = '';
     this.memberCount = 0;
+  }
+
+  // Bulk operations for selected dormitories
+  approveSelectedDorms(): void {
+    if (this.selectedDorms.length === 0) return;
+
+    this.bulkConfirmTitle = 'ยืนยันการอนุมัติ';
+    this.bulkConfirmMessage = `คุณแน่ใจหรือไม่ที่จะอนุมัติหอพัก ${this.selectedDorms.length} แห่งที่เลือก?`;
+    this.bulkConfirmType = 'approve';
+    this.showBulkConfirmModal = true;
+  }
+
+  rejectSelectedDorms(): void {
+    if (this.selectedDorms.length === 0) return;
+
+    this.bulkConfirmTitle = 'ยืนยันการไม่อนุมัติ';
+    this.bulkConfirmMessage = `คุณแน่ใจหรือไม่ที่จะปฏิเสธการอนุมัติหอพัก ${this.selectedDorms.length} แห่งที่เลือก?`;
+    this.bulkConfirmType = 'reject';
+    this.showBulkConfirmModal = true;
+  }
+
+  deleteSelectedDorms(): void {
+    if (this.selectedDorms.length === 0) return;
+
+    this.bulkConfirmTitle = 'ยืนยันการลบ';
+    this.bulkConfirmMessage = `คุณแน่ใจหรือไม่ที่จะลบหอพักทั้ง ${this.selectedDorms.length} แห่งที่เลือก?`;
+    this.bulkConfirmType = 'delete';
+    this.showBulkConfirmModal = true;
+  }
+
+  confirmBulkAction(): void {
+    if (!this.bulkConfirmType || this.selectedDorms.length === 0) return;
+
+    this.isProcessingBulk = true;
+
+    if (this.bulkConfirmType === 'approve') {
+      this.executeBulkApproval();
+    } else if (this.bulkConfirmType === 'reject') {
+      this.executeBulkRejection();
+    } else if (this.bulkConfirmType === 'delete') {
+      this.executeBulkDelete();
+    }
+  }
+
+  private executeBulkApproval(): void {
+    const approvePromises = this.selectedDorms.map((dormId) =>
+      this.adminService
+        .updateDormitoryApproval(dormId, { status: 'อนุมัติ' })
+        .toPromise(),
+    );
+
+    Promise.all(approvePromises)
+      .then(() => {
+        this.showToastNotification(
+          `อนุมัติหอพัก ${this.selectedDorms.length} แห่งเรียบร้อยแล้ว`,
+          'success',
+        );
+        this.finalizeBulkAction();
+      })
+      .catch((error) => {
+        this.handleBulkError('อนุมัติ', error);
+      });
+  }
+
+  private executeBulkRejection(): void {
+    const rejectPromises = this.selectedDorms.map((dormId) =>
+      this.adminService
+        .updateDormitoryApproval(dormId, {
+          status: 'ไม่อนุมัติ',
+          rejectionReason: this.rejectionReason || 'ไม่ระบุเหตุผล',
+        })
+        .toPromise(),
+    );
+
+    Promise.all(rejectPromises)
+      .then(() => {
+        this.showToastNotification(
+          `ไม่อนุมัติหอพัก ${this.selectedDorms.length} แห่งเรียบร้อยแล้ว`,
+          'success',
+        );
+        this.finalizeBulkAction();
+      })
+      .catch((error) => {
+        this.handleBulkError('ไม่อนุมัติ', error);
+      });
+  }
+
+  private executeBulkDelete(): void {
+    const deletePromises = this.selectedDorms.map((dormId) =>
+      this.adminService.deleteDormitory(dormId).toPromise(),
+    );
+
+    Promise.all(deletePromises)
+      .then(() => {
+        this.showToastNotification(
+          `ลบหอพัก ${this.selectedDorms.length} แห่งเรียบร้อยแล้ว`,
+          'success',
+        );
+        this.finalizeBulkAction();
+      })
+      .catch((error) => {
+        this.handleBulkError('ลบ', error);
+      });
+  }
+
+  private finalizeBulkAction(): void {
+    this.selectedDorms = [];
+    this.showBulkConfirmModal = false;
+    this.isProcessingBulk = false;
+    this.bulkConfirmType = null;
+    this.loadDormitories();
+  }
+
+  private handleBulkError(action: string, error: any): void {
+    console.error(`Error during bulk ${action}:`, error);
+    this.showToastNotification(
+      `เกิดข้อผิดพลาดในการ${action}หอพัก: ` +
+        (error.error?.message || 'ไม่ทราบสาเหตุ'),
+      'error',
+    );
+    this.isProcessingBulk = false;
+    this.showBulkConfirmModal = false;
+  }
+
+  cancelBulkAction(): void {
+    this.showBulkConfirmModal = false;
+    this.bulkConfirmType = null;
+    this.bulkConfirmTitle = '';
+    this.bulkConfirmMessage = '';
+  }
+
+  // Helper method to toggle dormitory selection
+  toggleDormSelection(dormId: string): void {
+    const index = this.selectedDorms.indexOf(dormId);
+    if (index > -1) {
+      this.selectedDorms.splice(index, 1); // Remove if already selected
+    } else {
+      this.selectedDorms.push(dormId); // Add if not selected
+    }
+  }
+
+  // Helper method to check if dormitory is selected
+  isDormSelected(dormId: string): boolean {
+    return this.selectedDorms.includes(dormId);
+  }
+
+  // Getter to check if all current dorms are selected
+  get areAllCurrentDormsSelected(): boolean {
+    const currentDorms =
+      this.selectedTab === 'pending'
+        ? this.getPendingDorms()
+        : this.selectedTab === 'rejected'
+          ? this.getRejectedDorms()
+          : this.getApprovedDorms();
+    if (currentDorms.length === 0) return false;
+
+    return currentDorms.every((dorm) =>
+      this.selectedDorms.includes(dorm.dorm_id),
+    );
+  }
+
+  // Helper method to select/deselect all dormitories
+  toggleSelectAll(): void {
+    const currentDorms =
+      this.selectedTab === 'pending'
+        ? this.getPendingDorms()
+        : this.selectedTab === 'rejected'
+          ? this.getRejectedDorms()
+          : this.getApprovedDorms();
+    const currentDormIds = currentDorms.map((dorm) => dorm.dorm_id);
+
+    if (currentDormIds.every((id) => this.selectedDorms.includes(id))) {
+      // If all current dorms are selected, deselect them
+      this.selectedDorms = this.selectedDorms.filter(
+        (id) => !currentDormIds.includes(id),
+      );
+    } else {
+      // Select all current dormitories
+      this.selectedDorms = [
+        ...new Set([...this.selectedDorms, ...currentDormIds]),
+      ];
+    }
+  }
+
+  // Methods for pending dorms selection
+  toggleSelectAllPending(): void {
+    const pendingDorms = this.getPendingDorms();
+    const pendingDormIds = pendingDorms.map((dorm) => dorm.dorm_id);
+
+    if (pendingDormIds.every((id) => this.selectedDorms.includes(id))) {
+      // If all pending dorms are selected, deselect them
+      this.selectedDorms = this.selectedDorms.filter(
+        (id) => !pendingDormIds.includes(id),
+      );
+      this.areAllPendingDormsSelected = false;
+    } else {
+      // Select all pending dormitories
+      this.selectedDorms = [
+        ...new Set([...this.selectedDorms, ...pendingDormIds]),
+      ];
+      this.areAllPendingDormsSelected = true;
+    }
+  }
+
+  approveSelectedPendingDorms(): void {
+    if (this.selectedPendingDorms.length === 0) return;
+
+    this.bulkConfirmTitle = 'ยืนยันการอนุมัติ';
+    this.bulkConfirmMessage = `คุณแน่ใจหรือไม่ที่จะอนุมัติหอพัก ${this.selectedPendingDorms.length} แห่งที่เลือก?`;
+    this.bulkConfirmType = 'approve';
+    this.showBulkConfirmModal = true;
+  }
+
+  rejectSelectedPendingDorms(): void {
+    if (this.selectedPendingDorms.length === 0) return;
+
+    this.bulkConfirmTitle = 'ยืนยันการไม่อนุมัติ';
+    this.bulkConfirmMessage = `คุณแน่ใจหรือไม่ที่จะปฏิเสธการอนุมัติหอพัก ${this.selectedPendingDorms.length} แห่งที่เลือก?`;
+    this.bulkConfirmType = 'reject';
+    this.rejectionReason = ''; // Reset reason
+    this.showBulkConfirmModal = true;
+  }
+
+  // Getter for selected pending dorms count
+  get selectedPendingDorms(): any[] {
+    return this.getPendingDorms().filter((dorm) =>
+      this.selectedDorms.includes(dorm.dorm_id),
+    );
   }
 }

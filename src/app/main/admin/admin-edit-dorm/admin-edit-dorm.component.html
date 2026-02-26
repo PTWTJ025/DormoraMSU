@@ -1,284 +1,748 @@
-<div class="min-h-screen bg-gray-50 py-8">
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-    <!-- Header -->
-    <div class="mb-8">
+<div class="min-h-screen bg-yellow-gradient py-4 sm:py-6 px-3 sm:px-4">
+  <!-- Admin Toast Notification -->
+  <div *ngIf="showToast" class="fixed top-4 right-4 z-[100] animate-pulse">
+    <div class="bg-white rounded-lg shadow-xl border-l-4 p-4 min-w-[300px] max-w-md"
+      [class.border-blue-500]="toastType === 'success'" [class.border-red-500]="toastType === 'error'"
+      [class.border-purple-500]="toastType === 'info'">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <svg *ngIf="toastType === 'success'" class="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <svg *ngIf="toastType === 'error'" class="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <svg *ngIf="toastType === 'info'" class="w-6 h-6 text-purple-500" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium text-gray-900">{{ toastMessage }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full-Page Loading Overlay -->
+  <div *ngIf="isSubmitting"
+    class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-[100]">
+    <div class="text-center bg-white p-8 rounded-2xl shadow-2xl max-w-xs w-full mx-4">
+      <div class="relative w-24 h-24 mx-auto mb-4">
+        <div class="absolute inset-0 border-4 border-yellow-100 rounded-full"></div>
+        <div class="absolute inset-0 border-4 border-yellow-500 rounded-full border-t-transparent animate-spin"></div>
+      </div>
+      <h3 class="text-xl font-bold text-gray-900 mb-2">กำลังบันทึกข้อมูล</h3>
+      <p class="text-gray-600">
+        กรุณารอสักครู่ ห้ามปิดหน้านี้จนกว่าจะเสร็จสิ้น
+      </p>
+    </div>
+  </div>
+
+  <div class="max-w-4xl mx-auto w-full">
+    <!-- Admin Header -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-3xl font-bold text-gray-900">แก้ไขข้อมูลหอพัก</h1>
-          <p class="text-gray-600 mt-2">แก้ไขข้อมูลหอพัก: {{ dormId }}</p>
+          <div class="mb-2">
+            <h1 class="text-2xl font-bold text-gray-900">แก้ไขข้อมูลหอพัก</h1>
+            <p class="text-gray-600 text-sm">Admin Panel - แก้ไขข้อมูลหอพัก #{{ dormIdNum }}</p>
+          </div>
         </div>
-        <button
-          (click)="goBack()"
-          class="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-        >
-          <i class="fas fa-arrow-left mr-2"></i>
-          กลับ
-        </button>
       </div>
     </div>
 
-    <!-- Loading State -->
-    <div *ngIf="isLoading" class="flex justify-center items-center py-12">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    <!-- Admin Dashboard Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div>
+          <p class="text-sm text-gray-600 mb-1">สถานะอนุมัติ</p>
+          <p class="text-lg font-bold text-gray-900">
+            {{ getApprovalStatus() }}
+          </p>
+        </div>
+      </div>
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div>
+          <p class="text-sm text-gray-600 mb-1">รูปภาพ</p>
+          <p class="text-lg font-bold text-gray-900">
+            {{ existingImages.length + images.length }} รูป
+          </p>
+        </div>
+      </div>
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div>
+          <p class="text-sm text-gray-600 mb-1">สิ่งอำนวยความสะดวก</p>
+          <p class="text-lg font-bold text-gray-900">
+            {{ getSelectedAmenities().length }} รายการ
+          </p>
+        </div>
+      </div>
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div>
+          <p class="text-sm text-gray-600 mb-1">ราคาเริ่มต้น</p>
+          <p class="text-lg font-bold text-gray-900">
+            ฿{{ getMinPrice() | number }}
+          </p>
+        </div>
+      </div>
     </div>
 
-    <!-- Form -->
-    <div *ngIf="!isLoading" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <!-- Progress Bar -->
+    <div class="mb-6">
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-medium text-gray-700">{{ getStepTitle() }}</span>
+          <span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full">Admin Mode</span>
+        </div>
+        <span class="text-sm text-gray-500">{{ currentStep }}/{{ totalSteps }}</span>
+      </div>
+      <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+        <div #progressBar
+          class="progress-bar bg-gradient-to-r from-yellow-500 to-yellow-600 h-2 rounded-full transition-all duration-300 shadow-lg"
+          [style.width.%]="(currentStep / totalSteps) * 100"></div>
+      </div>
+    </div>
+
+    <!-- Form Container -->
+    <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
       <form [formGroup]="dormForm" (ngSubmit)="onSubmit()">
-        <!-- ข้อมูลพื้นฐาน -->
-        <div class="space-y-6 mb-8">
-          <h2 class="text-xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-            ข้อมูลพื้นฐาน
+        <!-- Step 1: ข้อมูลหอพัก -->
+        <div #step1 *ngIf="currentStep === 1" class="step-content space-y-4">
+          <h2 class="text-lg font-semibold text-gray-900 mb-3">
+            ข้อมูล{{ getAccommodationType() }}
           </h2>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <div class="grid grid-cols-1 gap-4">
+            <!-- เลือกประเภทที่พัก -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                ชื่อหอพัก <span class="text-red-500">*</span>
+                ประเภทที่พัก <span class="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                formControlName="dorm_name"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                placeholder="กรอกชื่อหอพัก"
-              />
+              <select formControlName="accommodation_type"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="หอ">หอพัก</option>
+                <option value="บ้าน">บ้าน</option>
+              </select>
+              <div *ngIf="
+                  dormForm.get('accommodation_type')?.invalid &&
+                  dormForm.get('accommodation_type')?.touched
+                " class="text-red-500 text-sm mt-1">
+                กรุณาเลือกประเภทที่พัก
+              </div>
             </div>
-            
+
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                ที่อยู่ <span class="text-red-500">*</span>
+                {{ getAccommodationNameLabel() }}
+                <span class="text-red-500">*</span>
               </label>
-              <textarea
-                formControlName="address"
-                rows="3"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                placeholder="กรอกที่อยู่หอพัก"
-              ></textarea>
+              <input type="text" formControlName="dorm_name"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                [placeholder]="
+                  isHouse()
+                    ? 'เช่น หมู่บ้านลักษณาวดี เฟส 1 ขามเรียง'
+                    : 'เช่น อันดา เพลส ขามเรียง ซอยเซเว่น 1'
+                " />
+              <div *ngIf="
+                  dormForm.get('dorm_name')?.invalid &&
+                  dormForm.get('dorm_name')?.touched
+                " class="text-red-500 text-sm mt-1">
+                กรุณากรอก{{ getAccommodationNameLabel().toLowerCase() }}
+                (อย่างน้อย 3 ตัวอักษร)
+              </div>
             </div>
-            
+
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                โซน
+                {{ getAccommodationAddressLabel() }}
+                <span class="text-red-500">*</span>
               </label>
-              <select
-                formControlName="zone_id"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-              >
-                <option value="">เลือกโซน</option>
+              <textarea formControlName="address" rows="3"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                [placeholder]="
+                  isHouse()
+                    ? 'ระบุที่อยู่บ้านให้ละเอียด'
+                    : 'ระบุที่อยู่หอพักให้ละเอียด'
+                "></textarea>
+              <div *ngIf="
+                  dormForm.get('address')?.invalid &&
+                  dormForm.get('address')?.touched
+                " class="text-red-500 text-sm mt-1">
+                กรุณากรอกที่อยู่ให้ครบถ้วน (อย่างน้อย 10 ตัวอักษร)
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                โซน/พื้นที่ <span class="text-red-500">*</span>
+              </label>
+              <select formControlName="zone_id"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">
+                  {{ isLoadingData ? "กำลังโหลด..." : "เลือกโซน/พื้นที่" }}
+                </option>
                 <option *ngFor="let zone of zones" [value]="zone.zone_id">
                   {{ zone.zone_name }}
                 </option>
               </select>
-            </div>
-            
-            <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                รายละเอียดหอพัก
-              </label>
-              <textarea
-                formControlName="dorm_description"
-                rows="4"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                placeholder="กรอกรายละเอียดหอพัก"
-              ></textarea>
+              <div *ngIf="
+                  dormForm.get('zone_id')?.invalid &&
+                  dormForm.get('zone_id')?.touched
+                " class="text-red-500 text-sm mt-1">
+                กรุณาเลือกโซน/พื้นที่
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- ประเภทห้องและราคา -->
-        <div class="space-y-6 mb-8">
-          <h2 class="text-xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-            ประเภทห้องและราคา
+        <!-- Step 2: ข้อมูลติดต่อ -->
+        <div #step2 *ngIf="currentStep === 2" class="step-content space-y-4">
+          <h2 class="text-lg font-semibold text-gray-900 mb-3">
+            ข้อมูลติดต่อเจ้าของ{{ getAccommodationType() }} (ไม่บังคับ)
           </h2>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+          <div class="grid grid-cols-1 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                ประเภทห้อง <span class="text-red-500">*</span>
+                ชื่อเจ้าของ{{ getAccommodationType() }}
               </label>
-              <input
-                type="text"
-                formControlName="room_type"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                placeholder="เช่น ห้องแอร์, ห้องคู่"
-              />
+              <input type="text" formControlName="contact_name"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="เช่น คุณสมชาย" />
             </div>
-            
+
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                ราคาต่อเดือน (บาท)
+                เบอร์โทรศัพท์เจ้าของ{{ getAccommodationType() }}
               </label>
-              <input
-                type="number"
-                formControlName="monthly_price"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                placeholder="3500"
-              />
+              <input type="tel" formControlName="contact_phone" maxlength="10" inputmode="numeric"
+                (keypress)="allowNumbersOnly($event)" (paste)="onPhonePaste($event)"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="เช่น 0812345678" />
+              <div *ngIf="
+                  dormForm.get('contact_phone')?.invalid &&
+                  dormForm.get('contact_phone')?.touched
+                " class="text-red-500 text-sm mt-1">
+                กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (9-10 หลัก)
+              </div>
             </div>
-            
+
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                ราคาต่อวัน (บาท)
+                อีเมลเจ้าของ{{ getAccommodationType() }}
               </label>
-              <input
-                type="number"
-                formControlName="daily_price"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                placeholder="150"
-              />
+              <input type="email" formControlName="contact_email"
+                pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="เช่น contact@example.com" title="กรุณากรอกอีเมลเป็นภาษาอังกฤษและตัวเลขเท่านั้น" />
+              <div *ngIf="
+                  dormForm.get('contact_email')?.invalid &&
+                  dormForm.get('contact_email')?.touched
+                " class="text-red-500 text-sm mt-1">
+                กรุณากรอกอีเมลให้ถูกต้อง
+              </div>
             </div>
-            
+
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                ราคาซัมเมอร์ (บาท)
+                Line ID เจ้าของ{{ getAccommodationType() }}
               </label>
-              <input
-                type="number"
-                formControlName="summer_price"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                placeholder="9000"
-              />
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                ค่าประกัน (บาท)
-              </label>
-              <input
-                type="number"
-                formControlName="deposit"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                placeholder="3500"
-              />
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                ค่าไฟ (บาท/หน่วย) <span class="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                formControlName="electricity_price"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                placeholder="8"
-              />
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                ประเภทค่าน้ำ <span class="text-red-500">*</span>
-              </label>
-              <select
-                formControlName="water_price_type"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-              >
-                <option value="">เลือกประเภท</option>
-                <option value="ตามหน่วย">ตามหน่วย</option>
-                <option value="ตามอัตรา">ตามอัตรา</option>
-                <option value="คิดตามหน่วย">คิดตามหน่วย</option>
-                <option value="คิดรายเดือน">คิดรายเดือน</option>
-              </select>
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                ค่าน้ำ
-              </label>
-              <input
-                type="number"
-                formControlName="water_price"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                placeholder="100"
-                [disabled]="dormForm.get('water_price_type')?.value === 'ตามอัตรา'"
-              />
+              <input type="text" formControlName="line_id"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="เช่น @dormname" />
             </div>
           </div>
         </div>
 
-        <!-- พิกัด -->
-        <div class="space-y-6 mb-8">
-          <h2 class="text-xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-            พิกัดที่ตั้งหอพัก
+        <!-- Step 3: ประเภทห้องและราคา -->
+        <div #step3 *ngIf="currentStep === 3" class="step-content space-y-4">
+          <h2 class="text-lg font-semibold text-gray-900 mb-3">
+            {{ getRoomTypeLabel() }}และราคา
           </h2>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                ละติจูด <span class="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                formControlName="latitude"
-                step="any"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                placeholder="16.2467"
-              />
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                ลองจิจูด <span class="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                formControlName="longitude"
-                step="any"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                placeholder="103.2565"
-              />
-            </div>
-          </div>
-          
-          <!-- Map -->
-          <div class="mt-4">
-            <div
-              id="edit-map"
-              class="w-full h-96 rounded-lg overflow-hidden border border-gray-200"
-            ></div>
-          </div>
-        </div>
 
-        <!-- สถานะอนุมัติ -->
-        <div class="space-y-6 mb-8">
-          <h2 class="text-xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-            สถานะอนุมัติ
-          </h2>
-          
+          <!-- ประเภทห้อง -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
-              สถานะการอนุมัติ
+              {{ getRoomTypeLabel() }} <span class="text-red-500">*</span>
             </label>
-            <select
-              formControlName="approval_status"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-            >
-              <option value="">เลือกสถานะ</option>
-              <option value="pending">รออนุมัติ</option>
-              <option value="approved">อนุมัติ</option>
-              <option value="rejected">ปฏิเสธ</option>
-            </select>
+            <div class="relative">
+              <select formControlName="room_type"
+                class="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">เลือกประเภทห้อง</option>
+                <option *ngFor="let type of getRoomTypes()" [value]="type">
+                  {{ type }}
+                </option>
+              </select>
+              <!-- Tooltip for Studio -->
+              <div *ngIf="dormForm.get('room_type')?.value === 'ห้องสตูดิโอ'"
+                class="absolute -top-8 left-0 bg-gray-800 text-white text-xs rounded px-2 py-1 z-10 whitespace-nowrap">
+                ห้องที่มีพื้นที่ใช้สอยรวมกัน (นอน ทำงาน รับประทาน)
+                <div class="absolute -bottom-1 left-4 w-2 h-2 bg-gray-800 transform rotate-45"></div>
+              </div>
+            </div>
+            <div *ngIf="
+                dormForm.get('room_type')?.invalid &&
+                dormForm.get('room_type')?.touched
+              " class="text-red-500 text-sm mt-1">
+              กรุณาเลือก{{ getRoomTypeLabel() }}
+            </div>
           </div>
-          
-          <div class="mt-4">
-            <button
-              type="button"
-              (click)="onUpdateApprovalStatus()"
-              class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              อัปเดตสถานะการอนุมัติ
-            </button>
+
+          <!-- ช่องกรอกประเภทห้องอื่นๆ -->
+          <div *ngIf="dormForm.get('room_type')?.value === 'อื่นๆ'">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              ระบุ{{ getRoomTypeLabel() }} <span class="text-red-500">*</span>
+            </label>
+            <input type="text" formControlName="room_type_other"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              [placeholder]="
+                isHouse() ? 'เช่น 4 ห้องนอน 3 ห้องน้ำ' : 'เช่น ห้องสตูดิโอ'
+              " />
+            <div *ngIf="
+                !dormForm.get('room_type_other')?.value &&
+                dormForm.get('room_type')?.value === 'อื่นๆ'
+              " class="text-red-500 text-sm mt-1">
+              กรุณาระบุ{{ getRoomTypeLabel() }}
+            </div>
+          </div>
+
+          <!-- ราคา (ต้องเลือกอย่างน้อย 1) -->
+          <div class="border-t pt-4">
+            <p class="text-sm font-medium text-gray-700 mb-4">
+              ราคา <span class="text-red-500">*</span>
+              <span class="text-gray-500 font-normal">(เลือกอย่างน้อย 1 รายการ)</span>
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  ราคาต่อเดือน (บาท)
+                </label>
+                <input type="number" formControlName="monthly_price"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  [placeholder]="isHouse() ? 'เช่น 6000' : 'เช่น 3500'" min="0" />
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  ราคาต่อเทอม (บาท)
+                </label>
+                <input type="number" formControlName="term_price"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  [placeholder]="isHouse() ? 'เช่น 60000' : 'เช่น 15000'" min="0" />
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  ราคาซัมเมอร์ (บาท)
+                </label>
+                <input type="number" formControlName="summer_price"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  [placeholder]="isHouse() ? 'เช่น 65000' : 'เช่น 18000'" min="0" />
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  {{ getDepositLabel() }} (บาท)
+                </label>
+                <input type="number" formControlName="deposit"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="เช่น 3500" min="0" />
+              </div>
+            </div>
+
+            <!-- Error message ถ้าไม่เลือกราคา -->
+            <div *ngIf="
+                dormForm.errors?.['atLeastOnePrice'] &&
+                (dormForm.get('monthly_price')?.touched ||
+                  dormForm.get('term_price')?.touched)
+              " class="text-red-500 text-sm mt-2 font-medium">
+              กรุณากรอกราคาอย่างน้อย 1 รายการ (รายเดือน หรือ รายเทอม)
+            </div>
+          </div>
+
+          <div class="border-t pt-6 mt-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">ค่าน้ำ - ค่าไฟ</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- ค่าไฟ -->
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    ประเภทค่าไฟ <span class="text-red-500">*</span>
+                  </label>
+                  <select formControlName="electricity_price_type"
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">เลือกประเภทค่าไฟ</option>
+                    <option value="ตามอัตราการไฟฟ้า">ตามอัตราการไฟฟ้า (ตามใบแจ้งหนี้)</option>
+                    <option value="ราคาหน่วยละ (บาท/หน่วย)">ราคาหน่วยละ (บาท/หน่วย)</option>
+                  </select>
+                </div>
+
+                <div *ngIf="dormForm.get('electricity_price_type')?.value !== 'ตามอัตราการไฟฟ้า'">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    ค่าไฟ (บาท/หน่วย) <span class="text-red-500">*</span>
+                  </label>
+                  <input type="number" formControlName="electricity_price" min="0" step="0.01" placeholder="เช่น 8.50"
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                </div>
+              </div>
+
+              <!-- ค่าน้ำ -->
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    ประเภทค่าน้ำ <span class="text-red-500">*</span>
+                  </label>
+                  <select formControlName="water_price_type"
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">เลือกประเภทค่าน้ำ</option>
+                    <option value="ตามอัตราการประปา">ตามอัตราการประปา (ตามใบแจ้งหนี้)</option>
+                    <option value="ราคาหน่วยละ (บาท/หน่วย)">ราคาหน่วยละ (บาท/หน่วย)</option>
+                    <option value="เหมาจ่าย (บาท/เดือน)">เหมาจ่าย (บาท/เดือน)</option>
+                  </select>
+                </div>
+
+                <div *ngIf="dormForm.get('water_price_type')?.value !== 'ตามอัตราการประปา'">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <!-- Label แยกตามประเภทให้ชัดเจน -->
+                    <ng-container *ngIf="dormForm.get('water_price_type')?.value === 'ราคาหน่วยละ (บาท/หน่วย)'">
+                      ค่าน้ำ (บาท/หน่วย)
+                    </ng-container>
+                    <ng-container *ngIf="dormForm.get('water_price_type')?.value === 'เหมาจ่าย (บาท/เดือน)'">
+                      ค่าน้ำเหมาจ่าย (บาท/เดือน)
+                    </ng-container>
+                    <span class="text-red-500">*</span>
+                  </label>
+                  <input type="number" formControlName="water_price" min="0" step="0.01" [placeholder]="
+            dormForm.get('water_price_type')?.value === 'ราคาหน่วยละ (บาท/หน่วย)'
+              ? 'เช่น 25.00'
+              : 'เช่น 180'
+          " class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Submit Button -->
-        <div class="flex justify-end">
-          <button
-            type="submit"
-            [disabled]="isSubmitting || !dormForm.valid"
-            class="px-8 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {{ isSubmitting ? 'กำลังบันทึก...' : 'บันทึกการแก้ไข' }}
+        <!-- Step 4: รูปภาพและข้อมูลเพิ่มเติม -->
+        <div #step4 *ngIf="currentStep === 4" class="step-content space-y-4">
+          <h2 class="text-lg font-semibold text-gray-900 mb-3">
+            รูปภาพและข้อมูลเพิ่มเติม
+          </h2>
+
+          <!-- Image Upload Section -->
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <h3 class="text-sm font-medium text-gray-900">
+                รูปภาพหอพัก <span class="text-red-500">*</span>
+              </h3>
+              <span class="text-xs" [class.text-red-500]="images.length < minImages"
+                [class.text-green-600]="images.length >= minImages">
+                {{ images.length }}/{{ maxImages }} (ขั้นต่ำ {{ minImages }})
+              </span>
+            </div>
+
+            <!-- Upload Buttons -->
+            <div class="flex flex-col sm:flex-row gap-3">
+              <button type="button" (click)="openCamera()" [disabled]="images.length >= maxImages || isUploadingImages"
+                class="flex-1 flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="fas fa-camera w-6 h-6 mr-2 text-gray-400"></i>
+                <span class="text-sm font-medium text-gray-700">
+                  {{ isUploadingImages ? "กำลังอัปโหลด..." : "กล้อง" }}
+                </span>
+              </button>
+
+              <button type="button" (click)="openGallery()" [disabled]="images.length >= maxImages || isUploadingImages"
+                class="flex-1 flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="fas fa-images w-6 h-6 mr-2 text-gray-400"></i>
+                <span class="text-sm font-medium text-gray-700">
+                  {{
+                  isUploadingImages ? "กำลังอัปโหลด..." : "เลือกจากเครื่อง"
+                  }}
+                </span>
+              </button>
+            </div>
+
+            <!-- Hidden File Inputs -->
+            <input #cameraInput type="file" accept="image/*" capture="environment" (change)="onCameraCapture($event)"
+              class="hidden" />
+
+            <input #fileInput type="file" accept="image/*" multiple (change)="onGallerySelect($event)" class="hidden" />
+
+            <!-- Error message -->
+            <div *ngIf="images.length < minImages && currentStep === 4"
+              class="text-red-500 text-sm font-medium bg-red-50 border border-red-200 rounded-lg p-3 mt-2">
+              ⚠️ กรุณาอัพโหลดรูปภาพอย่างน้อย {{ minImages }} รูป
+            </div>
+
+            <!-- Existing Images Display -->
+            <div *ngIf="existingImages.length > 0" class="mb-4">
+              <h4 class="text-sm font-medium text-gray-700 mb-2">รูปภาพปัจจุบัน</h4>
+              <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                <div *ngFor="let image of existingImages; let i = index" class="image-item relative group">
+                  <img [src]="image.image_url" [alt]="'รูปภาพที่ ' + (i + 1)"
+                    class="w-full h-24 sm:h-32 object-cover rounded-lg border-2" 
+                    [class.border-blue-500]="image.is_primary"
+                    [class.border-gray-200]="!image.is_primary" />
+
+                  <!-- Primary Badge -->
+                  <div *ngIf="image.is_primary"
+                    class="absolute top-1 left-1 px-2 py-1 bg-blue-500 text-white text-xs rounded">
+                    รูปหลัก
+                  </div>
+
+                  <!-- Delete Button -->
+                  <button type="button" (click)="deleteExistingImage(image)"
+                    class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                      </path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- New Images Section -->
+            <div *ngIf="images.length > 0">
+              <h4 class="text-sm font-medium text-gray-700 mb-2">รูปภาพใหม่</h4>
+            </div>
+
+            <!-- Image Preview Grid -->
+            <div *ngIf="images.length > 0" #imageGrid
+              class="image-preview-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+              <div *ngFor="let image of images; let i = index" class="image-item relative group" [attr.data-index]="i">
+                <img [src]="image.preview" [alt]="'รูปภาพ ' + (i + 1)"
+                  class="w-full h-24 sm:h-32 object-cover rounded-lg border-2" [class.border-blue-500]="image.isPrimary"
+                  [class.border-gray-200]="!image.isPrimary" />
+
+                <!-- Upload Status -->
+                <div *ngIf="image.uploadStatus === 'pending' || isUploadingImages"
+                  class="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
+                  <div class="text-white text-sm">กำลังอัปโหลด...</div>
+                </div>
+                
+                <!-- Upload Error Status -->
+                <div *ngIf="image.uploadStatus === 'error'"
+                  class="absolute inset-0 bg-red-500 bg-opacity-75 rounded-lg flex items-center justify-center">
+                  <div class="text-white text-xs text-center">อัปโหลด<br/>ไม่สำเร็จ</div>
+                </div>
+
+                <!-- Remove Button -->
+                <button type="button" (click)="removeImage(i)" [disabled]="isUploadingImages"
+                  class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
+                  </svg>
+                </button>
+
+                <!-- Primary Badge -->
+                <div *ngIf="image.isPrimary"
+                  class="absolute top-1 left-1 px-2 py-1 bg-blue-500 text-white text-xs rounded">
+                  รูปหลัก
+                </div>
+
+                <!-- Set Primary Button -->
+                <button *ngIf="!image.isPrimary" type="button" (click)="setPrimaryImage(i)"
+                  [disabled]="isUploadingImages"
+                  class="absolute bottom-1 left-1 px-2 py-1 bg-black bg-opacity-50 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50">
+                  ตั้งเป็นรูปหลัก
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Amenities - Compact Design -->
+          <div formGroupName="amenities" *ngIf="amenities.length > 0">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-base font-semibold text-gray-900">
+                สิ่งอำนวยความสะดวก <span class="text-red-500">*</span>
+              </h3>
+              <span class="text-sm font-medium px-2 py-1 rounded-full"
+                [class.bg-red-100]="getSelectedAmenities().length < 5"
+                [class.text-red-600]="getSelectedAmenities().length < 5"
+                [class.bg-green-100]="getSelectedAmenities().length >= 5"
+                [class.text-green-600]="getSelectedAmenities().length >= 5">
+                {{ getSelectedAmenities().length }}/5 (ขั้นต่ำ 5)
+              </span>
+            </div>
+
+            <!-- Compact Amenities Grid -->
+            <div #amenitiesGrid class="amenities-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+              <label *ngFor="let amenity of amenities"
+                class="amenity-item flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 text-sm">
+                <div class="relative flex items-center">
+                  <input type="checkbox" [formControlName]="amenity" class="peer sr-only" />
+                  <div
+                    class="w-4 h-4 border-2 border-gray-300 rounded peer-checked:bg-blue-500 peer-checked:border-blue-500 peer-checked:text-white flex items-center justify-center">
+                    <svg *ngIf="dormForm.get('amenities.' + amenity)?.value" class="w-3 h-3 text-white" fill="none"
+                      stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </div>
+                <span class="text-gray-700 text-sm truncate">{{
+                  amenity
+                  }}</span>
+              </label>
+            </div>
+
+            <!-- Error message -->
+            <div *ngIf="getSelectedAmenities().length < 5 && currentStep === 4"
+              class="text-red-500 text-sm font-medium bg-red-50 border border-red-200 rounded-lg p-2 mt-3">
+              กรุณาเลือกอย่างน้อย 5 อย่าง (เลือกแล้ว
+              {{ getSelectedAmenities().length }} อย่าง)
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              รายละเอียดเพิ่มเติม
+            </label>
+            <textarea formControlName="description" rows="4"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              placeholder="เช่น หอพักใหม่ สะอาด ปลอดภัย ใกล้มหาวิทยาลัย ห้ามสูบบุหรี่ ห้ามเลี้ยงสัตว์..."></textarea>
+          </div>
+
+          <!-- Map Picker -->
+          <div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">
+              ระบุพิกัดหอพัก <span class="text-red-500">*</span>
+            </h3>
+
+            <div class="relative">
+              <div #mapContainer class="w-full h-96 rounded-lg border-2 border-gray-300"></div>
+
+              <!-- Loading Overlay -->
+              <div *ngIf="isLoadingLocation"
+                class="absolute inset-0 bg-white bg-opacity-75 backdrop-blur-sm flex items-center justify-center rounded-lg z-20">
+                <div class="text-center">
+                  <dotlottie-wc src="https://lottie.host/4ca30491-9eb8-449b-9364-082d966730b6/4MWuEhq1d7.lottie"
+                    style="width: 200px; height: 200px; margin: 0 auto" autoplay loop>
+                  </dotlottie-wc>
+                  <p class="text-gray-700 font-medium">
+                    กำลังค้นหาตำแหน่งของคุณ...
+                  </p>
+                </div>
+              </div>
+
+              <!-- Map Controls Overlay -->
+              <div class="absolute top-4 left-4 flex flex-col gap-2 z-10">
+                <!-- ปุ่มตำแหน่งปัจจุบัน -->
+                <button type="button" (click)="getCurrentLocation()" [disabled]="isLoadingLocation"
+                  class="w-[33px] h-[33px] bg-white rounded-sm shadow-lg hover:bg-gray-50 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="ตำแหน่งปัจจุบัน">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor" class="w-4 h-4 text-blue-600">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                  </svg>
+                </button>
+
+                <!-- ปุ่มเปลี่ยนแผนที่ -->
+                <button type="button" (click)="toggleMapStyle()"
+                  class="w-[33px] h-[33px] bg-white rounded-sm shadow-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
+                  [title]="
+                    currentMapStyle === 'satellite'
+                      ? 'เปลี่ยนเป็นแผนที่ถนน'
+                      : 'เปลี่ยนเป็นดาวเทียม'
+                  ">
+                  <!-- Icon แผนที่ (เมื่ออยู่โหมด Satellite) -->
+                  <svg *ngIf="currentMapStyle === 'satellite'" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-gray-700">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" />
+                  </svg>
+                  <!-- Icon โลก (เมื่ออยู่โหมด Streets) -->
+                  <svg *ngIf="currentMapStyle === 'streets'" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-gray-700">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div
+              class="flex items-start gap-2 mt-3 text-sm text-gray-700 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                class="w-4 h-4 flex-shrink-0 mt-0.5 text-yellow-500">
+                <path
+                  d="M12 .75a8.25 8.25 0 0 0-4.135 15.39c.686.398 1.115 1.008 1.134 1.623a.75.75 0 0 0 .577.706c.352.083.71.148 1.074.195.323.041.6-.218.6-.544v-4.661a6.714 6.714 0 0 1-.937-.171.75.75 0 1 1 .374-1.453 5.261 5.261 0 0 0 2.626 0 .75.75 0 1 1 .374 1.452 6.712 6.712 0 0 1-.937.172v4.66c0 .327.277.586.6.545.364-.047.722-.112 1.074-.195a.75.75 0 0 0 .577-.706c.02-.615.448-1.225 1.134-1.623A8.25 8.25 0 0 0 12 .75Z" />
+                <path fill-rule="evenodd"
+                  d="M9.013 19.9a.75.75 0 0 1 .877-.597 11.319 11.319 0 0 0 4.22 0 .75.75 0 1 1 .28 1.473 12.819 12.819 0 0 1-4.78 0 .75.75 0 0 1-.597-.876ZM9.754 22.344a.75.75 0 0 1 .824-.668 13.682 13.682 0 0 0 2.844 0 .75.75 0 1 1 .156 1.492 15.156 15.156 0 0 1-3.156 0 .75.75 0 0 1-.668-.824Z"
+                  clip-rule="evenodd" />
+              </svg>
+              <p>คลิกบนแผนที่หรือลาก marker สีเหลืองเพื่อระบุตำแหน่งหอพัก</p>
+            </div>
+
+            <!-- แสดงพิกัดที่เลือก -->
+            <div *ngIf="
+                dormForm.get('latitude')?.value &&
+                dormForm.get('longitude')?.value
+              " class="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p class="text-sm text-green-800">
+                ✓ พิกัดที่เลือก:
+                {{ dormForm.get("latitude")?.value | number: "1.6-6" }},
+                {{ dormForm.get("longitude")?.value | number: "1.6-6" }}
+              </p>
+            </div>
+
+            <!-- Error message -->
+            <div *ngIf="
+                (!dormForm.get('latitude')?.value ||
+                  !dormForm.get('longitude')?.value) &&
+                currentStep === 4
+              " class="text-red-500 text-sm font-medium bg-red-50 border border-red-200 rounded-lg p-3 mt-2">
+              ⚠️ กรุณาระบุตำแหน่งหอพักบนแผนที่
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div
+          class="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center pt-6 sm:pt-8 border-t border-gray-200 gap-3 sm:gap-0">
+          <!-- ปุ่มย้อนกลับ (แสดงเฉพาะเมื่อไม่ใช่ step แรก) -->
+          <button type="button" (click)="prevStep()" *ngIf="currentStep > 1"
+            class="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
+            ย้อนกลับ
           </button>
+
+          <!-- ปุ่มด้านขวา -->
+          <div class="flex gap-3 w-full sm:w-auto">
+            <button type="button" (click)="editSuccess.emit()"
+              class="flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors shadow-sm">
+              ยกเลิก
+            </button>
+
+            <button type="button" (click)="nextStep()" *ngIf="currentStep < totalSteps"
+              [disabled]="!isStepValid(currentStep)"
+              class="flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base border border-blue-500 text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50 transition-all shadow-sm">
+              ถัดไป
+            </button>
+
+            <button type="submit" *ngIf="currentStep === totalSteps" [disabled]="!validateCurrentStep() || isSubmitting"
+              class="flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base border border-green-500 text-white bg-green-500 rounded-md hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50 transition-all shadow-sm flex items-center justify-center">
+              <svg *ngIf="isSubmitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
+              </svg>
+              {{ isSubmitting ? "กำลังบันทึกข้อมูล..." : "บันทึกการแก้ไข" }}
+            </button>
+          </div>
         </div>
       </form>
     </div>

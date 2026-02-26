@@ -8,6 +8,7 @@ import { DormSubmitComponent } from './main/dorm-submit/dorm-submit.component';
 import { AdminComponent } from './main/admin/admin.component';
 import { AdminLoginComponent } from './main/admin/login/admin-login.component';
 import { AdminEditDormComponent } from './main/admin/admin-edit-dorm/admin-edit-dorm.component';
+
 import { AuthRedirectGuard } from './guards/auth-redirect.guard';
 
 export const routes: Routes = [

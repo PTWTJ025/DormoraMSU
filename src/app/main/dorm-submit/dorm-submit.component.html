@@ -1,41 +1,67 @@
-<div class="min-h-screen bg-gray-50 py-6 sm:py-8 px-3 sm:px-6 lg:px-8">
-  <div class="max-w-4xl mx-auto w-full">
+<div class="min-h-screen bg-gray-50 py-4 sm:py-6 px-3 sm:px-4">
+  <!-- Full-Page Loading Overlay -->
+  <div
+    *ngIf="isSubmittingFullPage"
+    class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-[100]"
+  >
+    <div
+      class="text-center bg-white p-8 rounded-2xl shadow-2xl max-w-xs w-full mx-4"
+    >
+      <div class="relative w-24 h-24 mx-auto mb-4">
+        <div
+          class="absolute inset-0 border-4 border-yellow-100 rounded-full"
+        ></div>
+        <div
+          class="absolute inset-0 border-4 border-yellow-500 rounded-full border-t-transparent animate-spin"
+        ></div>
+      </div>
+      <h3 class="text-xl font-bold text-gray-900 mb-2">กำลังส่งข้อมูล</h3>
+      <p class="text-gray-600">
+        กรุณารอสักครู่ ห้ามปิดหน้านี้จนกว่าจะเสร็จสิ้น
+      </p>
+    </div>
+  </div>
+
+  <div class="max-w-3xl mx-auto w-full">
     <!-- Header -->
-    <div class="text-center mb-6 sm:mb-8">
-      <h1 class="text-xl sm:text-3xl font-bold text-gray-900 mb-2">
+    <div class="text-center mb-4 sm:mb-6">
+      <h1 class="text-lg sm:text-2xl font-bold text-gray-900 mb-1">
         ส่งข้อมูลหอพัก
       </h1>
-      <p class="text-sm sm:text-base text-gray-600">
-        กรอกข้อมูลหอพักของคุณให้ครบถ้วน เพื่อให้ผู้เช่าค้นหาได้ง่าย
+      <p class="text-xs sm:text-sm text-gray-600">
+        กรอกข้อมูลหอพักของคุณให้ครบถ้วน
       </p>
     </div>
 
     <!-- Progress Bar -->
-    <div class="mb-6 sm:mb-8">
-      <div class="flex items-center justify-between mb-2">
-        <span class="text-xs sm:text-sm font-medium text-gray-700">{{
+    <div class="mb-4 sm:mb-6">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-xs font-medium text-gray-700">{{
           getStepTitle()
         }}</span>
-        <span class="text-xs sm:text-sm text-gray-500"
+        <span class="text-xs text-gray-500"
           >{{ currentStep }}/{{ totalSteps }}</span
         >
       </div>
-      <div class="w-full bg-gray-200 rounded-full h-2">
+      <div class="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
         <div
-          class="bg-yellow-500 h-2 rounded-full transition-all duration-300"
+          #progressBar
+          class="progress-bar bg-yellow-500 h-1.5 rounded-full transition-all duration-300"
           [style.width.%]="(currentStep / totalSteps) * 100"
         ></div>
       </div>
     </div>
 
     <!-- Form Container -->
-    <div class="bg-white rounded-lg shadow-lg p-4 sm:p-8">
+    <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
       <form [formGroup]="dormForm" (ngSubmit)="onSubmit()">
         <!-- Step 1: ข้อมูลหอพัก -->
-        <div *ngIf="currentStep === 1" class="space-y-6">
-          <h2 class="text-xl font-semibold text-gray-900 mb-4">ข้อมูล{{ getAccommodationType() }}</h2>
+        <div #step1 *ngIf="currentStep === 1" class="step-content space-y-4">
+          <h2 class="text-lg font-semibold text-gray-900 mb-3">
+            ข้อมูล{{ getAccommodationType() }}
+          </h2>
 
-          <div class="grid grid-cols-1 gap-6">
+          <div class="grid grid-cols-1 gap-4">
             <!-- เลือกประเภทที่พัก -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -61,13 +87,18 @@
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                {{ getAccommodationNameLabel() }} <span class="text-red-500">*</span>
+                {{ getAccommodationNameLabel() }}
+                <span class="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 formControlName="dorm_name"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                [placeholder]="isHouse() ? 'เช่น หมู่บ้านลักษณาวดี เฟส 1 ขามเรียง' : 'เช่น อันดา เพลส ขามเรียง ซอยเซเว่น 1'"
+                [placeholder]="
+                  isHouse()
+                    ? 'เช่น หมู่บ้านลักษณาวดี เฟส 1 ขามเรียง'
+                    : 'เช่น อันดา เพลส ขามเรียง ซอยเซเว่น 1'
+                "
               />
               <div
                 *ngIf="
@@ -76,19 +107,25 @@
                 "
                 class="text-red-500 text-sm mt-1"
               >
-                กรุณากรอก{{ getAccommodationNameLabel().toLowerCase() }} (อย่างน้อย 3 ตัวอักษร)
+                กรุณากรอก{{ getAccommodationNameLabel().toLowerCase() }}
+                (อย่างน้อย 3 ตัวอักษร)
               </div>
             </div>
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                {{ getAccommodationAddressLabel() }} <span class="text-red-500">*</span>
+                {{ getAccommodationAddressLabel() }}
+                <span class="text-red-500">*</span>
               </label>
               <textarea
                 formControlName="address"
                 rows="3"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                [placeholder]="isHouse() ? 'ระบุที่อยู่บ้านให้ละเอียด' : 'ระบุที่อยู่หอพักให้ละเอียด'"
+                [placeholder]="
+                  isHouse()
+                    ? 'ระบุที่อยู่บ้านให้ละเอียด'
+                    : 'ระบุที่อยู่หอพักให้ละเอียด'
+                "
               ></textarea>
               <div
                 *ngIf="
@@ -130,12 +167,12 @@
         </div>
 
         <!-- Step 2: ข้อมูลติดต่อ -->
-        <div *ngIf="currentStep === 2" class="space-y-6">
-          <h2 class="text-xl font-semibold text-gray-900 mb-4">
+        <div #step2 *ngIf="currentStep === 2" class="step-content space-y-4">
+          <h2 class="text-lg font-semibold text-gray-900 mb-3">
             ข้อมูลติดต่อเจ้าของ{{ getAccommodationType() }} (ไม่บังคับ)
           </h2>
 
-          <div class="grid grid-cols-1 gap-6">
+          <div class="grid grid-cols-1 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
                 ชื่อเจ้าของ{{ getAccommodationType() }}
@@ -156,6 +193,9 @@
                 type="tel"
                 formControlName="contact_phone"
                 maxlength="10"
+                inputmode="numeric"
+                (keypress)="allowNumbersOnly($event)"
+                (paste)="onPhonePaste($event)"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
                 placeholder="เช่น 0812345678"
               />
@@ -177,7 +217,7 @@
               <input
                 type="email"
                 formControlName="contact_email"
-                pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+                pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
                 placeholder="เช่น contact@example.com"
                 title="กรุณากรอกอีเมลเป็นภาษาอังกฤษและตัวเลขเท่านั้น"
@@ -208,8 +248,8 @@
         </div>
 
         <!-- Step 3: ประเภทห้องและราคา -->
-        <div *ngIf="currentStep === 3" class="space-y-6">
-          <h2 class="text-xl font-semibold text-gray-900 mb-4">
+        <div #step3 *ngIf="currentStep === 3" class="step-content space-y-4">
+          <h2 class="text-lg font-semibold text-gray-900 mb-3">
             {{ getRoomTypeLabel() }}และราคา
           </h2>
 
@@ -247,7 +287,9 @@
               type="text"
               formControlName="room_type_other"
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-              [placeholder]="isHouse() ? 'เช่น 4 ห้องนอน 3 ห้องน้ำ' : 'เช่น ห้องสตูดิโอ'"
+              [placeholder]="
+                isHouse() ? 'เช่น 4 ห้องนอน 3 ห้องน้ำ' : 'เช่น ห้องสตูดิโอ'
+              "
             />
             <div
               *ngIf="
@@ -278,7 +320,7 @@
                   type="number"
                   formControlName="monthly_price"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                  placeholder="เช่น 3500"
+                  [placeholder]="isHouse() ? 'เช่น 6000' : 'เช่น 3500'"
                   min="0"
                 />
               </div>
@@ -291,7 +333,7 @@
                   type="number"
                   formControlName="term_price"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                  placeholder="เช่น 15000"
+                  [placeholder]="isHouse() ? 'เช่น 60000' : 'เช่น 15000'"
                   min="0"
                 />
               </div>
@@ -304,7 +346,7 @@
                   type="number"
                   formControlName="summer_price"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                  placeholder="เช่น 9000"
+                  [placeholder]="isHouse() ? 'เช่น 65000' : 'เช่น 18000'"
                   min="0"
                 />
               </div>
@@ -338,9 +380,7 @@
 
           <!-- ค่าน้ำค่าไฟ -->
           <div class="border-t pt-4">
-            <p class="text-sm font-medium text-gray-700 mb-4">
-              ค่าน้ำค่าไฟ
-            </p>
+            <p class="text-sm font-medium text-gray-700 mb-4">ค่าน้ำค่าไฟ</p>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -352,13 +392,21 @@
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
                 >
                   <option value="">เลือกประเภท</option>
-                  <option *ngFor="let type of getElectricityPriceTypes()" [value]="type">
+                  <option
+                    *ngFor="let type of getElectricityPriceTypes()"
+                    [value]="type"
+                  >
                     {{ type }}
                   </option>
                 </select>
               </div>
 
-              <div *ngIf="dormForm.get('electricity_price_type')?.value !== 'ตามอัตราการไฟฟ้า'">
+              <div
+                *ngIf="
+                  dormForm.get('electricity_price_type')?.value !==
+                  'ตามอัตราการไฟฟ้า'
+                "
+              >
                 <label class="block text-sm font-medium text-gray-700 mb-2">
                   ค่าไฟ (บาท/หน่วย)
                 </label>
@@ -381,18 +429,35 @@
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
                 >
                   <option value="">เลือกประเภท</option>
-                  <option *ngFor="let type of getWaterPriceTypes()" [value]="type">
+                  <option
+                    *ngFor="let type of getWaterPriceTypes()"
+                    [value]="type"
+                  >
                     {{ type }}
                   </option>
                 </select>
               </div>
 
-              <div *ngIf="dormForm.get('water_price_type')?.value !== 'ตามอัตราการประปา'">
+              <div
+                *ngIf="
+                  dormForm.get('water_price_type')?.value !== 'ตามอัตราการประปา'
+                "
+              >
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  <span *ngIf="dormForm.get('water_price_type')?.value === 'คิดตามหน่วย (บาท/หน่วย)'">
+                  <span
+                    *ngIf="
+                      dormForm.get('water_price_type')?.value ===
+                      'คิดตามหน่วย (บาท/หน่วย)'
+                    "
+                  >
                     ค่าน้ำ (บาท/หน่วย)
                   </span>
-                  <span *ngIf="dormForm.get('water_price_type')?.value === 'คิดรายเดือน (บาท/เดือน)'">
+                  <span
+                    *ngIf="
+                      dormForm.get('water_price_type')?.value ===
+                      'คิดรายเดือน (บาท/เดือน)'
+                    "
+                  >
                     ค่าน้ำ (บาท/เดือน)
                   </span>
                   <span *ngIf="!dormForm.get('water_price_type')?.value">
@@ -403,7 +468,15 @@
                   type="number"
                   formControlName="water_price"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                  [placeholder]="dormForm.get('water_price_type')?.value === 'คิดตามหน่วย (บาท/หน่วย)' ? 'เช่น 25' : dormForm.get('water_price_type')?.value === 'คิดรายเดือน (บาท/เดือน)' ? 'เช่น 100' : 'เลือกประเภทค่าน้ำก่อน'"
+                  [placeholder]="
+                    dormForm.get('water_price_type')?.value ===
+                    'คิดตามหน่วย (บาท/หน่วย)'
+                      ? 'เช่น 25'
+                      : dormForm.get('water_price_type')?.value ===
+                          'คิดรายเดือน (บาท/เดือน)'
+                        ? 'เช่น 150'
+                        : 'เช่น 25'
+                  "
                   min="0"
                   step="0.01"
                 />
@@ -413,24 +486,23 @@
         </div>
 
         <!-- Step 4: รูปภาพและข้อมูลเพิ่มเติม -->
-        <div *ngIf="currentStep === 4" class="space-y-6">
-          <h2 class="text-xl font-semibold text-gray-900 mb-4">
+        <div #step4 *ngIf="currentStep === 4" class="step-content space-y-4">
+          <h2 class="text-lg font-semibold text-gray-900 mb-3">
             รูปภาพและข้อมูลเพิ่มเติม
           </h2>
 
           <!-- Image Upload Section -->
-          <div class="space-y-4">
+          <div class="space-y-3">
             <div class="flex justify-between items-center">
-              <h3 class="text-lg font-medium text-gray-900">
+              <h3 class="text-sm font-medium text-gray-900">
                 รูปภาพหอพัก <span class="text-red-500">*</span>
               </h3>
               <span
-                class="text-sm"
+                class="text-xs"
                 [class.text-red-500]="images.length < minImages"
-                [class.text-gray-500]="images.length >= minImages"
+                [class.text-green-600]="images.length >= minImages"
               >
-                {{ images.length }}/{{ maxImages }} รูป (ขั้นต่ำ
-                {{ minImages }} รูป)
+                {{ images.length }}/{{ maxImages }} (ขั้นต่ำ {{ minImages }})
               </span>
             </div>
 
@@ -442,27 +514,9 @@
                 [disabled]="images.length >= maxImages || isUploadingImages"
                 class="flex-1 flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <svg
-                  class="w-6 h-6 mr-2 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h.93a2 2 0 001.664.89l.812 1.22A2 2 0 013 9z"
-                  ></path>
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-                  ></path>
-                </svg>
+                <i class="fas fa-camera w-6 h-6 mr-2 text-gray-400"></i>
                 <span class="text-sm font-medium text-gray-700">
-                  {{ isUploadingImages ? 'กำลังอัปโหลด...' : 'ถ่ายรูป' }}
+                  {{ isUploadingImages ? "กำลังอัปโหลด..." : "กล้อง" }}
                 </span>
               </button>
 
@@ -472,21 +526,11 @@
                 [disabled]="images.length >= maxImages || isUploadingImages"
                 class="flex-1 flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <svg
-                  class="w-6 h-6 mr-2 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586 1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  ></path>
-                </svg>
+                <i class="fas fa-images w-6 h-6 mr-2 text-gray-400"></i>
                 <span class="text-sm font-medium text-gray-700">
-                  {{ isUploadingImages ? 'กำลังอัปโหลด...' : 'เลือกจากเครื่อง' }}
+                  {{
+                    isUploadingImages ? "กำลังอัปโหลด..." : "เลือกจากเครื่อง"
+                  }}
                 </span>
               </button>
             </div>
@@ -521,11 +565,13 @@
             <!-- Image Preview Grid -->
             <div
               *ngIf="images.length > 0"
-              class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"
+              #imageGrid
+              class="image-preview-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3"
             >
               <div
                 *ngFor="let image of images; let i = index"
-                class="relative group"
+                class="image-item relative group"
+                [attr.data-index]="i"
               >
                 <img
                   [src]="image.preview"
@@ -536,7 +582,10 @@
                 />
 
                 <!-- Upload Status -->
-                <div *ngIf="isUploadingImages" class="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
+                <div
+                  *ngIf="isUploadingImages"
+                  class="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center"
+                >
                   <div class="text-white text-sm">กำลังอัปโหลด...</div>
                 </div>
 
@@ -584,41 +633,70 @@
             </div>
           </div>
 
-          <!-- Amenities -->
+          <!-- Amenities - Compact Design -->
           <div formGroupName="amenities" *ngIf="amenities.length > 0">
             <div class="flex items-center justify-between mb-3">
-              <h3 class="text-lg font-medium text-gray-900">
+              <h3 class="text-base font-semibold text-gray-900">
                 สิ่งอำนวยความสะดวก <span class="text-red-500">*</span>
               </h3>
-              <span 
-                class="text-sm"
-                [class.text-red-500]="getSelectedAmenities().length < 5"
+              <span
+                class="text-sm font-medium px-2 py-1 rounded-full"
+                [class.bg-red-100]="getSelectedAmenities().length < 5"
+                [class.text-red-600]="getSelectedAmenities().length < 5"
+                [class.bg-green-100]="getSelectedAmenities().length >= 5"
                 [class.text-green-600]="getSelectedAmenities().length >= 5"
               >
-                {{ getSelectedAmenities().length }}/{{ amenities.length }} 
-                (ขั้นต่ำ 5 อย่าง)
+                {{ getSelectedAmenities().length }}/5 (ขั้นต่ำ 5)
               </span>
             </div>
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+
+            <!-- Compact Amenities Grid -->
+            <div
+              #amenitiesGrid
+              class="amenities-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2"
+            >
               <label
                 *ngFor="let amenity of amenities"
-                class="flex items-center space-x-2 cursor-pointer"
+                class="amenity-item flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 text-sm"
               >
-                <input
-                  type="checkbox"
-                  [formControlName]="amenity"
-                  class="rounded border-gray-300 text-yellow-500 focus:ring-yellow-500"
-                />
-                <span class="text-base text-gray-700">{{ amenity }}</span>
+                <div class="relative flex items-center">
+                  <input
+                    type="checkbox"
+                    [formControlName]="amenity"
+                    class="peer sr-only"
+                  />
+                  <div
+                    class="w-4 h-4 border-2 border-gray-300 rounded peer-checked:bg-yellow-500 peer-checked:border-yellow-500 peer-checked:text-white flex items-center justify-center"
+                  >
+                    <svg
+                      *ngIf="dormForm.get('amenities.' + amenity)?.value"
+                      class="w-3 h-3 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="3"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <span class="text-gray-700 text-sm truncate">{{
+                  amenity
+                }}</span>
               </label>
             </div>
-            
+
             <!-- Error message -->
             <div
               *ngIf="getSelectedAmenities().length < 5 && currentStep === 4"
-              class="text-red-500 text-sm font-medium bg-red-50 border border-red-200 rounded-lg p-3 mt-3"
+              class="text-red-500 text-sm font-medium bg-red-50 border border-red-200 rounded-lg p-2 mt-3"
             >
-              ⚠️ กรุณาเลือกสิ่งอำนวยความสะดวกอย่างน้อย 5 อย่าง (เลือกแล้ว {{ getSelectedAmenities().length }} อย่าง)
+              กรุณาเลือกอย่างน้อย 5 อย่าง (เลือกแล้ว
+              {{ getSelectedAmenities().length }} อย่าง)
             </div>
           </div>
 
@@ -653,13 +731,14 @@
                 class="absolute inset-0 bg-white bg-opacity-75 backdrop-blur-sm flex items-center justify-center rounded-lg z-20"
               >
                 <div class="text-center">
-                  <dotlottie-wc 
-                    src="https://lottie.host/4ca30491-9eb8-449b-9364-082d966730b6/4MWuEhq1d7.lottie" 
-                    style="width: 200px; height: 200px; margin: 0 auto;"
-                    autoplay 
-                    loop>
+                  <dotlottie-wc
+                    src="https://lottie.host/4ca30491-9eb8-449b-9364-082d966730b6/4MWuEhq1d7.lottie"
+                    style="width: 200px; height: 200px; margin: 0 auto"
+                    autoplay
+                    loop
+                  >
                   </dotlottie-wc>
-                  <p class="text-gray-700 font-medium mt-2">
+                  <p class="text-gray-700 font-medium">
                     กำลังค้นหาตำแหน่งของคุณ...
                   </p>
                 </div>
@@ -830,7 +909,7 @@
             <button
               type="submit"
               *ngIf="currentStep === totalSteps"
-              [disabled]="!dormForm.valid || isSubmitting"
+              [disabled]="!validateCurrentStep() || isSubmitting"
               class="flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
             >
               <svg
@@ -859,6 +938,481 @@
           </div>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div
+  *ngIf="showSuccessModal"
+  #successModal
+  class="success-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+  (click)="closeSuccessModal()"
+>
+  <div
+    #successModalContent
+    class="success-modal-content bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-sm w-full text-center"
+    (click)="$event.stopPropagation()"
+  >
+    <!-- Success Icon -->
+    <div class="mb-4">
+      <div
+        class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="w-8 h-8 text-green-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M5 13l4 4L19 7"
+          />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Success Text -->
+    <h3 class="text-xl font-bold text-gray-900 mb-2">ส่งข้อมูลสำเร็จ!</h3>
+    <p class="text-gray-600 text-sm mb-4">
+      ขอบคุณสำหรับข้อมูลหอพัก<br />เราจะตรวจสอบและอนุมัติโดยเร็ว
+    </p>
+
+    <!-- Dorm Preview -->
+    <div class="bg-gray-50 rounded-xl p-3 mb-4 text-left">
+      <div class="flex items-center gap-3">
+        <div
+          class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center flex-shrink-0"
+        >
+          <svg
+            class="w-5 h-5 text-yellow-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+            />
+          </svg>
+        </div>
+        <div class="overflow-hidden">
+          <p class="font-semibold text-gray-900 text-sm truncate">
+            {{ dormForm.get("dorm_name")?.value || "หอพัก" }}
+          </p>
+          <p class="text-xs text-gray-500">
+            {{ getAccommodationType() }} | โซน{{ getZoneName() }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <button
+        (click)="toggleDetailsModal()"
+        class="w-full py-2.5 bg-white border border-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors text-sm flex items-center justify-center gap-2"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="w-4 h-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+          />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+          />
+        </svg>
+        ดูรายละเอียดที่ส่ง
+      </button>
+
+      <button
+        (click)="closeSuccessModal()"
+        class="w-full py-2.5 bg-yellow-500 text-white rounded-lg font-semibold hover:bg-yellow-600 transition-colors text-sm"
+      >
+        กลับสู่หน้าหลัก
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Submission Details Modal (Redesigned Preview) -->
+<div
+  *ngIf="showDetailsModal"
+  class="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4 overflow-y-auto"
+  (click)="toggleDetailsModal()"
+>
+  <div
+    class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full my-8 overflow-hidden transform transition-all border border-gray-100"
+    (click)="$event.stopPropagation()"
+  >
+    <!-- Header: Clean & Integrated -->
+    <div
+      class="px-8 py-6 border-b border-gray-50 flex items-center justify-between"
+    >
+      <div>
+        <h3 class="text-xl font-bold text-gray-900 leading-tight">
+          ตรวจสอบข้อมูลที่ส่ง
+        </h3>
+        <p class="text-sm text-gray-500 mt-1">สรุปรายละเอียดหอพักของคุณ</p>
+      </div>
+      <button
+        (click)="toggleDetailsModal()"
+        class="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600"
+      >
+        <svg
+          class="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          ></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Content Area -->
+    <div
+      class="px-8 py-6 max-h-[65vh] overflow-y-auto custom-scrollbar space-y-10"
+    >
+      <!-- Basic Information Section -->
+      <section>
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-1 h-4 bg-yellow-400 rounded-full"></div>
+          <h4 class="text-sm font-bold text-gray-900 uppercase tracking-wide">
+            ข้อมูลพื้นฐาน
+          </h4>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+          <div class="space-y-1">
+            <p
+              class="text-[10px] uppercase font-bold text-gray-400 tracking-wider"
+            >
+              ประเภทที่พัก
+            </p>
+            <p class="text-base font-semibold text-gray-800">
+              {{ getAccommodationType() }}
+            </p>
+          </div>
+          <div class="space-y-1">
+            <p
+              class="text-[10px] uppercase font-bold text-gray-400 tracking-wider"
+            >
+              ชื่อ{{ getAccommodationType() }}
+            </p>
+            <p class="text-base font-semibold text-gray-800">
+              {{ dormForm.get("dorm_name")?.value }}
+            </p>
+          </div>
+          <div class="md:col-span-2 space-y-1">
+            <p
+              class="text-[10px] uppercase font-bold text-gray-400 tracking-wider"
+            >
+              โซน / พื้นที่
+            </p>
+            <p class="text-base font-semibold text-gray-800">
+              {{ getZoneName() }}
+            </p>
+          </div>
+          <div class="md:col-span-2 space-y-1">
+            <p
+              class="text-[10px] uppercase font-bold text-gray-400 tracking-wider"
+            >
+              ที่อยู่
+            </p>
+            <p class="text-sm font-medium text-gray-600 leading-relaxed">
+              {{ dormForm.get("address")?.value }}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pricing & Utilities: Integrated Grid -->
+      <section>
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-1 h-4 bg-yellow-400 rounded-full"></div>
+          <h4 class="text-sm font-bold text-gray-900 uppercase tracking-wide">
+            ราคาและประเภทห้อง
+          </h4>
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+          <div class="mb-6">
+            <p
+              class="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1"
+            >
+              ประเภทห้อง / จำนวนห้อง
+            </p>
+            <p class="text-lg font-bold text-gray-900">
+              {{
+                dormForm.get("room_type")?.value === "อื่นๆ"
+                  ? dormForm.get("room_type_other")?.value
+                  : dormForm.get("room_type")?.value
+              }}
+            </p>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-6">
+            <div *ngIf="dormForm.get('monthly_price')?.value">
+              <p class="text-[10px] text-gray-500 mb-1">รายเดือน</p>
+              <p class="text-base font-bold" style="color: #ffcd22">
+                ฿{{ dormForm.get("monthly_price")?.value | number }}
+              </p>
+            </div>
+            <div *ngIf="dormForm.get('term_price')?.value">
+              <p class="text-[10px] text-gray-500 mb-1">รายเทอม</p>
+              <p class="text-base font-bold" style="color: #ffcd22">
+                ฿{{ dormForm.get("term_price")?.value | number }}
+              </p>
+            </div>
+            <div *ngIf="dormForm.get('summer_price')?.value">
+              <p class="text-[10px] text-gray-500 mb-1">ซัมเมอร์</p>
+              <p class="text-base font-bold" style="color: #ffcd22">
+                ฿{{ dormForm.get("summer_price")?.value | number }}
+              </p>
+            </div>
+            <div *ngIf="dormForm.get('deposit')?.value">
+              <p class="text-[10px] text-gray-500 mb-1">เงินประกัน</p>
+              <p class="text-base font-bold" style="color: #ffcd22">
+                ฿{{ dormForm.get("deposit")?.value | number }}
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="mt-6 pt-6 border-t border-gray-200/60 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm"
+          >
+            <div class="flex justify-between items-center px-2">
+              <span class="text-gray-500">ค่าน้ำ:</span>
+              <span class="font-bold text-gray-800">
+                {{ dormForm.get("water_price_type")?.value }}
+                <span
+                  class="ml-1"
+                  style="color: #ffcd22"
+                  *ngIf="dormForm.get('water_price')?.value"
+                  >฿{{ dormForm.get("water_price")?.value }}</span
+                >
+              </span>
+            </div>
+            <div class="flex justify-between items-center px-2">
+              <span class="text-gray-500">ค่าไฟ:</span>
+              <span class="font-bold text-gray-800">
+                {{ dormForm.get("electricity_price_type")?.value }}
+                <span
+                  class="ml-1"
+                  style="color: #ffcd22"
+                  *ngIf="dormForm.get('electricity_price')?.value"
+                  >฿{{ dormForm.get("electricity_price")?.value }}</span
+                >
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Contact Information Section -->
+      <section
+        *ngIf="
+          dormForm.get('contact_name')?.value ||
+          dormForm.get('contact_phone')?.value
+        "
+      >
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-1 h-4 bg-yellow-400 rounded-full"></div>
+          <h4 class="text-sm font-bold text-gray-900 uppercase tracking-wide">
+            ข้อมูลการติดต่อ
+          </h4>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-12 px-2">
+          <div class="flex flex-col gap-1">
+            <p
+              class="text-[10px] uppercase font-bold text-gray-400 tracking-wider"
+            >
+              ชื่อผู้ติดต่อ
+            </p>
+            <p class="text-base font-semibold text-gray-800">
+              {{ dormForm.get("contact_name")?.value || "-" }}
+            </p>
+          </div>
+          <div class="flex flex-col gap-1">
+            <p
+              class="text-[10px] uppercase font-bold text-gray-400 tracking-wider"
+            >
+              เบอร์โทรศัพท์
+            </p>
+            <p
+              class="text-base font-semibold text-gray-800 underline decoration-yellow-300 underline-offset-4 decoration-2"
+            >
+              {{ dormForm.get("contact_phone")?.value || "-" }}
+            </p>
+          </div>
+          <div
+            class="flex flex-col gap-1"
+            *ngIf="dormForm.get('contact_email')?.value"
+          >
+            <p
+              class="text-[10px] uppercase font-bold text-gray-400 tracking-wider"
+            >
+              อีเมล
+            </p>
+            <p class="text-base font-semibold text-gray-800">
+              {{ dormForm.get("contact_email")?.value }}
+            </p>
+          </div>
+          <div
+            class="flex flex-col gap-1"
+            *ngIf="dormForm.get('line_id')?.value"
+          >
+            <p
+              class="text-[10px] uppercase font-bold text-gray-400 tracking-wider"
+            >
+              LINE ID
+            </p>
+            <p class="text-base font-semibold text-gray-800">
+              {{ dormForm.get("line_id")?.value }}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Amenities Section -->
+      <section>
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-1 h-4 bg-yellow-400 rounded-full"></div>
+          <h4 class="text-sm font-bold text-gray-900 uppercase tracking-wide">
+            สิ่งอำนวยความสะดวก
+          </h4>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <span
+            *ngFor="let amenity of getSelectedAmenities()"
+            class="px-4 py-2 bg-gray-50 text-gray-700 border border-gray-100 rounded-xl font-semibold text-xs"
+          >
+            {{ amenity }}
+          </span>
+        </div>
+      </section>
+
+      <!-- Location Section -->
+      <section>
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-1 h-4 bg-yellow-400 rounded-full"></div>
+          <h4 class="text-sm font-bold text-gray-900 uppercase tracking-wide">
+            พิกัดบนแผนที่
+          </h4>
+        </div>
+        <div
+          class="flex items-center gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-100"
+        >
+          <div
+            class="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center text-yellow-600"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+            </svg>
+          </div>
+          <div>
+            <p class="font-mono text-xs font-bold text-gray-900">
+              {{ dormForm.get("latitude")?.value | number: "1.6-6" }},
+              {{ dormForm.get("longitude")?.value | number: "1.6-6" }}
+            </p>
+            <p
+              class="text-[10px] text-gray-400 mt-0.5 font-bold uppercase tracking-tighter"
+            >
+              ระบุพิกัดเรียบร้อยแล้ว
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Photos Section -->
+      <section>
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-1 h-4 bg-yellow-400 rounded-full"></div>
+          <h4 class="text-sm font-bold text-gray-900 uppercase tracking-wide">
+            รูปภาพ ({{ images.length }} รูป)
+          </h4>
+        </div>
+        <div class="grid grid-cols-4 sm:grid-cols-5 gap-3">
+          <div
+            *ngFor="let img of images; let i = index"
+            class="relative aspect-square rounded-xl overflow-hidden border border-gray-100 shadow-sm"
+          >
+            <img
+              [src]="img.preview"
+              class="w-full h-full object-cover"
+              [alt]="'Preview photo ' + (i + 1)"
+            />
+            <div
+              *ngIf="img.isPrimary"
+              class="absolute inset-0 border-2 border-yellow-400 rounded-xl pointer-events-none"
+            ></div>
+            <div
+              *ngIf="img.isPrimary"
+              class="absolute bottom-1 right-1 bg-yellow-400 text-[8px] font-black text-white px-1.5 py-0.5 rounded-md uppercase tracking-tighter"
+            >
+              Primary
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Description Section -->
+      <section *ngIf="dormForm.get('description')?.value">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-1 h-4 bg-yellow-400 rounded-full"></div>
+          <h4 class="text-sm font-bold text-gray-900 uppercase tracking-wide">
+            รายละเอียดเพิ่มเติม
+          </h4>
+        </div>
+        <div
+          class="bg-gray-50 p-6 rounded-2xl text-gray-600 leading-relaxed text-sm italic font-medium"
+        >
+          {{ dormForm.get("description")?.value }}
+        </div>
+      </section>
+    </div>
+
+    <!-- Footer: Prominent Action -->
+    <div class="p-8">
+      <button
+        (click)="toggleDetailsModal()"
+        class="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold hover:bg-black transition-all shadow-xl shadow-gray-200 flex items-center justify-center gap-2"
+      >
+        ตกลง ปิดหน้าต่าง
+      </button>
     </div>
   </div>
 </div>

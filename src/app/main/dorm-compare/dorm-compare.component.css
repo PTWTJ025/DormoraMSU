@@ -22,3 +22,49 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* Hide scrollbar for mobile comparison */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Sticky header styles for mobile */
+@media (max-width: 768px) {
+  .sticky-top-mobile {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: white;
+  }
+  
+  /* Ensure proper scrolling on mobile */
+  .mobile-compare-container {
+    height: calc(100vh - 200px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Card hover effects */
+  .dorm-card-mobile {
+    transition: all 0.3s ease;
+  }
+  
+  .dorm-card-mobile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Comparison section styling */
+  .comparison-section {
+    border-left: 3px solid #3b82f6;
+  }
+  
+  .comparison-section:hover {
+    background-color: #f8fafc;
+  }
+}

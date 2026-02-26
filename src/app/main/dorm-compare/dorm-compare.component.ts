@@ -397,7 +397,7 @@ export class DormCompareComponent implements OnInit, OnDestroy {
       ซิงค์ล้างจาน: 'fa-sink',
       ไมโครเวฟ: 'fa-microphone',
       อนุญาตให้เลี้ยงสัตว์: 'fa-paw',
-      เครื่องซักผ้า: 'fa-tshirt',
+      เครื่องซักผ้าหยอดเหรียญ: 'fa-tshirt',
       คีย์การ์ด: 'fa-key',
       กล้องวงจรปิด: 'fa-video',
       ลิฟต์: 'fa-elevator',

@@ -55,140 +55,212 @@
 
   <!-- Main Content -->
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-9 py-2">
-    <!-- Mobile: Card Layout -->
-    <div
-      *ngIf="!isLoading && compareDorms.length > 0"
-      class="block md:hidden space-y-4"
-    >
-      <div
-        *ngFor="let dorm of compareDorms"
-        class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
-      >
-        <!-- Header with Image and Remove Button -->
-        <div class="relative">
-          <img
-            [src]="dorm.image"
-            [alt]="dorm.name"
-            class="w-full h-48 object-cover"
-            (error)="onImageError($event)"
-          />
-          <button
-            (click)="removeFromCompare(dorm.id)"
-            class="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-lg font-bold shadow-lg"
-          >
-            ×
-          </button>
+    <!-- Mobile: Card Layout with Sticky Header -->
+  <div
+    *ngIf="!isLoading && compareDorms.length > 0"
+    class="block md:hidden"
+  >
+    <!-- Sticky Header Container -->
+    <div class="sticky top-0 bg-white border-b border-gray-200 z-10 shadow-sm">
+      <!-- Comparison Options -->
+      <div class="px-4 py-3 flex items-center justify-between bg-gray-50">
+        <div class="flex items-center space-x-3">
+          <label class="flex items-center text-xs font-thai">
+            <input type="checkbox" class="mr-1 rounded text-blue-600">
+            <span>แสดงเฉพาะที่ต่างกัน</span>
+          </label>
+          <label class="flex items-center text-xs font-thai">
+            <input type="checkbox" class="mr-1 rounded text-blue-600">
+            <span>ไฮไลท์เฉพาะที่ต่างกัน</span>
+          </label>
         </div>
-
-        <!-- Content -->
-        <div class="p-4 space-y-3">
-          <!-- Name and Rating -->
-          <div>
-            <h3 class="text-lg font-bold text-gray-900 mb-2">
-              {{ dorm.name }}
-            </h3>
-          </div>
-
-          <!-- Prices -->
-          <div class="grid grid-cols-2 gap-2 text-sm">
-            <div class="bg-gray-50 p-2 rounded">
-              <div class="text-gray-600 text-xs">รายวัน</div>
-              <div class="font-semibold text-gray-900">
-                {{ dorm.dailyPrice ? (dorm.dailyPrice | number) + " ฿" : "-" }}
+      </div>
+      
+      <!-- Dorm Cards Header -->
+      <div class="flex overflow-x-auto scrollbar-hide">
+        <div 
+          *ngFor="let dorm of compareDorms; let i = index"
+          class="flex-shrink-0 w-80 px-2 py-3"
+        >
+          <div class="bg-white rounded-lg border border-gray-200 overflow-hidden dorm-card-mobile">
+            <!-- Remove Button -->
+            <button
+              (click)="removeFromCompare(dorm.id)"
+              class="absolute top-2 right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-lg z-20"
+            >
+              ×
+            </button>
+            
+            <!-- Dorm Image -->
+            <div class="relative h-32 bg-gray-100">
+              <img
+                [src]="dorm.image"
+                [alt]="dorm.name"
+                class="w-full h-full object-cover"
+                (error)="onImageError($event)"
+              />
+            </div>
+            
+            <!-- Dorm Info -->
+            <div class="p-3 space-y-2">
+              <h3 class="text-sm font-bold text-gray-900 line-clamp-2">
+                {{ dorm.name }}
+              </h3>
+              
+              <!-- Price -->
+              <div class="text-lg font-bold text-blue-600">
+                ราคา {{ dorm.monthlyPrice ? (dorm.monthlyPrice | number) : 'ติดต่อสอบถาม' }} บาท
               </div>
-            </div>
-            <div class="bg-blue-50 p-2 rounded">
-              <div class="text-gray-600 text-xs">รายเดือน</div>
-              <div class="font-semibold text-blue-600">
-                {{
-                  dorm.monthlyPrice ? (dorm.monthlyPrice | number) + " ฿" : "-"
-                }}
-              </div>
-            </div>
-            <div class="bg-gray-50 p-2 rounded">
-              <div class="text-gray-600 text-xs">รายเทอม</div>
-              <div class="font-semibold text-gray-900">
-                {{ dorm.termPrice ? (dorm.termPrice | number) + " ฿" : "-" }}
-              </div>
-            </div>
-            <div class="bg-gray-50 p-2 rounded">
-              <div class="text-gray-600 text-xs">โซน</div>
-              <div class="font-semibold text-gray-900">{{ dorm.zone }}</div>
-            </div>
-          </div>
-
-          <!-- Utilities -->
-          <div class="grid grid-cols-2 gap-2 text-sm">
-            <div>
-              <span class="text-gray-600">ค่าไฟ:</span>
-              <span class="ml-1 text-gray-900">{{
-                getElectricityCost(dorm)
-              }}</span>
-            </div>
-            <div>
-              <span class="text-gray-600">ค่าน้ำ:</span>
-              <span class="ml-1 text-gray-900">{{ getWaterCost(dorm) }}</span>
-            </div>
-          </div>
-
-          <!-- Amenities -->
-          <div class="border-t pt-3">
-            <div class="text-sm font-medium text-gray-700 mb-2">
-              สิ่งอำนวยความสะดวก
-            </div>
-            <div class="grid grid-cols-2 gap-2 text-xs">
-              <ng-container
-                *ngFor="let amenity of internalAmenities; let i = index"
+              
+              <!-- Details Button -->
+              <button
+                (click)="viewDormDetail(dorm.id)"
+                class="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors font-medium"
               >
-                <div *ngIf="i < 3" class="flex items-center gap-1">
-                  <span
-                    [class.text-green-600]="hasAmenity(dorm, amenity)"
-                    [class.text-gray-400]="!hasAmenity(dorm, amenity)"
-                  >
-                    {{ hasAmenity(dorm, amenity) ? "✓" : "−" }}
-                  </span>
-                  <span
-                    [class.text-gray-700]="hasAmenity(dorm, amenity)"
-                    [class.text-gray-400]="!hasAmenity(dorm, amenity)"
-                  >
-                    {{ amenity }}
-                  </span>
-                </div>
-              </ng-container>
-              <ng-container
-                *ngFor="let amenity of externalAmenities; let i = index"
-              >
-                <div *ngIf="i < 3" class="flex items-center gap-1">
-                  <span
-                    [class.text-green-600]="hasAmenity(dorm, amenity)"
-                    [class.text-gray-400]="!hasAmenity(dorm, amenity)"
-                  >
-                    {{ hasAmenity(dorm, amenity) ? "✓" : "−" }}
-                  </span>
-                  <span
-                    [class.text-gray-700]="hasAmenity(dorm, amenity)"
-                    [class.text-gray-400]="!hasAmenity(dorm, amenity)"
-                  >
-                    {{ amenity }}
-                  </span>
-                </div>
-              </ng-container>
+                รายละเอียด
+              </button>
             </div>
           </div>
-
-          <!-- Action Button -->
-          <button
-            (click)="viewDormDetail(dorm.id)"
-            class="w-full px-4 py-2 text-gray-800 text-sm rounded-lg transition-colors font-medium"
-            style="background-color: #ffcd22"
-            onmouseover="this.style.backgroundColor = '#F59E0B'"
-            onmouseout="this.style.backgroundColor = '#FFCD22'"
-          >
-            ดูรายละเอียด
-          </button>
         </div>
       </div>
     </div>
+    
+    <!-- Scrollable Comparison Content -->
+    <div class="bg-gray-50 mobile-compare-container">
+      <!-- Combined Comparison Table -->
+      <div class="bg-white">
+        <!-- Price Section -->
+        <div class="px-4 py-3 bg-gray-100 border-b border-gray-200">
+          <h4 class="text-sm font-semibold text-gray-700">ราคา</h4>
+        </div>
+        <div class="flex overflow-x-auto scrollbar-hide">
+          <div 
+            *ngFor="let dorm of compareDorms; let i = index"
+            class="flex-shrink-0 w-80 px-2 py-3 border-r border-gray-200 last:border-r-0"
+          >
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600">รายวัน:</span>
+                <span class="font-medium">{{ dorm.dailyPrice ? (dorm.dailyPrice | number) + ' ฿' : '-' }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">รายเดือน:</span>
+                <span class="font-medium text-blue-600">{{ dorm.monthlyPrice ? (dorm.monthlyPrice | number) + ' ฿' : '-' }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">รายเทอม:</span>
+                <span class="font-medium">{{ dorm.termPrice ? (dorm.termPrice | number) + ' ฿' : '-' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Location & Utilities Section -->
+        <div class="px-4 py-3 bg-gray-100 border-b border-gray-200">
+          <h4 class="text-sm font-semibold text-gray-700">ที่ตั้งและสาธารณูปโภค</h4>
+        </div>
+        <div class="flex overflow-x-auto scrollbar-hide">
+          <div 
+            *ngFor="let dorm of compareDorms; let i = index"
+            class="flex-shrink-0 w-80 px-2 py-3 border-r border-gray-200 last:border-r-0"
+          >
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600">โซน:</span>
+                <span class="font-medium">{{ dorm.zone }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">ค่าไฟ:</span>
+                <span class="font-medium">{{ getElectricityCost(dorm) }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">ค่าน้ำ:</span>
+                <span class="font-medium">{{ getWaterCost(dorm) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Combined Amenities Section -->
+        <div class="px-4 py-3 bg-gray-100 border-b border-gray-200">
+          <h4 class="text-sm font-semibold text-gray-700">สิ่งอำนวยความสะดวก</h4>
+        </div>
+        <div class="flex overflow-x-auto scrollbar-hide">
+          <div 
+            *ngFor="let dorm of compareDorms; let i = index"
+            class="flex-shrink-0 w-80 px-2 py-3 border-r border-gray-200 last:border-r-0"
+          >
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <!-- Internal Amenities -->
+              <div 
+                *ngFor="let amenity of internalAmenities; let j = index"
+                class="flex items-center gap-1"
+              >
+                <span 
+                  [class.text-green-600]="hasAmenity(dorm, amenity)"
+                  [class.text-gray-400]="!hasAmenity(dorm, amenity)"
+                  class="font-bold"
+                >
+                  {{ hasAmenity(dorm, amenity) ? '✓' : '−' }}
+                </span>
+                <span 
+                  [class.text-gray-700]="hasAmenity(dorm, amenity)"
+                  [class.text-gray-400]="!hasAmenity(dorm, amenity)"
+                >
+                  {{ amenity }}
+                </span>
+              </div>
+              <!-- External Amenities -->
+              <div 
+                *ngFor="let amenity of externalAmenities; let j = index"
+                class="flex items-center gap-1"
+              >
+                <span 
+                  [class.text-green-600]="hasAmenity(dorm, amenity)"
+                  [class.text-gray-400]="!hasAmenity(dorm, amenity)"
+                  class="font-bold"
+                >
+                  {{ hasAmenity(dorm, amenity) ? '✓' : '−' }}
+                </span>
+                <span 
+                  [class.text-gray-700]="hasAmenity(dorm, amenity)"
+                  [class.text-gray-400]="!hasAmenity(dorm, amenity)"
+                >
+                  {{ amenity }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Contact Info Section -->
+        <div class="px-4 py-3 bg-gray-100 border-b border-gray-200">
+          <h4 class="text-sm font-semibold text-gray-700">ข้อมูลติดต่อ</h4>
+        </div>
+        <div class="flex overflow-x-auto scrollbar-hide">
+          <div 
+            *ngFor="let dorm of compareDorms; let i = index"
+            class="flex-shrink-0 w-80 px-2 py-3 border-r border-gray-200 last:border-r-0"
+          >
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600">เจ้าของ:</span>
+                <span class="font-medium">{{ dorm.ownerName }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">โทร:</span>
+                <span class="font-medium">{{ dorm.ownerPhone }}</span>
+              </div>
+              <div *ngIf="dorm.ownerLineId" class="flex justify-between">
+                <span class="text-gray-600">Line:</span>
+                <span class="font-medium">{{ dorm.ownerLineId }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
     <!-- Loading Skeleton -->
     <div

@@ -1156,12 +1156,12 @@
           </button>
 
           <!-- Placeholder/Empty state info -->
-          <div
+          <p
             *ngIf="selectedDorms.length === 0"
             class="text-xs text-gray-400 italic py-2"
           >
-            ยังไม่มีรายการที่เลือก
-          </div>
+            เลือกรายการในตารางเพื่อจัดการหลายรายการพร้อมกัน
+          </p>
 
           <button
             *ngIf="selectedDorms.length > 0"
@@ -1285,12 +1285,12 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <img
-                    [src]="dorm.main_image_url || 'assets/images/photo.png'"
+                    [src]="dorm.thumbnail_url || dorm.main_image_url || 'assets/images/photo.png'"
                     [alt]="dorm.dorm_name"
                     class="w-16 h-16 rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity duration-200"
                     (click)="
                       showImageModal(
-                        dorm.main_image_url || 'assets/images/photo.png',
+                        dorm.thumbnail_url || dorm.main_image_url || 'assets/images/photo.png',
                         dorm.dorm_name
                       )
                     "
@@ -1490,12 +1490,12 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <img
-                    [src]="dorm.main_image_url || 'assets/images/photo.png'"
+                    [src]="dorm.thumbnail_url || dorm.main_image_url || 'assets/images/photo.png'"
                     [alt]="dorm.dorm_name"
                     class="w-16 h-16 rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity duration-200"
                     (click)="
                       showImageModal(
-                        dorm.main_image_url || 'assets/images/photo.png',
+                        dorm.thumbnail_url || dorm.main_image_url || 'assets/images/photo.png',
                         dorm.dorm_name
                       )
                     "
@@ -1693,12 +1693,12 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <img
-                    [src]="dorm.main_image_url || 'assets/images/photo.png'"
+                    [src]="dorm.thumbnail_url || dorm.main_image_url || 'assets/images/photo.png'"
                     [alt]="dorm.dorm_name"
                     class="w-16 h-16 rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity duration-200"
                     (click)="
                       showImageModal(
-                        dorm.main_image_url || 'assets/images/photo.png',
+                        dorm.thumbnail_url || dorm.main_image_url || 'assets/images/photo.png',
                         dorm.dorm_name
                       )
                     "

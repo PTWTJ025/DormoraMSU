@@ -766,7 +766,8 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
   // Input validation methods
   allowNumbersOnly(event: KeyboardEvent) {
     const charCode = (event.which) ? event.which : event.keyCode;
-    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+    // อนุญาตตัวเลข, ตัวคั่น (-), และ control keys
+    if (charCode > 31 && (charCode < 48 || charCode > 57) && charCode !== 45) {
       event.preventDefault();
     }
   }
@@ -774,8 +775,65 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
   onPhonePaste(event: ClipboardEvent) {
     const clipboardData = event.clipboardData || (window as any).clipboardData;
     const pastedText = clipboardData.getData('text');
-    if (!/^\d+$/.test(pastedText)) {
+    // ลบตัวคั่นทั้งหมดและตรวจสอบว่าเป็นตัวเลขเท่านั้น
+    const cleanedText = pastedText.replace(/[-\s]/g, '');
+    if (!/^\d+$/.test(cleanedText)) {
       event.preventDefault();
+    } else {
+      // ถ้าเป็นตัวเลขล้วน ให้วางตัวเลขที่ลบตัวคั่นแล้ว
+      event.preventDefault();
+      const input = event.target as HTMLInputElement;
+      const currentValue = input.value.replace(/[-\s]/g, '');
+      const newValue = currentValue + cleanedText;
+      
+      // จำกัดความยาวสูงสุด 10 ตัว
+      const limitedValue = newValue.slice(0, 10);
+      
+      // จัดรูปแบบเบอร์โทรศัพท์
+      const formattedValue = this.formatPhoneNumber(limitedValue);
+      input.value = formattedValue;
+      
+      // อัพเดทค่าใน form control
+      const formControl = input.form?.querySelector('[formcontrolname="contact_phone"]') as any;
+      if (formControl) {
+        const ngModel = formControl.ngModel || formControl.formControl;
+        if (ngModel) {
+          ngModel.control.setValue(limitedValue);
+        }
+      }
+    }
+  }
+
+  // เพิ่ม method สำหรับจัดรูปแบบเบอร์โทรศัพท์
+  formatPhoneNumber(value: string): string {
+    if (!value) return '';
+    
+    // ลบตัวคั่นทั้งหมดก่อน
+    const cleaned = value.replace(/[-\s]/g, '');
+    
+    // จัดรูปแบบตามความยาว
+    if (cleaned.length <= 3) {
+      return cleaned;
+    } else if (cleaned.length <= 6) {
+      return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`;
+    } else {
+      return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`;
+    }
+  }
+
+  // เพิ่ม method สำหรับจัดการการเปลี่ยนแปลงค่า
+  onPhoneInputChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const formattedValue = this.formatPhoneNumber(input.value);
+    
+    // อัพเดทค่าใน form control (เก็บแค่ตัวเลข)
+    const cleanedValue = formattedValue.replace(/[-\s]/g, '');
+    const formControl = input.form?.querySelector('[formcontrolname="contact_phone"]') as any;
+    if (formControl) {
+      const ngModel = formControl.ngModel || formControl.formControl;
+      if (ngModel) {
+        ngModel.control.setValue(cleanedValue);
+      }
     }
   }
 
@@ -789,12 +847,25 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
   }
 
   getRoomTypes(): string[] {
-    return [
-      'ห้องพัดลม',
-      'ห้องแอร์',
-      'ห้องสตูดิโอ',
-      'อื่นๆ',
-    ];
+    if (this.isHouse()) {
+      return [
+        '1 ห้องนอน',
+        '2 ห้องนอน', 
+        '3 ห้องนอน',
+        '4 ห้องนอน',
+        '5+ ห้องนอน',
+        'สตูดิโอ/ห้องเดี่ยว',
+        'ทาวน์เฮาส์',
+        'อื่นๆ',
+      ];
+    } else {
+      return [
+        'ห้องพัดลม',
+        'ห้องแอร์',
+        'ห้องสตูดิโอ',
+        'อื่นๆ',
+      ];
+    }
   }
 
   getElectricityPriceTypes(): string[] {

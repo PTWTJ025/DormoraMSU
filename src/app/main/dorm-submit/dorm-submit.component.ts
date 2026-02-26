@@ -19,6 +19,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { SupabaseService } from '../../services/supabase.service';
 import { GsapAnimationService } from '../../services/gsap-animation.service';
+import { DistanceService } from '../../services/distance.service';
 import * as maptilersdk from '@maptiler/sdk';
 import '@maptiler/sdk/dist/maptiler-sdk.css';
 
@@ -92,6 +93,7 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
     private http: HttpClient,
     private supabaseService: SupabaseService,
     private gsapService: GsapAnimationService,
+    private distanceService: DistanceService,
   ) {}
 
   ngOnInit() {
@@ -871,6 +873,24 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
     this.dormForm.patchValue({
       longitude: lng,
       latitude: lat,
+    });
+    
+    // คำนวณระยะทางจากตำแหน่งหอพักถึงมหาวิทยาลัย
+    const distance = this.distanceService.calculateDistance(lat, lng);
+    const dormName = this.dormForm.get('dorm_name')?.value || 'หอพัก';
+    const zoneId = this.dormForm.get('zone_id')?.value;
+    const zone = this.zones.find(z => z.zone_id === Number(zoneId));
+    const zoneName = zone ? zone.zone_name : '';
+    
+    // สร้างข้อความระยะทาง
+    const distanceText = this.distanceService.createDistanceText(dormName, zoneName, distance);
+    
+    // อัปเดต description โดยเพิ่มข้อมูลระยะทางด้านบน
+    const currentDescription = this.dormForm.get('description')?.value || '';
+    const updatedDescription = currentDescription ? `${distanceText}\n\n${currentDescription}` : distanceText;
+    
+    this.dormForm.patchValue({
+      description: updatedDescription
     });
   }
 

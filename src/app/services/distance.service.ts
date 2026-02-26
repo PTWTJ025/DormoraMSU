@@ -55,50 +55,6 @@ export class DistanceService {
    * @returns ข้อความระยะทาง
    */
   createDistanceText(dormName: string, zoneName: string, distanceKm: number): string {
-    return `หอพัก ${dormName} ${zoneName} ห่างจาก มหาวิทยาลัยมหาสารคามประมาณ ${distanceKm} กิโลเมตร`;
-  }
-
-  /**
-   * แยกข้อความระยะทางออกจาก description
-   * @param description รายละเอียดหอพักที่มี mock text รวมอยู่
-   * @returns object ที่แยก distanceText และ description
-   */
-  splitDescription(description: string): { distanceText: string; description: string } {
-    if (!description) {
-      return { distanceText: '', description: '' };
-    }
-
-    // Pattern สำหรับจับ mock text
-    const distancePattern = /^หอพัก .+ ห่างจาก มหาวิทยาลัยมหาสารคามประมาณ \d+\.?\d* กิโลเมตร/;
-    const match = description.match(distancePattern);
-    
-    if (match) {
-      const distanceText = match[0];
-      const remainingDescription = description.replace(distanceText, '').trim();
-      
-      return {
-        distanceText: distanceText,
-        description: remainingDescription
-      };
-    }
-    
-    return {
-      distanceText: '',
-      description: description
-    };
-  }
-
-  /**
-   * รวม distance text กับ description
-   * @param distanceText ข้อความระยะทาง
-   * @param description รายละเอียดหอพัก
-   * @returns description ที่รวมกันแล้ว
-   */
-  combineDescription(distanceText: string, description: string): string {
-    if (!distanceText) {
-      return description;
-    }
-    
-    return description ? `${distanceText}\n\n${description}` : distanceText;
+    return `หอพัก ${dormName} ${zoneName} ห่างจาก มมส ม.ใหม่ ประมาณ ${distanceKm} กิโลเมตร`;
   }
 }

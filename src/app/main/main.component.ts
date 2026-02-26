@@ -59,6 +59,7 @@ export class MainComponent implements OnInit, OnDestroy {
   // Subscriptions สำหรับจัดการ memory leak
   private routerSubscription: Subscription | undefined;
   private authSubscription: Subscription | undefined;
+  private refreshInterval: number | undefined;
 
   // Full lists
   recommendedDorms: UIDorm[] = [];
@@ -94,6 +95,9 @@ export class MainComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadSliderImagesFromDorms();
     this.loadDormitories();
+
+    // เริ่มตัวจับเวลารีเฟรชรายการแนะนำทุก 5 นาที
+    this.startAutoRefresh();
 
     this.authSubscription = this.authService.currentUser$.subscribe(
       (user: AdminProfile | null | undefined) => {
@@ -283,6 +287,11 @@ export class MainComponent implements OnInit, OnDestroy {
 
     if (this.authSubscription) {
       this.authSubscription.unsubscribe();
+    }
+    
+    // ล้างตัวจับเวลา auto refresh
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
     }
   }
 
@@ -498,5 +507,27 @@ export class MainComponent implements OnInit, OnDestroy {
     const year = date.getFullYear() + 543; // Convert to Buddhist Era
 
     return `${day} ${month} ${year}`;
+  }
+
+  // เริ่มตัวจับเวลารีเฟรชรายการแนะนำอัตโนมัติ
+  private startAutoRefresh() {
+    // รีเฟรชทุก 5 นาที (300,000 มิลลิวินาที)
+    this.refreshInterval = window.setInterval(() => {
+      this.refreshRecommendedDorms();
+    }, 300000);
+  }
+
+  // รีเฟรชเฉพาะรายการแนะนำ
+  private async refreshRecommendedDorms() {
+    try {
+      const recommended = await this.dormSvc.getRecommended().toPromise();
+      if (recommended) {
+        this.recommendedDorms = recommended.map((d) => this.mapDormToUi(d));
+        this.displayedRecommended = this.recommendedDorms.slice(0, 4);
+        this.loadImagesForList(this.displayedRecommended);
+      }
+    } catch (error) {
+      console.log('Auto refresh recommended dorms failed:', error);
+    }
   }
 }

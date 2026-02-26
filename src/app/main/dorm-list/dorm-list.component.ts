@@ -44,6 +44,7 @@ export class DormListComponent implements OnInit {
   filters = {
     daily: false,
     monthly: false,
+    term: false,
     rating5: false,
     rating4: false,
     rating3: false,
@@ -61,6 +62,7 @@ export class DormListComponent implements OnInit {
     maxPrice: null as number | null,
     daily: false,
     monthly: false,
+    term: false,
     stars: [] as number[],
     amenityIds: [] as number[],
     amenityMatch: 'any' as 'any' | 'all'
@@ -79,6 +81,7 @@ export class DormListComponent implements OnInit {
   latestDorms: UIDorm[] = [];
   isLoading = true;
   isRecommendedPage = false;
+  isLatestPage = false;
 
   // Pagination variables
   displayedDorms: UIDorm[] = [];
@@ -105,6 +108,11 @@ export class DormListComponent implements OnInit {
       // Check if this is recommended page
       if (params['type'] === 'recommended') {
         this.isRecommendedPage = true;
+      }
+      
+      // Check if this is latest page
+      if (params['type'] === 'latest') {
+        this.isLatestPage = true;
       }
       
       if (params['type'] === 'similar' && params['from'] === 'dorm-detail') {
@@ -176,42 +184,61 @@ export class DormListComponent implements OnInit {
 
   loadDormitories() {
     this.isLoading = true;
-    this.pendingLoads = 2;
-    // ดึงข้อมูล recommended และ latest เหมือนใน main
-    this.dormitoryService.getRecommended().subscribe({
-      next: (recommended: APIDorm[]) => {
-        this.recommendedDorms = recommended.map(d => this.mapDormToUi(d));
-        this.dorms = [...this.recommendedDorms]; // ใช้ recommended เป็นฐานข้อมูลเริ่มต้น
-        this.applyFilters();
-        this.updateDisplayedDorms();
-        this.markLoadDone();
-      },
-      error: (error) => {
-        console.error('Error fetching recommended dorms:', error);
-        this.markLoadDone();
-      }
-    });
+    
+    if (this.isLatestPage) {
+      // ถ้าเป็นหน้า latest ให้โหลดแค่หอพักล่าสุด
+      this.pendingLoads = 1;
+      this.dormitoryService.getLatest().subscribe({
+        next: (latest: APIDorm[]) => {
+          this.latestDorms = latest.map(d => this.mapDormToUi(d));
+          this.dorms = [...this.latestDorms]; // ใช้เฉพาะ latest dorms
+          this.applyFilters();
+          this.updateDisplayedDorms();
+          this.markLoadDone();
+        },
+        error: (error) => {
+          console.error('Error fetching latest dorms:', error);
+          this.markLoadDone();
+        }
+      });
+    } else {
+      // โหลดปกติ (recommended + latest)
+      this.pendingLoads = 2;
+      this.dormitoryService.getRecommended().subscribe({
+        next: (recommended: APIDorm[]) => {
+          this.recommendedDorms = recommended.map(d => this.mapDormToUi(d));
+          this.dorms = [...this.recommendedDorms]; // ใช้ recommended เป็นฐานข้อมูลเริ่มต้น
+          this.applyFilters();
+          this.updateDisplayedDorms();
+          this.markLoadDone();
+        },
+        error: (error) => {
+          console.error('Error fetching recommended dorms:', error);
+          this.markLoadDone();
+        }
+      });
 
-    this.dormitoryService.getLatest().subscribe({
-      next: (latest: APIDorm[]) => {
-        this.latestDorms = latest.map(d => this.mapDormToUi(d));
-        
-        // รวม latest เข้ากับ dorms และกำจัดข้อมูลซ้ำโดยใช้ dorm_id
-        const allDorms = [...this.dorms, ...this.latestDorms];
-        const uniqueDorms = allDorms.filter((dorm, index, self) => 
-          index === self.findIndex(d => d.id === dorm.id)
-        );
-        
-        this.dorms = uniqueDorms;
-        this.applyFilters();
-        this.updateDisplayedDorms();
-        this.markLoadDone();
-      },
-      error: (error) => {
-        console.error('Error fetching latest dorms:', error);
-        this.markLoadDone();
-      }
-    });
+      this.dormitoryService.getLatest().subscribe({
+        next: (latest: APIDorm[]) => {
+          this.latestDorms = latest.map(d => this.mapDormToUi(d));
+          
+          // รวม latest เข้ากับ dorms และกำจัดข้อมูลซ้ำโดยใช้ dorm_id
+          const allDorms = [...this.dorms, ...this.latestDorms];
+          const uniqueDorms = allDorms.filter((dorm, index, self) => 
+            index === self.findIndex(d => d.id === dorm.id)
+          );
+          
+          this.dorms = uniqueDorms;
+          this.applyFilters();
+          this.updateDisplayedDorms();
+          this.markLoadDone();
+        },
+        error: (error) => {
+          console.error('Error fetching latest dorms:', error);
+          this.markLoadDone();
+        }
+      });
+    }
   }
 
   private markLoadDone() {
@@ -437,6 +464,7 @@ export class DormListComponent implements OnInit {
     // เก็บประเภทการเช่า
     this.currentFilters.daily = this.filters.daily;
     this.currentFilters.monthly = this.filters.monthly;
+    this.currentFilters.term = this.filters.term;
 
     // ปิด filter popup ถ้า closePopup = true
     if (closePopup) {
@@ -616,6 +644,7 @@ export class DormListComponent implements OnInit {
     this.filters = {
       daily: false,
       monthly: false,
+      term: false,
       rating5: false,
       rating4: false,
       rating3: false,
@@ -645,6 +674,7 @@ export class DormListComponent implements OnInit {
       maxPrice: null,
       daily: false,
       monthly: false,
+      term: false,
       stars: [],
       amenityIds: [],
       amenityMatch: 'any'
@@ -832,6 +862,9 @@ export class DormListComponent implements OnInit {
     }
     if (this.currentFilters.monthly) {
       filterParams.monthly = true;
+    }
+    if (this.currentFilters.term) {
+      filterParams.term = true;
     }
     
     // ไม่ส่ง stars ไป API เพราะ backend อาจกรองไม่ถูกต้องกับทศนิยม

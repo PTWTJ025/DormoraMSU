@@ -3,6 +3,7 @@ import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { DistanceService } from './distance.service';
 
 export interface Zone {
   zone_id: number;
@@ -135,7 +136,10 @@ export interface Amenity {
 export class DormitoryService {
   private backendUrl = environment.backendApiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private distanceService: DistanceService
+  ) {}
 
   /** Get random recommended dormitories with better logic */
   getRecommended(limit?: number): Observable<Dorm[]> {
@@ -168,30 +172,46 @@ export class DormitoryService {
   private calculateRecommendationScore(dorm: any): number {
     let score = 0;
     
-    // 1. คะแนนรีวิว (40% ของคะแนนรวม)
+    // 1. คะแนนรีวิว (35% ของคะแนนรวม)
     const rating = dorm.avg_rating || dorm.rating || 0;
-    score += (rating / 5) * 40;
+    score += (rating / 5) * 35;
     
-    // 2. มีรูปภาพ (20% ของคะแนนรวม)
-    if (dorm.thumbnail_url || dorm.main_image_url) {
-      score += 20;
+    // 2. ระยะทางจากมหาวิทยาลัย (15% ของคะแนนรวม)
+    if (dorm.latitude && dorm.longitude) {
+      const distance = this.distanceService.calculateDistance(dorm.latitude, dorm.longitude);
+      // ยิ่งใกล้มหาวิทยาลัย ยิ่งได้คะแนนมาก
+      if (distance <= 1.0) {
+        score += 15; // 1 กม. หรือน้อยกว่า
+      } else if (distance <= 2.0) {
+        score += 12; // 1-2 กม.
+      } else if (distance <= 3.0) {
+        score += 8; // 2-3 กม.
+      } else if (distance <= 5.0) {
+        score += 4; // 3-5 กม.
+      }
+      // มากกว่า 5 กม. ไม่ได้คะแนน
     }
     
-    // 3. ราคาเหมาะสม (25% ของคะแนนรวม)
+    // 3. มีรูปภาพ (15% ของคะแนนรวม)
+    if (dorm.thumbnail_url || dorm.main_image_url) {
+      score += 15;
+    }
+    
+    // 4. ราคาเหมาะสม (20% ของคะแนนรวม)
     const avgPrice = this.calculateAveragePrice(dorm);
     if (avgPrice > 0) {
       // ราคา 3000-6000 บาท ได้คะแนนเต็ม
       // ราคาต่ำกว่า 3000 หรือสูงกว่า 10000 ได้คะแนนน้อย
       if (avgPrice >= 3000 && avgPrice <= 6000) {
-        score += 25;
+        score += 20;
       } else if (avgPrice >= 2000 && avgPrice <= 8000) {
-        score += 15;
+        score += 12;
       } else if (avgPrice >= 1000 && avgPrice <= 10000) {
-        score += 10;
+        score += 8;
       }
     }
     
-    // 4. ข้อมูลครบถ้วน (15% ของคะแนนรวม)
+    // 5. ข้อมูลครบถ้วน (15% ของคะแนนรวม)
     let completeness = 0;
     if (dorm.dorm_name && dorm.dorm_name.trim()) completeness += 5;
     if (dorm.address && dorm.address.trim()) completeness += 3;
@@ -488,6 +508,21 @@ export class DormitoryService {
   }
 
   // ===== NEW UNIFIED FILTER API METHOD =====
+
+  /** Get similar dormitories based on dorm ID */
+  getSimilarDormitories(dormId: number, limit?: number): Observable<Dorm[]> {
+    let params = new HttpParams();
+    if (limit !== undefined) {
+      params = params.set('limit', limit.toString());
+    }
+    
+    return this.http.get<Dorm[]>(`${this.backendUrl}/dormitories/${dormId}/similar`, { params }).pipe(
+      catchError(err => {
+        console.error(`[DormitoryService] Error fetching similar dormitories for dorm ${dormId}:`, err);
+        return of([]);
+      })
+    );
+  }
 
   /** Search dormitories by name (autocomplete) */
   searchDormitories(query: string, limit: number = 10): Observable<{id: number, name: string}[]> {

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NavbarComponent } from '../navbar/navbar.component';
+import { AmenityIconComponent } from '../../components/amenity-icon/amenity-icon.component';
 import {
   DormCompareService,
   CompareDormItem,
@@ -33,7 +34,7 @@ interface CompareDormData extends CompareDormItem {
 @Component({
   selector: 'app-dorm-compare',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent],
+  imports: [CommonModule, FormsModule, NavbarComponent, AmenityIconComponent],
   templateUrl: './dorm-compare.component.html',
   styleUrls: ['./dorm-compare.component.css'],
 })
@@ -319,8 +320,9 @@ export class DormCompareComponent implements OnInit, OnDestroy {
           bValue = b.rating;
           break;
         case 'price':
-          aValue = a.monthlyPrice || 0;
-          bValue = b.monthlyPrice || 0;
+          // ใช้ราคาเฉลี่ยจากทุกประเภทที่มี
+          aValue = this.getAveragePrice(a);
+          bValue = this.getAveragePrice(b);
           break;
         case 'name':
           aValue = a.name.toLowerCase();
@@ -336,6 +338,28 @@ export class DormCompareComponent implements OnInit, OnDestroy {
         return aValue < bValue ? 1 : -1;
       }
     });
+  }
+
+  // เพิ่ม method สำหรับคำนวณราคาเฉลี่ย
+  private getAveragePrice(dorm: CompareDormData): number {
+    const prices: number[] = [];
+    
+    if (dorm.dailyPrice) prices.push(dorm.dailyPrice);
+    if (dorm.monthlyPrice) prices.push(dorm.monthlyPrice);
+    if (dorm.termPrice) prices.push(dorm.termPrice);
+    
+    if (prices.length === 0) return 0;
+    
+    // แปลงราคารายวัน/รายเทอมเป็นราคารายเดือนเพื่อเปรียบเทียบ
+    const monthlyPrices = prices.map(price => {
+      // ถ้าเป็นราคารายวัน ให้คูณ 30 เพื่อประมาณเป็นราคารายเดือน
+      // ถ้าเป็นราคารายเทอม (4 เดือน) ให้หารด้วย 4
+      if (price < 1000) return price * 30; // ราคารายวัน
+      if (price > 50000) return price / 4; // ราคารายเทอม
+      return price; // ราคารายเดือน
+    });
+    
+    return monthlyPrices.reduce((sum, price) => sum + price, 0) / monthlyPrices.length;
   }
 
   onSortChange(): void {

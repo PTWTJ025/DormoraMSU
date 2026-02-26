@@ -44,6 +44,7 @@ interface SimilarProperty {
   image: string;
   rating: number;
   date: string;
+  similarity_score?: number; // เพิ่มคะแนนความคล้ายกัน
 }
 
 type SentimentType = 'positive' | 'negative' | 'neutral';
@@ -455,19 +456,16 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     this.loadingState.similar = true;
     try {
       console.log('[DormDetail] Loading similar dormitories...');
-      // ใช้ getRecommended เพื่อดึงหอพักแนะนำมาแสดงเป็นหอพักที่คล้ายกัน
-      const dorms = await this.dormService.getRecommended(5).toPromise();
+      // ใช้ API หอพักที่คล้ายกันจาก backend
+      const dorms = await this.dormService.getSimilarDormitories(this.dormId, 6).toPromise();
       if (dorms && Array.isArray(dorms)) {
-        console.log('[DormDetail] Received dorms:', dorms.length);
-        // กรองออกหอพักปัจจุบัน
-        const filteredDorms = dorms.filter(d => d.dorm_id !== this.dormId);
-        console.log('[DormDetail] Filtered dorms (excluding current):', filteredDorms.length);
-
+        console.log('[DormDetail] Received similar dorms:', dorms.length);
+        
         // แปลงข้อมูลให้ตรงกับ interface SimilarProperty
-        this.similarProperties = filteredDorms.slice(0, 4).map(d => this.mapDormToSimilarProperty(d));
+        this.similarProperties = dorms.slice(0, 4).map(d => this.mapDormToSimilarProperty(d));
         console.log('[DormDetail] Similar properties loaded:', this.similarProperties.length);
       } else {
-        console.warn('[DormDetail] No dorms received or invalid format');
+        console.warn('[DormDetail] No similar dorms received or invalid format');
         this.similarProperties = [];
       }
     } catch (error) {
@@ -531,6 +529,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       image: dorm.main_image_url || dorm.thumbnail_url || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       rating: finalRating,
       date: dorm.updated_date ? this.formatThaiDate(dorm.updated_date) : '',
+      similarity_score: (dorm as any).similarity_score || 0, // เพิ่มคะแนนความคล้ายกัน
     };
   }
 

@@ -1,53 +1,31 @@
 <!-- Loading state -->
-<div
-  *ngIf="isLoading"
-  class="min-h-screen bg-gray-50 flex items-center justify-center"
->
+<div *ngIf="isLoading" class="min-h-screen bg-gray-50 flex items-center justify-center">
   <div class="text-center">
-    <div
-      class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"
-    ></div>
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
     <p class="text-gray-600">กำลังโหลดข้อมูลหอพัก...</p>
   </div>
 </div>
 
 <!-- Error state -->
-<div
-  *ngIf="error"
-  class="min-h-screen bg-gray-50 flex items-center justify-center"
->
+<div *ngIf="error" class="min-h-screen bg-gray-50 flex items-center justify-center">
   <div class="text-center max-w-md mx-auto px-4">
     <div class="text-red-500 mb-4">
-      <svg
-        class="w-16 h-16 mx-auto"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-        ></path>
+      <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z">
+        </path>
       </svg>
     </div>
     <h3 class="text-lg font-semibold text-gray-900 mb-2">เกิดข้อผิดพลาด</h3>
     <p class="text-gray-600 mb-6">{{ error }}</p>
-    <button
-      (click)="goBack()"
-      class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-    >
+    <button (click)="goBack()" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
       กลับ
     </button>
   </div>
 </div>
 
 <!-- Main content -->
-<div
-  *ngIf="!isLoading && !error"
-  class="max-w-7xl mx-auto p-4 sm:p-6 font-thai min-h-screen overflow-x-hidden"
->
+<div *ngIf="!isLoading && !error" class="max-w-7xl mx-auto p-4 sm:p-6 font-thai min-h-screen overflow-x-hidden">
   <app-navbar></app-navbar>
 
   <!-- Main Content Grid -->
@@ -56,14 +34,9 @@
     <div class="min-w-0 overflow-hidden">
       <!-- Header Section -->
       <div class="mb-6 pt-6">
-        <div
-          class="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-4"
-        >
+        <div class="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-4">
           <div class="flex-1 min-w-0">
-            <h1
-              class="text-2xl lg:text-3xl font-bold mb-2"
-              style="color: #4f5356"
-            >
+            <h1 class="text-2xl lg:text-3xl font-bold mb-2" style="color: #4f5356">
               {{ dormName }}
             </h1>
             <div class="flex flex-col gap-1">
@@ -75,18 +48,13 @@
                 {{ dormDetail?.zone_name || "โซน 1" }}
               </div>
               <!-- ปุ่มเปรียบเทียบหอพัก -->
-              <button
-                (click)="compareDormitory()"
-                [class]="
+              <button (click)="compareDormitory()" [class]="
                   isInCompareList
                     ? 'mt-2 inline-flex items-center px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors duration-200 w-32'
                     : 'mt-2 inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-200 w-32'
-                "
-              >
+                ">
                 <i class="fas fa-code-compare w-4 h-4 mr-2"></i>
-                <span *ngIf="!isInCompareList; else inCompareText"
-                  >เปรียบเทียบ</span
-                >
+                <span *ngIf="!isInCompareList; else inCompareText">เปรียบเทียบ</span>
                 <ng-template #inCompareText>
                   <span>เลือกแล้ว</span>
                 </ng-template>
@@ -95,28 +63,21 @@
           </div>
           <div class="text-left lg:text-right font-thai flex-shrink-0">
             <!-- ช่วงราคา: ใช้ priceRange หรือ dormPrice เท่านั้น -->
-            <div
-              *ngIf="priceRange || dormPrice"
-              class="text-xl lg:text-2xl font-bold text-[#6D6D6D]"
-            >
+            <div *ngIf="priceRange || dormPrice" class="text-xl lg:text-2xl font-bold text-[#6D6D6D]">
               <span class="font-english">{{ priceRange || dormPrice }}</span>
             </div>
-            <div
-              *ngIf="
+            <div *ngIf="
                 $any(dormDetail)?.status_dorm || $any(dormDetail)?.statusDorm
-              "
-              [ngClass]="{
+              " [ngClass]="{
                 'bg-green-100 text-green-700':
                   ($any(dormDetail)?.status_dorm ||
                     $any(dormDetail)?.statusDorm) === 'ว่าง',
                 'bg-red-100 text-red-700':
                   ($any(dormDetail)?.status_dorm ||
                     $any(dormDetail)?.statusDorm) === 'เต็ม',
-              }"
-              class="font-medium inline-block mt-2 px-3 py-1 rounded-lg text-sm"
-            >
+              }" class="font-medium inline-block mt-2 px-3 py-1 rounded-lg text-sm">
               {{
-                $any(dormDetail)?.status_dorm || $any(dormDetail)?.statusDorm
+              $any(dormDetail)?.status_dorm || $any(dormDetail)?.statusDorm
               }}
             </div>
           </div>
@@ -124,136 +85,69 @@
       </div>
 
       <!-- Main Images Section -->
-      <div
-        *ngIf="images.length > 0"
-        class="bg-white overflow-hidden shadow-sm mb-6"
-      >
+      <div *ngIf="images.length > 0" class="bg-white overflow-hidden shadow-sm mb-6">
         <!-- Main image -->
         <div class="relative aspect-[16/9] overflow-hidden max-w-full">
           <button
             class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/70 hover:bg-white/80 rounded-full p-3 z-10 shadow-lg transition-all duration-200"
-            (click)="prevImage()"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              class="w-6 h-6 text-gray-800"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 19l-7-7 7-7"
-              />
+            (click)="prevImage()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+              class="w-6 h-6 text-gray-800">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <img
-            [src]="images[currentImageIndex]"
-            alt="Dorm Image"
+          <img [src]="images[currentImageIndex]" alt="Dorm Image"
             class="absolute inset-0 w-full h-full object-cover max-w-full cursor-pointer"
-            (click)="openImageModal(currentImageIndex)"
-          />
+            (click)="openImageModal(currentImageIndex)" />
           <button
             class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/70 hover:bg-white/80 rounded-full p-3 z-10 shadow-lg transition-all duration-200"
-            (click)="nextImage()"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              class="w-6 h-6 text-gray-800"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 5l7 7-7 7"
-              />
+            (click)="nextImage()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+              class="w-6 h-6 text-gray-800">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
           </button>
         </div>
         <!-- Thumbnails -->
         <div class="border-t border-gray-200 bg-white py-2 -px-2">
           <!-- Navigation arrows -->
-          <div
-            class="flex items-center justify-between mb-2"
-            *ngIf="images.length > maxVisibleThumbnails"
-          >
-            <button
-              (click)="scrollThumbnailsLeft()"
-              [disabled]="!canScrollThumbnailsLeft()"
-              class="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
-            >
-              <svg
-                class="w-4 h-4 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 19l-7-7 7-7"
-                ></path>
+          <div class="flex items-center justify-between mb-2" *ngIf="images.length > maxVisibleThumbnails">
+            <button (click)="scrollThumbnailsLeft()" [disabled]="!canScrollThumbnailsLeft()"
+              class="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors">
+              <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
               </svg>
             </button>
 
             <div class="flex-1 flex justify-center">
               <span class="text-xs text-gray-500">
                 {{ thumbnailStartIndex + 1 }}-{{
-                  Math.min(
-                    thumbnailStartIndex + maxVisibleThumbnails,
-                    images.length
-                  )
+                Math.min(
+                thumbnailStartIndex + maxVisibleThumbnails,
+                images.length
+                )
                 }}
                 / {{ images.length }}
               </span>
             </div>
 
-            <button
-              (click)="scrollThumbnailsRight()"
-              [disabled]="!canScrollThumbnailsRight()"
-              class="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
-            >
-              <svg
-                class="w-4 h-4 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 5l7 7-7 7"
-                ></path>
+            <button (click)="scrollThumbnailsRight()" [disabled]="!canScrollThumbnailsRight()"
+              class="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors">
+              <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
               </svg>
             </button>
           </div>
 
           <!-- Thumbnail strip -->
-          <div
-            class="flex flex-nowrap items-center gap-2.5 overflow-hidden px-1 py-1"
-          >
-            <div
-              *ngFor="let index of getVisibleThumbnailIndices(); let i = index"
+          <div class="flex flex-nowrap items-center gap-2.5 overflow-hidden px-1 py-1">
+            <div *ngFor="let index of getVisibleThumbnailIndices(); let i = index"
               class="flex-shrink-0 w-24 h-16 sm:w-28 sm:h-18 md:w-32 md:h-20 cursor-pointer transition-all duration-200 rounded-sm overflow-hidden flex items-center justify-center"
-              [class.ring-2]="index === currentImageIndex"
-              [class.ring-blue-500]="index === currentImageIndex"
-              [class.ring-offset-2]="index === currentImageIndex"
-              [class.opacity-60]="index !== currentImageIndex"
-              [class.opacity-100]="index === currentImageIndex"
-            >
-              <img
-                [src]="images[index]"
-                alt="Thumbnail"
-                class="w-full h-full object-cover object-center"
-                (click)="onThumbnailClick(index)"
-              />
+              [class.ring-2]="index === currentImageIndex" [class.ring-blue-500]="index === currentImageIndex"
+              [class.ring-offset-2]="index === currentImageIndex" [class.opacity-60]="index !== currentImageIndex"
+              [class.opacity-100]="index === currentImageIndex">
+              <img [src]="images[index]" alt="Thumbnail" class="w-full h-full object-cover object-center"
+                (click)="onThumbnailClick(index)" />
             </div>
           </div>
         </div>
@@ -265,25 +159,21 @@
           <!-- Basic Information -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div class="flex flex-col">
-              <span class="text-[#4F5356] font-bold text-sm mb-1"
-                >ชื่อหอพัก</span
-              >
+              <span class="text-[#4F5356] font-bold text-sm mb-1">ชื่อหอพัก</span>
               <span class="font-medium text-[#4F5356] text-lg">{{
                 dormName
-              }}</span>
+                }}</span>
             </div>
 
             <div class="flex flex-col">
               <span class="text-[#4F5356] font-bold text-sm mb-1">ราคา</span>
               <span class="font-medium text-[#4F5356] text-lg">{{
                 priceRange || dormPrice
-              }}</span>
+                }}</span>
             </div>
 
             <div class="flex flex-col" *ngIf="dormDetail?.room_type">
-              <span class="text-[#4F5356] font-bold text-sm mb-1"
-                >ประเภทห้อง</span
-              >
+              <span class="text-[#4F5356] font-bold text-sm mb-1">ประเภทห้อง</span>
               <span class="font-medium text-[#4F5356] text-lg">
                 {{ dormDetail?.room_type }}
               </span>
@@ -292,22 +182,16 @@
 
           <!-- Dorm Description -->
           <div *ngIf="dormDetail?.description" class="mb-6">
-            <span class="text-[#4F5356] font-bold text-sm mb-2 block"
-              >รายละเอียดหอพัก</span
-            >
+            <span class="text-[#4F5356] font-bold text-sm mb-2 block">รายละเอียดหอพัก</span>
             <p class="text-[#4F5356] leading-relaxed mb-3">
               {{ dormDetail?.description }}
             </p>
             <!-- คำอธิบายระยะทาง -->
-            <div
-              *ngIf="calculateDistanceDescription()"
-              class="mt-4 p-4 rounded-xl border border-blue-100 bg-blue-50/80 shadow-sm"
-            >
+            <div *ngIf="calculateDistanceDescription()"
+              class="mt-4 p-4 rounded-xl border border-blue-100 bg-blue-50/80 shadow-sm">
               <div class="flex items-start gap-3">
                 <div class="space-y-1">
-                  <p
-                    class="text-[11px] font-semibold tracking-wide text-blue-900 uppercase"
-                  >
+                  <p class="text-[11px] font-semibold tracking-wide text-blue-900 uppercase">
                     ทำเล & ระยะทาง
                   </p>
                   <p class="text-blue-900 text-sm leading-relaxed">
@@ -323,31 +207,27 @@
               <span class="text-[#4F5356] font-bold text-sm mb-1">ที่อยู่</span>
               <span class="font-medium text-[#4F5356] break-words">{{
                 location
-              }}</span>
+                }}</span>
             </div>
           </div>
 
           <!-- Updated Date -->
           <div *ngIf="dormDetail?.updated_date" class="mb-6">
             <div class="flex flex-col">
-              <span class="text-[#4F5356] font-bold text-sm mb-1"
-                >ข้อมูลล่าสุด</span
-              >
+              <span class="text-[#4F5356] font-bold text-sm mb-1">ข้อมูลล่าสุด</span>
               <span class="font-medium text-[#4F5356]">{{
                 dormDetail && dormDetail.updated_date
-                  ? formatThaiDate(dormDetail.updated_date)
-                  : ""
-              }}</span>
+                ? formatThaiDate(dormDetail.updated_date)
+                : ""
+                }}</span>
             </div>
           </div>
 
           <div class="mt-6">
             <h4 class="font-bold text-[#4F5356] mb-4">ค่าใช้จ่าย</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div
-                *ngIf="dormDetail?.water_price || dormDetail?.water_rate"
-                class="bg-blue-50 p-4 rounded-lg border border-blue-200"
-              >
+              <div *ngIf="dormDetail?.water_price || dormDetail?.water_rate"
+                class="bg-blue-50 p-4 rounded-lg border border-blue-200">
                 <div class="flex flex-col">
                   <span class="text-[#4F5356] font-medium mb-2">ค่าน้ำ</span>
                   <div class="font-bold text-[#4F5356] text-lg">
@@ -355,12 +235,9 @@
                   </div>
                 </div>
               </div>
-              <div
-                *ngIf="
+              <div *ngIf="
                   dormDetail?.electricity_price || dormDetail?.electricity_rate
-                "
-                class="bg-yellow-50 p-4 rounded-lg border border-yellow-200"
-              >
+                " class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
                 <div class="flex flex-col">
                   <span class="text-[#4F5356] font-medium mb-2">ค่าไฟ</span>
                   <div class="font-bold text-[#4F5356] text-lg">
@@ -384,21 +261,14 @@
         </div>
         <div class="p-6">
           <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            <app-amenity-icon
-              *ngFor="let amenity of amenities"
-              [name]="amenity.name"
-              [available]="amenity.available"
-            >
+            <app-amenity-icon *ngFor="let amenity of amenities" [name]="amenity.name" [available]="amenity.available">
             </app-amenity-icon>
           </div>
         </div>
       </div>
 
       <!-- Map Section -->
-      <div
-        *ngIf="showMap"
-        class="bg-white rounded-lg shadow-sm overflow-hidden mb-6"
-      >
+      <div *ngIf="showMap" class="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
         <div class="flex justify-between items-center border-b border-gray-200">
           <h3 class="font-bold text-xl px-6 py-4 text-[#4F5356]">
             ตำแหน่งที่พัก
@@ -410,24 +280,17 @@
           <div id="map" class="w-full h-full"></div>
 
           <!-- Loading State -->
-          <div
-            *ngIf="!mapLatitude || !mapLongitude"
-            class="absolute inset-0 flex items-center justify-center bg-gray-100"
-          >
+          <div *ngIf="!mapLatitude || !mapLongitude"
+            class="absolute inset-0 flex items-center justify-center bg-gray-100">
             <div class="text-center">
-              <div
-                class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"
-              ></div>
+              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
               <span class="text-gray-600 text-sm">กำลังโหลดแผนที่...</span>
             </div>
           </div>
 
           <!-- Custom Marker Popup -->
           <div class="hidden">
-            <div
-              id="marker-popup"
-              class="bg-white rounded-lg shadow-lg p-4 min-w-[200px]"
-            >
+            <div id="marker-popup" class="bg-white rounded-lg shadow-lg p-4 min-w-[200px]">
               <h4 class="font-medium text-[#3c4043] mb-2">ตำแหน่งหอพัก</h4>
               <div class="text-sm text-[#5f6368] space-y-1">
                 <p>ละติจูด: {{ mapLatitude?.toFixed(6) }}</p>
@@ -446,96 +309,54 @@
       <div class="bg-white shadow-sm rounded-lg p-4 sm:p-6 mb-4">
         <div class="flex flex-col items-center">
           <!-- Profile Image with Yellow Border -->
-          <div
-            class="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden mb-3 border-2"
-            style="border-color: #fbbf24"
-          >
-            <img
-              [src]="getOwnerContactAvatarUrl()"
-              alt="Owner Profile"
-              class="w-full h-full object-cover"
-            />
+          <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden mb-3 border-2"
+            style="border-color: #fbbf24">
+            <img [src]="getOwnerContactAvatarUrl()" alt="Owner Profile" class="w-full h-full object-cover" />
           </div>
 
           <!-- Owner Name -->
-          <h3
-            class="font-semibold text-base sm:text-lg text-[#4F5356] mb-3 text-center"
-          >
+          <h3 class="font-semibold text-base sm:text-lg text-[#4F5356] mb-3 text-center">
             {{ ownerContact.name }}
           </h3>
 
           <!-- Contact Buttons - Full width on mobile -->
           <div class="w-full max-w-[300px] space-y-2">
             <!-- Phone Button -->
-            <button
-              (click)="contactOwner()"
-              class="w-full bg-[#31AA52] hover:bg-[#289244] text-sm sm:text-[14px] text-white py-2.5 rounded-lg font-medium flex items-center justify-center transition-colors duration-200 shadow-sm"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                class="w-4 h-4 sm:w-5 sm:h-5 mr-2"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"
-                />
+            <button (click)="contactOwner()"
+              class="w-full bg-[#31AA52] hover:bg-[#289244] text-sm sm:text-[14px] text-white py-2.5 rounded-lg font-medium flex items-center justify-center transition-colors duration-200 shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="w-4 h-4 sm:w-5 sm:h-5 mr-2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
               </svg>
               <span class="truncate">{{
                 ownerContact.phone || "ติดต่อสอบถาม"
-              }}</span>
+                }}</span>
             </button>
 
             <!-- Secondary Phone Button (if exists) -->
-            <button
-              *ngIf="ownerContact.secondaryPhone"
-              (click)="contactOwnerSecondary()"
-              class="w-full bg-[#4A90E2] hover:bg-[#357ABD] text-sm sm:text-[14px] text-white py-2.5 rounded-lg font-medium flex items-center justify-center transition-colors duration-200 shadow-sm"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                class="w-4 h-4 sm:w-5 sm:h-5 mr-2"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"
-                />
+            <button *ngIf="ownerContact.secondaryPhone" (click)="contactOwnerSecondary()"
+              class="w-full bg-[#4A90E2] hover:bg-[#357ABD] text-sm sm:text-[14px] text-white py-2.5 rounded-lg font-medium flex items-center justify-center transition-colors duration-200 shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="w-4 h-4 sm:w-5 sm:h-5 mr-2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
               </svg>
               <span class="truncate">{{ ownerContact.secondaryPhone }}</span>
             </button>
 
             <!-- Line ID Box -->
-            <div
-              *ngIf="ownerContact.lineId && ownerContact.lineId !== 'ไม่มี'"
+            <div *ngIf="ownerContact.lineId && ownerContact.lineId !== 'ไม่มี'"
               class="w-full border border-[#434FAA] text-center text-sm sm:text-[14px] py-2.5 rounded-lg flex items-center justify-center font-medium text-[#434FAA] cursor-pointer hover:border-[#2c3e8a] transition-colors duration-200"
-              (click)="openLineChat()"
-              title="คลิกเพื่อแอดเพื่อนใน Line"
-            >
-              <img
-                src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg"
-                alt="Line"
-                class="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0"
-              />
+              (click)="openLineChat()" title="คลิกเพื่อแอดเพื่อนใน Line">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" alt="Line"
+                class="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0" />
               <span class="truncate">Line ID : {{ ownerContact.lineId }}</span>
             </div>
-            <div
-              *ngIf="!ownerContact.lineId || ownerContact.lineId === 'ไม่มี'"
-              class="w-full border border-gray-300 text-center text-sm sm:text-[14px] py-2.5 rounded-lg flex items-center justify-center font-medium text-gray-500"
-            >
-              <img
-                src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg"
-                alt="Line"
-                class="w-4 h-4 sm:w-5 sm:h-5 mr-2 opacity-50 flex-shrink-0"
-              />
+            <div *ngIf="!ownerContact.lineId || ownerContact.lineId === 'ไม่มี'"
+              class="w-full border border-gray-300 text-center text-sm sm:text-[14px] py-2.5 rounded-lg flex items-center justify-center font-medium text-gray-500">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" alt="Line"
+                class="w-4 h-4 sm:w-5 sm:h-5 mr-2 opacity-50 flex-shrink-0" />
               <span>Line ID : ไม่มี</span>
             </div>
           </div>
@@ -544,84 +365,53 @@
 
       <!-- Similar Properties - Responsive Grid -->
       <div class="bg-white shadow-sm rounded-lg overflow-hidden">
-        <h3
-          class="font-bold text-base sm:text-lg px-4 py-3 border-b border-gray-200 text-[#4F5356]"
-        >
+        <h3 class="font-bold text-base sm:text-lg px-4 py-3 border-b border-gray-200 text-[#4F5356]">
           หอพักที่คล้ายกัน
         </h3>
 
         <!-- Loading State -->
         <div *ngIf="loadingState.similar" class="p-4 text-center">
-          <div
-            class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"
-          ></div>
+          <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
           <p class="text-sm text-gray-600 mt-2">กำลังโหลดหอพักที่คล้ายกัน...</p>
         </div>
 
         <!-- Empty State -->
-        <div
-          *ngIf="!loadingState.similar && similarProperties.length === 0"
-          class="p-4 text-center text-gray-500"
-        >
-          <svg
-            class="w-12 h-12 text-gray-300 mb-2 mx-auto"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-            ></path>
+        <div *ngIf="!loadingState.similar && similarProperties.length === 0" class="p-4 text-center text-gray-500">
+          <svg class="w-12 h-12 text-gray-300 mb-2 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+            </path>
           </svg>
           <p class="text-sm">ไม่พบหอพักที่คล้ายกัน</p>
         </div>
       </div>
 
-      
+
       <!-- Similar Properties Grid - Responsive -->
-      <div
-        *ngIf="!loadingState.similar && similarProperties.length > 0"
-        class="p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3"
-      >
-        <div
-          *ngFor="let property of similarProperties"
-          (click)="viewSimilarDorm(property.id)"
-          class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02]"
-        >
+      <div *ngIf="!loadingState.similar && similarProperties.length > 0"
+        class="p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
+        <div *ngFor="let property of similarProperties" (click)="viewSimilarDorm(property.id)"
+          class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02]">
           <!-- Image section -->
-          <div
-            class="w-full h-32 sm:h-36 overflow-hidden"
-            [style.background-image]="'url(' + property.image + ')'"
+          <div class="w-full h-32 sm:h-36 overflow-hidden" [style.background-image]="'url(' + property.image + ')'"
             style="
               background-size: cover;
               background-position: center;
               background-repeat: no-repeat;
-            "
-          ></div>
+            "></div>
           <!-- Content section -->
           <div class="p-3">
             <!-- ราคารายวัน -->
-            <div
-              *ngIf="property.dailyPrice"
-              class="text-xs sm:text-sm font-semibold text-[#4F5356] mb-1"
-            >
+            <div *ngIf="property.dailyPrice" class="text-xs sm:text-sm font-semibold text-[#4F5356] mb-1">
               {{ property.dailyPrice }}
             </div>
             <!-- ราคารายเดือน -->
-            <div
-              *ngIf="property.monthlyPrice"
-              class="text-base sm:text-lg font-bold text-[#4F5356] mb-1"
-            >
+            <div *ngIf="property.monthlyPrice" class="text-base sm:text-lg font-bold text-[#4F5356] mb-1">
               {{ property.monthlyPrice }}
             </div>
             <!-- Fallback ราคาเดิม -->
-            <div
-              *ngIf="!property.dailyPrice && !property.monthlyPrice"
-              class="text-base sm:text-lg font-bold text-[#4F5356] mb-1"
-            >
+            <div *ngIf="!property.dailyPrice && !property.monthlyPrice"
+              class="text-base sm:text-lg font-bold text-[#4F5356] mb-1">
               {{ property.price }}
             </div>
             <div class="text-lg font-medium text-[#4F5356] mb-1 line-clamp-1">
@@ -633,53 +423,16 @@
             <div class="text-xs text-[#4F5356] mb-2">
               {{ property.date }}
             </div>
-            <div class="flex items-center justify-between">
-              <div class="flex items-center">
-                <span
-                  class="text-sm font-bold text-[#4F5356] relative top-0.5"
-                  >{{ property.rating.toFixed(1) }}</span
-                >
-                <div class="ml-2 flex relative top-[0.05rem]">
-                  <!-- ดาวเต็ม -->
-                  <ng-container *ngFor="let star of getStars(property.rating)">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="#FDD836"
-                      viewBox="0 0 20 20"
-                      class="w-4 h-4 relative"
-                    >
-                      <path
-                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.454a1 1 0 00-1.175 0l-3.38 2.454c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"
-                      />
-                    </svg>
-                  </ng-container>
-                  <!-- ดาวว่าง -->
-                  <ng-container
-                    *ngFor="let emptyStar of getEmptyStars(property.rating)"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="#E5E7EB"
-                      viewBox="0 0 20 20"
-                      class="w-4 h-4 relative"
-                    >
-                      <path
-                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.454a1 1 0 00-1.175 0l-3.38 2.454c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"
-                      />
-                    </svg>
-                  </ng-container>
-                </div>
-              </div>
-            </div>
+
+
+
           </div>
         </div>
 
         <!-- ปุ่มดูเพิ่มเติม -->
         <div class="text-center pt-2">
-          <button
-            (click)="viewMoreSimilarDorms()"
-            class="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline transition-colors duration-200"
-          >
+          <button (click)="viewMoreSimilarDorms()"
+            class="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline transition-colors duration-200">
             ดูหอพักที่คล้ายกันเพิ่มเติม
           </button>
         </div>
@@ -695,148 +448,76 @@
 
 <!-- Inline Popup / Toast -->
 <div *ngIf="isPopupVisible" class="fixed bottom-6 right-6 z-50">
-  <div
-    class="min-w-[260px] max-w-sm px-4 py-3 rounded-lg shadow-lg text-white flex items-start space-x-3"
-    [ngClass]="{
+  <div class="min-w-[260px] max-w-sm px-4 py-3 rounded-lg shadow-lg text-white flex items-start space-x-3" [ngClass]="{
       'bg-green-600': popupType === 'success',
       'bg-red-600': popupType === 'error',
       'bg-yellow-600': popupType === 'warning',
       'bg-blue-600': popupType === 'info',
-    }"
-  >
-    <i
-      class="mt-0.5"
-      [ngClass]="{
+    }">
+    <i class="mt-0.5" [ngClass]="{
         'fa-solid fa-circle-check': popupType === 'success',
         'fa-solid fa-triangle-exclamation': popupType === 'warning',
         'fa-solid fa-circle-info': popupType === 'info',
         'fa-solid fa-circle-xmark': popupType === 'error',
-      }"
-    ></i>
+      }"></i>
     <div class="flex-1 text-sm leading-5">
       {{ popupMessage }}
     </div>
-    <button
-      class="ml-2 text-white/80 hover:text-white"
-      (click)="hidePopup()"
-      aria-label="ปิด"
-    >
+    <button class="ml-2 text-white/80 hover:text-white" (click)="hidePopup()" aria-label="ปิด">
       <i class="fa-solid fa-xmark"></i>
     </button>
   </div>
 </div>
 
 <!-- Image Modal -->
-<div
-  *ngIf="showImageModal"
-  class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90"
-  (click)="closeImageModal()"
-  (keydown)="onModalKeydown($event)"
-  tabindex="0"
->
+<div *ngIf="showImageModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90"
+  (click)="closeImageModal()" (keydown)="onModalKeydown($event)" tabindex="0">
   <!-- Modal Content -->
-  <div
-    class="relative max-w-7xl max-h-full w-full h-full flex items-center justify-center p-4"
-  >
+  <div class="relative max-w-7xl max-h-full w-full h-full flex items-center justify-center p-4">
     <!-- Close Button -->
-    <button
-      class="absolute top-4 right-4 z-10 bp-3 text-white transition-all duration-200"
-      (click)="closeImageModal()"
-      aria-label="ปิด"
-    >
-      <svg
-        class="w-6 h-6"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M6 18L18 6M6 6l12 12"
-        ></path>
+    <button class="absolute top-4 right-4 z-10 bp-3 text-white transition-all duration-200" (click)="closeImageModal()"
+      aria-label="ปิด">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
       </svg>
     </button>
 
     <!-- Previous Button -->
-    <button
-      *ngIf="images.length > 1"
+    <button *ngIf="images.length > 1"
       class="absolute left-4 top-1/2 transform -translate-y-1/2 p-4 text-white z-10 transition-all duration-200"
-      (click)="prevModalImage(); $event.stopPropagation()"
-      aria-label="ภาพก่อนหน้า"
-    >
-      <svg
-        class="w-8 h-8"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M15 19l-7-7 7-7"
-        ></path>
+      (click)="prevModalImage(); $event.stopPropagation()" aria-label="ภาพก่อนหน้า">
+      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
       </svg>
     </button>
 
     <!-- Next Button -->
-    <button
-      *ngIf="images.length > 1"
+    <button *ngIf="images.length > 1"
       class="absolute right-4 top-1/2 transform -translate-y-1/2 p-4 text-white z-10 transition-all duration-200"
-      (click)="nextModalImage(); $event.stopPropagation()"
-      aria-label="ภาพถัดไป"
-    >
-      <svg
-        class="w-8 h-8"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M9 5l7 7-7 7"
-        ></path>
+      (click)="nextModalImage(); $event.stopPropagation()" aria-label="ภาพถัดไป">
+      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
       </svg>
     </button>
 
     <!-- Main Image -->
-    <img
-      [src]="images[modalImageIndex]"
-      alt="Dorm Image Full Size"
-      class="max-w-full max-h-full object-contain"
-      (click)="$event.stopPropagation()"
-    />
+    <img [src]="images[modalImageIndex]" alt="Dorm Image Full Size" class="max-w-full max-h-full object-contain"
+      (click)="$event.stopPropagation()" />
 
     <!-- Image Counter -->
-    <div
-      *ngIf="images.length > 1"
-      class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full text-sm"
-    >
+    <div *ngIf="images.length > 1"
+      class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full text-sm">
       {{ modalImageIndex + 1 }} / {{ images.length }}
     </div>
 
     <!-- Thumbnail Strip (Optional) -->
-    <div
-      *ngIf="images.length > 1 && images.length <= 10"
-      class="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex space-x-2 bg-black/30 p-2 rounded-sm"
-    >
-      <div
-        *ngFor="let image of images; let i = index"
+    <div *ngIf="images.length > 1 && images.length <= 10"
+      class="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex space-x-2 bg-black/30 p-2 rounded-sm">
+      <div *ngFor="let image of images; let i = index"
         class="w-12 h-8 cursor-pointer transition-all duration-200 border-2 flex items-center justify-center overflow-hidden"
-        [class.border-white]="i === modalImageIndex"
-        [class.border-transparent]="i !== modalImageIndex"
-        [class.opacity-60]="i !== modalImageIndex"
-        (click)="modalImageIndex = i; $event.stopPropagation()"
-      >
-        <img
-          [src]="image"
-          alt="Thumbnail"
-          class="w-full h-full object-cover object-center rounded-sm"
-        />
+        [class.border-white]="i === modalImageIndex" [class.border-transparent]="i !== modalImageIndex"
+        [class.opacity-60]="i !== modalImageIndex" (click)="modalImageIndex = i; $event.stopPropagation()">
+        <img [src]="image" alt="Thumbnail" class="w-full h-full object-cover object-center rounded-sm" />
       </div>
     </div>
   </div>

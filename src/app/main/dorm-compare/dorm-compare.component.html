@@ -77,10 +77,10 @@
       </div>
       
       <!-- Dorm Cards Header -->
-      <div class="flex overflow-x-auto scrollbar-hide">
+      <div class="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory md:snap-none">
         <div 
           *ngFor="let dorm of compareDorms; let i = index"
-          class="flex-shrink-0 w-80 px-2 py-3"
+          class="flex-shrink-0 w-80 px-2 py-3 snap-center md:snap-start"
         >
           <div class="bg-white rounded-lg border border-gray-200 overflow-hidden dorm-card-mobile">
             <!-- Remove Button -->
@@ -133,10 +133,10 @@
         <div class="px-4 py-3 bg-gray-100 border-b border-gray-200">
           <h4 class="text-sm font-semibold text-gray-700">ราคา</h4>
         </div>
-        <div class="flex overflow-x-auto scrollbar-hide">
+        <div class="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory md:snap-none">
           <div 
             *ngFor="let dorm of compareDorms; let i = index"
-            class="flex-shrink-0 w-80 px-2 py-3 border-r border-gray-200 last:border-r-0"
+            class="flex-shrink-0 w-80 px-2 py-3 border-r border-gray-200 last:border-r-0 snap-center md:snap-start"
           >
             <div class="space-y-2 text-sm">
               <div class="flex justify-between">
@@ -159,10 +159,10 @@
         <div class="px-4 py-3 bg-gray-100 border-b border-gray-200">
           <h4 class="text-sm font-semibold text-gray-700">ที่ตั้งและสาธารณูปโภค</h4>
         </div>
-        <div class="flex overflow-x-auto scrollbar-hide">
+        <div class="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory md:snap-none">
           <div 
             *ngFor="let dorm of compareDorms; let i = index"
-            class="flex-shrink-0 w-80 px-2 py-3 border-r border-gray-200 last:border-r-0"
+            class="flex-shrink-0 w-80 px-2 py-3 border-r border-gray-200 last:border-r-0 snap-center md:snap-start"
           >
             <div class="space-y-2 text-sm">
               <div class="flex justify-between">
@@ -185,10 +185,10 @@
         <div class="px-4 py-3 bg-gray-100 border-b border-gray-200">
           <h4 class="text-sm font-semibold text-gray-700">สิ่งอำนวยความสะดวก</h4>
         </div>
-        <div class="flex overflow-x-auto scrollbar-hide">
+        <div class="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory md:snap-none">
           <div 
             *ngFor="let dorm of compareDorms; let i = index"
-            class="flex-shrink-0 w-80 px-2 py-3 border-r border-gray-200 last:border-r-0"
+            class="flex-shrink-0 w-80 px-2 py-3 border-r border-gray-200 last:border-r-0 snap-center md:snap-start"
           >
             <div class="grid grid-cols-2 gap-2 text-xs">
               <!-- Internal Amenities -->
@@ -196,13 +196,12 @@
                 *ngFor="let amenity of internalAmenities; let j = index"
                 class="flex items-center gap-1"
               >
-                <span 
-                  [class.text-green-600]="hasAmenity(dorm, amenity)"
-                  [class.text-gray-400]="!hasAmenity(dorm, amenity)"
-                  class="font-bold"
-                >
-                  {{ hasAmenity(dorm, amenity) ? '✓' : '−' }}
-                </span>
+                <app-amenity-icon 
+                  [name]="amenity"
+                  [available]="hasAmenity(dorm, amenity)"
+                  [size]="'sm'"
+                  class="w-4 h-4"
+                ></app-amenity-icon>
                 <span 
                   [class.text-gray-700]="hasAmenity(dorm, amenity)"
                   [class.text-gray-400]="!hasAmenity(dorm, amenity)"
@@ -215,13 +214,12 @@
                 *ngFor="let amenity of externalAmenities; let j = index"
                 class="flex items-center gap-1"
               >
-                <span 
-                  [class.text-green-600]="hasAmenity(dorm, amenity)"
-                  [class.text-gray-400]="!hasAmenity(dorm, amenity)"
-                  class="font-bold"
-                >
-                  {{ hasAmenity(dorm, amenity) ? '✓' : '−' }}
-                </span>
+                <app-amenity-icon 
+                  [name]="amenity"
+                  [available]="hasAmenity(dorm, amenity)"
+                  [size]="'sm'"
+                  class="w-4 h-4"
+                ></app-amenity-icon>
                 <span 
                   [class.text-gray-700]="hasAmenity(dorm, amenity)"
                   [class.text-gray-400]="!hasAmenity(dorm, amenity)"
@@ -237,10 +235,10 @@
         <div class="px-4 py-3 bg-gray-100 border-b border-gray-200">
           <h4 class="text-sm font-semibold text-gray-700">ข้อมูลติดต่อ</h4>
         </div>
-        <div class="flex overflow-x-auto scrollbar-hide">
+        <div class="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory md:snap-none">
           <div 
             *ngFor="let dorm of compareDorms; let i = index"
-            class="flex-shrink-0 w-80 px-2 py-3 border-r border-gray-200 last:border-r-0"
+            class="flex-shrink-0 w-80 px-2 py-3 border-r border-gray-200 last:border-r-0 snap-center md:snap-start"
           >
             <div class="space-y-2 text-sm">
               <div class="flex justify-between">

@@ -146,8 +146,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
       dorm_name: ['', [Validators.required, Validators.minLength(3)]],
       address: ['', [Validators.required, Validators.minLength(10)]],
       zone_id: ['', Validators.required],
-      dorm_description: [''],
-      description: [''], // Add description field to fix the error
+      description: [''],
 
       latitude: [null, Validators.required],
       longitude: [null, Validators.required],
@@ -260,7 +259,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
         dorm_name: dorm.dorm_name,
         address: dorm.address,
         zone_id: dorm.zone_id || 1,
-        dorm_description: dorm.dorm_description || dorm.description,
+        description: dorm.description || dorm.dorm_description || '',
         latitude: dorm.latitude || 16.244, // Default MSU coordinates
         longitude: dorm.longitude || 103.251, // Default MSU coordinates
         room_type: dorm.room_type || '',
@@ -269,17 +268,16 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
         daily_price: dorm.term_price || dorm.daily_price,
         summer_price: dorm.summer_price,
         deposit: dorm.deposit,
-        electricity_price_type: dorm.electricity_type || 'ราคาหน่วยละ (บาท/หน่วย)',
-        electricity_price: dorm.electricity_rate || dorm.electricity_price,
+        electricity_type: dorm.electricity_type || 'ราคาหน่วยละ (บาท/หน่วย)',
+        electricity_price: dorm.electricity_price,
         water_price_type: dorm.water_type || 'ราคาหน่วยละ (บาท/หน่วย)',
-        water_price: dorm.water_rate || dorm.water_price,
+        water_price: dorm.water_price,
         approval_status: dorm.approval_status,
         contact_name: dorm.manager_name || dorm.owner_name,
         contact_phone: dorm.primary_phone || dorm.owner_phone,
         contact_email: dorm.contact_email || dorm.owner_email,
         line_id: dorm.line_id || dorm.owner_line_id,
         term_price: dorm.term_price,
-        description: dorm.dorm_description || dorm.description || '',
       });
 
       // Patch amenities checkboxes
@@ -664,8 +662,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
                 this.dormForm.get('term_price')?.value ||
                 this.dormForm.get('summer_price')?.value));
       case 4:
-        return !!(this.images.length >= this.minImages &&
-               this.getSelectedAmenities().length >= 5 &&
+        return !!(this.getSelectedAmenities().length >= 5 &&
                this.dormForm.get('latitude')?.value &&
                this.dormForm.get('longitude')?.value);
       default:
@@ -720,13 +717,15 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
       // Map form fields to backend names if necessary
       manager_name: rawForm.contact_name,
       primary_phone: rawForm.contact_phone,
-      electricity_type: rawForm.electricity_price_type,
-      electricity_rate: rawForm.electricity_price,
-      water_type: rawForm.water_price_type,
-      water_rate: rawForm.water_price,
+      electricity_type: rawForm.electricity_type,
+      electricity_price: rawForm.electricity_price,
+      water_type: rawForm.water_type || rawForm.water_price_type,
+      water_price: rawForm.water_price,
       amenities: this.getSelectedAmenities(),
       // Send images array with URLs for new backend API
       images: allImageUrls,
+      // Map description to backend field name
+      description: rawForm.description,
     };
 
     console.log('📤 Submitting payload with images:', payload);

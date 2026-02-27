@@ -74,18 +74,45 @@ export interface DormitoryDetail {
     electricity_price?: number;
     water_price?: number;
     water_price_type?: string;
+    images?: Array<{
+      image_id: number;
+      image_url: string;
+      is_primary: boolean;
+      description: string;
+    }>;
+    room_types?: Array<{
+      room_type_id: number;
+      room_name: string;
+      bed_type: string;
+      monthly_price: number | null;
+      daily_price: number | null;
+      summer_price: number | null;
+      term_price: number | null;
+    }>;
+    amenities?: {
+      ภายใน: Array<{
+        amenity_id: number;
+        amenity_name: string;
+        is_available: boolean;
+      }>;
+      ภายนอก: Array<{
+        amenity_id: number;
+        amenity_name: string;
+        is_available: boolean;
+      }>;
+    };
   };
   // เพิ่มฟิลด์ระดับบนสุดเพื่อให้ template เข้าถึงได้ง่าย
   water_price?: number;
   water_price_type?: string;
   electricity_price?: number;
-  images: Array<{
+  images?: Array<{
     image_id: number;
     image_url: string;
     is_primary: boolean;
     description: string;
   }>;
-  room_types: Array<{
+  room_types?: Array<{
     room_type_id: number;
     room_name: string;
     bed_type: string;
@@ -94,7 +121,7 @@ export interface DormitoryDetail {
     summer_price: number | null;
     term_price: number | null;
   }>;
-  amenities: {
+  amenities?: {
     ภายใน: Array<{
       amenity_id: number;
       amenity_name: string;
@@ -148,10 +175,17 @@ export class AdminService {
             .get<any[]>(`${this.backendUrl}/admin/submissions`, { headers })
             .subscribe({
               next: (data) => {
-                // Map ข้อมูลเพื่อดึง main_image_url จาก images array
+                // Log ข้อมูลสิ่งอำนวยความสะดวก
+                if (data.length > 0) {
+                  console.log('First dorm utilities:', data[0].utilities);
+                  console.log('First dorm room_types:', data[0].room_types);
+                }
+                
+                // Map ข้อมูลเพื่อดึง main_image_url และ thumbnail_url
                 const mappedData = data.map((dorm) => ({
                   ...dorm,
-                  main_image_url: this.extractMainImageUrl(dorm.images),
+                  main_image_url: dorm.main_image_url || '',
+                  thumbnail_url: dorm.main_image_url || '',
                 }));
                 subscriber.next(mappedData);
               },
@@ -179,10 +213,17 @@ export class AdminService {
             >(`${this.backendUrl}/admin/submissions?status=pending`, { headers })
             .subscribe({
               next: (data) => {
-                // Map ข้อมูลเพื่อดึง main_image_url จาก images array
+                // Log ข้อมูลสิ่งอำนวยความสะดวก
+                if (data.length > 0) {
+                  console.log('First dorm utilities:', data[0].utilities);
+                  console.log('First dorm room_types:', data[0].room_types);
+                }
+                
+                // Map ข้อมูลเพื่อดึง main_image_url และ thumbnail_url
                 const mappedData = data.map((dorm) => ({
                   ...dorm,
-                  main_image_url: this.extractMainImageUrl(dorm.images),
+                  main_image_url: dorm.main_image_url || '',
+                  thumbnail_url: dorm.main_image_url || '',
                 }));
                 subscriber.next(mappedData);
               },
@@ -210,10 +251,17 @@ export class AdminService {
             >(`${this.backendUrl}/admin/dormitories/rejected`, { headers })
             .subscribe({
               next: (data) => {
-                // Map ข้อมูลเพื่อดึง main_image_url จาก images array
+                // Log ข้อมูลสิ่งอำนวยความสะดวก
+                if (data.length > 0) {
+                  console.log('First dorm utilities:', data[0].utilities);
+                  console.log('First dorm room_types:', data[0].room_types);
+                }
+                
+                // Map ข้อมูลเพื่อดึง main_image_url และ thumbnail_url
                 const mappedData = data.map((dorm) => ({
                   ...dorm,
-                  main_image_url: this.extractMainImageUrl(dorm.images),
+                  main_image_url: dorm.main_image_url || '',
+                  thumbnail_url: dorm.main_image_url || '',
                 }));
                 subscriber.next(mappedData);
               },
@@ -259,6 +307,7 @@ export class AdminService {
 
     return '';
   }
+
   /**
    * อนุมัติหอพัก
    */
@@ -353,10 +402,9 @@ export class AdminService {
                     summer_price: data.summer_price,
                     deposit: data.deposit,
                     electricity_type: data.electricity_type,
-                    electricity_rate:
-                      data.electricity_rate || data.electricity_price,
+                    electricity_rate: data.electricity_price,
                     water_type: data.water_type || data.water_price_type,
-                    water_rate: data.water_rate || data.water_price,
+                    water_rate: data.water_price,
                     approval_status: data.approval_status,
                     status_dorm: data.status_dorm,
                     zone_name: data.zone_name,
@@ -367,22 +415,10 @@ export class AdminService {
                       data.owner_phone ||
                       data.primary_phone ||
                       data.contact_phone,
-                    electricity_price:
-                      data.electricity_price || data.electricity_rate,
-                    water_price: data.water_price || data.water_rate,
-                    water_price_type: data.water_price_type || data.water_type,
-                  },
-                  // เพิ่มข้อมูลระดับบนสุดเพื่อให้ template เข้าถึงได้ง่าย
-                  water_price: data.water_price || data.water_rate,
-                  water_price_type: data.water_price_type || data.water_type,
-                  electricity_price:
-                    data.electricity_price || data.electricity_rate,
-                  images: data.images || [],
-                  room_types: data.room_types || [],
-                  amenities: data.amenities || {
-                    ภายใน: [],
-                    ภายนอก: [],
-                    common: [],
+                    electricity_price: data.electricity_price,
+                    images: data.images || [],
+                    room_types: data.room_types || [],
+                    amenities: data.amenities || []
                   },
                 };
 

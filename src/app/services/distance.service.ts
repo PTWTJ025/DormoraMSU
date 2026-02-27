@@ -55,6 +55,17 @@ export class DistanceService {
    * @returns ข้อความระยะทาง
    */
   createDistanceText(dormName: string, zoneName: string, distanceKm: number): string {
-    return `หอพัก ${dormName} ${zoneName} ห่างจาก มมส ม.ใหม่ ประมาณ ${distanceKm} กิโลเมตร`;
+    let distanceText: string;
+    
+    if (distanceKm < 1.0) {
+      // แปลงเป็นเมตรเมื่อน้อยกว่า 1 กิโลเมตร
+      const distanceMeters = Math.round(distanceKm * 1000);
+      distanceText = `${distanceMeters} เมตร`;
+    } else {
+      // แสดงเป็นกิโลเมตรเมื่อมากกว่าหรือเท่ากับ 1 กิโลเมตร
+      distanceText = `${distanceKm} กิโลเมตร`;
+    }
+    
+    return `หอพัก ${dormName} ${zoneName} ห่างจาก มมส ม.ใหม่ ประมาณ ${distanceText}`;
   }
 }

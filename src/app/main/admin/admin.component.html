@@ -5,17 +5,11 @@
     <!-- Logo Section -->
     <div class="p-6 border-b border-gray-200">
       <div class="flex items-center justify-center">
-        <img
-          src="assets/images/logo.png"
-          alt="DormoraMSU Logo"
-          class="w-12 h-12 object-contain"
-          loading="eager"
-        />
+        <img src="assets/images/logo.png" alt="DormoraMSU Logo" class="w-12 h-12 object-contain" loading="eager" />
         <div class="ml-3">
           <h1 class="text-xl font-bold">
             <span class="font-normal text-gray-700">Dormora </span>
-            <span class="text-gray-700"> </span
-            ><span style="color: #ffcd22">MSU</span>
+            <span class="text-gray-700"> </span><span style="color: #ffcd22">MSU</span>
           </h1>
           <p class="text-xs text-gray-500">Admin Dashboard</p>
         </div>
@@ -25,95 +19,51 @@
     <!-- Navigation -->
     <nav class="p-4">
       <div class="space-y-2">
-        <button
-          (click)="setTab('all')"
-          [class]="
+        <button (click)="setTab('all')" [class]="
             selectedTab === 'all'
               ? 'bg-yellow-50 text-gray-900 border-yellow-300'
               : 'bg-gray-50 text-gray-600 border-gray-200'
-          "
-          class="w-full text-left px-4 py-3 rounded-lg border transition-all duration-200 hover:bg-yellow-50"
-        >
+          " class="w-full text-left px-4 py-3 rounded-lg border transition-all duration-200 hover:bg-yellow-50">
           <div class="flex items-center">
-            <svg
-              class="w-5 h-5 mr-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-              ></path>
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+              </path>
             </svg>
             <span class="font-medium">รายการหอพักทั้งหมด</span>
           </div>
         </button>
 
-        <button
-          (click)="setTab('pending')"
-          [class]="
+        <button (click)="setTab('pending')" [class]="
             selectedTab === 'pending'
               ? 'bg-yellow-50 text-gray-900 border-yellow-300'
               : 'bg-gray-50 text-gray-600 border-gray-200'
-          "
-          class="w-full text-left px-4 py-3 rounded-lg border transition-all duration-200 hover:bg-yellow-50"
-        >
+          " class="w-full text-left px-4 py-3 rounded-lg border transition-all duration-200 hover:bg-yellow-50">
           <div class="flex items-center">
-            <svg
-              class="w-5 h-5 mr-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              ></path>
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
             <span class="font-medium">รออนุมัติ</span>
-            <span
-              *ngIf="getPendingCount() > 0"
-              class="ml-auto text-white text-xs px-2 py-1 rounded-full"
-              style="background-color: #ffcd22"
-            >
+            <span *ngIf="getPendingCount() > 0" class="ml-auto text-white text-xs px-2 py-1 rounded-full"
+              style="background-color: #ffcd22">
               {{ getPendingCount() }}
             </span>
           </div>
         </button>
 
-        <button
-          (click)="setTab('rejected')"
-          [class]="
+        <button (click)="setTab('rejected')" [class]="
             selectedTab === 'rejected'
               ? 'bg-red-50 text-red-900 border-red-300'
               : 'bg-gray-50 text-gray-600 border-gray-200'
-          "
-          class="w-full text-left px-4 py-3 rounded-lg border transition-all duration-200 hover:bg-red-50"
-        >
+          " class="w-full text-left px-4 py-3 rounded-lg border transition-all duration-200 hover:bg-red-50">
           <div class="flex items-center">
-            <svg
-              class="w-5 h-5 mr-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-              ></path>
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
             <span class="font-medium">ปฏิเสธ</span>
-            <span
-              *ngIf="getRejectedCount() > 0"
-              class="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full"
-            >
+            <span *ngIf="getRejectedCount() > 0" class="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
               {{ getRejectedCount() }}
             </span>
           </div>
@@ -124,89 +74,56 @@
 
   <!-- Mobile sidebar drawer -->
   <div class="md:hidden" [class.hidden]="!isMobileSidebarOpen">
-    <div
-      class="fixed inset-0 bg-black/40 z-40"
-      (click)="closeMobileSidebar()"
-    ></div>
+    <div class="fixed inset-0 bg-black/40 z-40" (click)="closeMobileSidebar()"></div>
     <aside class="fixed left-0 top-0 bottom-0 w-64 bg-white shadow-lg z-50">
-      <div
-        class="p-6 border-b border-gray-200 flex items-center justify-between"
-      >
+      <div class="p-6 border-b border-gray-200 flex items-center justify-between">
         <div class="flex items-center">
-          <img
-            src="assets/images/logo.png"
-            alt="DormoraMSU Logo"
-            class="w-10 h-10 object-contain"
-            loading="eager"
-          />
+          <img src="assets/images/logo.png" alt="DormoraMSU Logo" class="w-10 h-10 object-contain" loading="eager" />
           <div class="ml-3">
             <h1 class="text-lg font-bold">
-              <span class="text-gray-700">Dormora</span
-              ><span style="color: #ffcd22">MSU</span>
+              <span class="text-gray-700">Dormora</span><span style="color: #ffcd22">MSU</span>
             </h1>
             <p class="text-xs text-gray-500">Admin Dashboard</p>
           </div>
         </div>
-        <button
-          (click)="closeMobileSidebar()"
-          class="text-gray-500 hover:text-gray-700"
-        >
+        <button (click)="closeMobileSidebar()" class="text-gray-500 hover:text-gray-700">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
       <nav class="p-4">
         <div class="space-y-2">
-          <button
-            (click)="setTab('all'); closeMobileSidebar()"
-            [class]="
+          <button (click)="setTab('all'); closeMobileSidebar()" [class]="
               selectedTab === 'all'
                 ? 'bg-yellow-50 text-gray-900 border-yellow-300'
                 : 'bg-gray-50 text-gray-600 border-gray-200'
-            "
-            class="w-full text-left px-4 py-3 rounded-lg border transition-all duration-200 hover:bg-yellow-50"
-          >
+            " class="w-full text-left px-4 py-3 rounded-lg border transition-all duration-200 hover:bg-yellow-50">
             <div class="flex items-center">
               <i class="fa-solid fa-table w-5 text-center mr-3"></i>
               <span class="font-medium">รายการหอพักทั้งหมด</span>
             </div>
           </button>
-          <button
-            (click)="setTab('pending'); closeMobileSidebar()"
-            [class]="
+          <button (click)="setTab('pending'); closeMobileSidebar()" [class]="
               selectedTab === 'pending'
                 ? 'bg-yellow-50 text-gray-900 border-yellow-300'
                 : 'bg-gray-50 text-gray-600 border-gray-200'
-            "
-            class="w-full text-left px-4 py-3 rounded-lg border transition-all duration-200 hover:bg-yellow-50"
-          >
+            " class="w-full text-left px-4 py-3 rounded-lg border transition-all duration-200 hover:bg-yellow-50">
             <div class="flex items-center">
               <i class="fa-regular fa-clock w-5 text-center mr-3"></i>
               <span class="font-medium">รออนุมัติ</span>
-              <span
-                *ngIf="getPendingCount() > 0"
-                class="ml-auto text-white text-xs px-2 py-1 rounded-full"
-                style="background-color: #ffcd22"
-                >{{ getPendingCount() }}</span
-              >
+              <span *ngIf="getPendingCount() > 0" class="ml-auto text-white text-xs px-2 py-1 rounded-full"
+                style="background-color: #ffcd22">{{ getPendingCount() }}</span>
             </div>
           </button>
-          <button
-            (click)="setTab('rejected'); closeMobileSidebar()"
-            [class]="
+          <button (click)="setTab('rejected'); closeMobileSidebar()" [class]="
               selectedTab === 'rejected'
                 ? 'bg-red-50 text-red-900 border-red-300'
                 : 'bg-gray-50 text-gray-600 border-gray-200'
-            "
-            class="w-full text-left px-4 py-3 rounded-lg border transition-all duration-200 hover:bg-red-50"
-          >
+            " class="w-full text-left px-4 py-3 rounded-lg border transition-all duration-200 hover:bg-red-50">
             <div class="flex items-center">
               <i class="fa-solid fa-circle-xmark w-5 text-center mr-3"></i>
               <span class="font-medium">ปฏิเสธ</span>
-              <span
-                *ngIf="getRejectedCount() > 0"
-                class="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full"
-                >{{ getRejectedCount() }}</span
-              >
+              <span *ngIf="getRejectedCount() > 0"
+                class="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">{{ getRejectedCount() }}</span>
             </div>
           </button>
         </div>
@@ -217,17 +134,12 @@
   <!-- Main Content -->
   <main class="flex-1 flex flex-col">
     <!-- Top Navigation Bar - Full Width -->
-    <header
-      class="bg-white shadow-sm border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 w-full"
-    >
+    <header class="bg-white shadow-sm border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 w-full">
       <div class="flex items-center justify-between">
         <!-- Page Title -->
         <div class="flex items-center">
-          <button
-            class="md:hidden mr-3 text-gray-600 hover:text-gray-800"
-            (click)="toggleMobileSidebar()"
-            aria-label="เปิดเมนู"
-          >
+          <button class="md:hidden mr-3 text-gray-600 hover:text-gray-800" (click)="toggleMobileSidebar()"
+            aria-label="เปิดเมนู">
             <i class="fa-solid fa-bars text-xl"></i>
           </button>
           <div>
@@ -242,17 +154,11 @@
 
         <!-- Admin Profile -->
         <div class="relative">
-          <button
-            (click)="toggleProfileDropdown()"
-            class="flex items-center space-x-3 bg-gray-50 hover:bg-gray-100 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200"
-          >
-            <img
-              [src]="getAdminAvatarUrl()"
-              [alt]="adminProfile?.displayName || 'Admin Avatar'"
+          <button (click)="toggleProfileDropdown()"
+            class="flex items-center space-x-3 bg-gray-50 hover:bg-gray-100 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200">
+            <img [src]="getAdminAvatarUrl()" [alt]="adminProfile?.displayName || 'Admin Avatar'"
               class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-white shadow-sm cursor-pointer"
-              (error)="onImageError($event)"
-              (click)="showProfileModal($event)"
-            />
+              (error)="onImageError($event)" (click)="showProfileModal($event)" />
             <div class="text-left hidden sm:block">
               <div class="text-sm font-semibold text-gray-900">
                 {{ adminProfile?.displayName || "Admin" }}
@@ -261,42 +167,19 @@
                 {{ adminProfile?.username || "N/A" }}
               </div>
             </div>
-            <svg
-              class="hidden sm:block w-4 h-4 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M19 9l-7 7-7-7"
-              ></path>
+            <svg class="hidden sm:block w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
             </svg>
           </button>
 
           <!-- Profile Dropdown (desktop only) -->
-          <div
-            *ngIf="profileDropdownOpen"
-            class="hidden md:block absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50"
-          >
-            <button
-              (click)="onLogout()"
-              class="w-full px-4 py-3 text-left text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200 flex items-center"
-            >
-              <svg
-                class="w-5 h-5 mr-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                ></path>
+          <div *ngIf="profileDropdownOpen"
+            class="hidden md:block absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+            <button (click)="onLogout()"
+              class="w-full px-4 py-3 text-left text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200 flex items-center">
+              <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
               </svg>
               ออกจากระบบ
             </button>
@@ -308,37 +191,19 @@
     <!-- Content Area -->
     <div class="flex-1 p-4 sm:p-6 bg-gray-50">
       <!-- Stats Cards - Redesigned for a more premium dashboard look -->
-      <div
-        class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-8"
-      >
-        <div
-          class="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-gray-100"
-        >
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-8">
+        <div class="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-gray-100">
           <!-- Total Dorms -->
           <div class="p-6 transition-colors hover:bg-gray-50/50">
             <div class="flex flex-col">
-              <span
-                class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1"
-                >Total Dorms</span
-              >
+              <span class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Total Dorms</span>
               <div class="flex items-end justify-between">
-                <span
-                  class="text-3xl font-extrabold text-gray-900 leading-none"
-                  >{{ totalDorms }}</span
-                >
+                <span class="text-3xl font-extrabold text-gray-900 leading-none">{{ totalDorms }}</span>
                 <div class="p-2 bg-blue-50 rounded-lg">
-                  <svg
-                    class="w-5 h-5 text-blue-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                    ></path>
+                  <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                    </path>
                   </svg>
                 </div>
               </div>
@@ -348,28 +213,13 @@
           <!-- Pending Dorms -->
           <div class="p-6 transition-colors hover:bg-gray-50/50">
             <div class="flex flex-col">
-              <span
-                class="text-xs font-bold text-yellow-600 uppercase tracking-wider mb-1"
-                >Pending Approval</span
-              >
+              <span class="text-xs font-bold text-yellow-600 uppercase tracking-wider mb-1">Pending Approval</span>
               <div class="flex items-end justify-between">
-                <span
-                  class="text-3xl font-extrabold text-gray-900 leading-none"
-                  >{{ pendingDorms }}</span
-                >
+                <span class="text-3xl font-extrabold text-gray-900 leading-none">{{ pendingDorms }}</span>
                 <div class="p-2 bg-yellow-50 rounded-lg">
-                  <svg
-                    class="w-5 h-5 text-yellow-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    ></path>
+                  <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                   </svg>
                 </div>
               </div>
@@ -379,28 +229,13 @@
           <!-- Approved Dorms -->
           <div class="p-6 transition-colors hover:bg-gray-50/50">
             <div class="flex flex-col">
-              <span
-                class="text-xs font-bold text-green-600 uppercase tracking-wider mb-1"
-                >Approved</span
-              >
+              <span class="text-xs font-bold text-green-600 uppercase tracking-wider mb-1">Approved</span>
               <div class="flex items-end justify-between">
-                <span
-                  class="text-3xl font-extrabold text-gray-900 leading-none"
-                  >{{ approvedDorms }}</span
-                >
+                <span class="text-3xl font-extrabold text-gray-900 leading-none">{{ approvedDorms }}</span>
                 <div class="p-2 bg-green-50 rounded-lg">
-                  <svg
-                    class="w-5 h-5 text-green-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    ></path>
+                  <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                   </svg>
                 </div>
               </div>
@@ -410,28 +245,13 @@
           <!-- Rejected Dorms -->
           <div class="p-6 transition-colors hover:bg-gray-50/50">
             <div class="flex flex-col">
-              <span
-                class="text-xs font-bold text-red-600 uppercase tracking-wider mb-1"
-                >Rejected</span
-              >
+              <span class="text-xs font-bold text-red-600 uppercase tracking-wider mb-1">Rejected</span>
               <div class="flex items-end justify-between">
-                <span
-                  class="text-3xl font-extrabold text-gray-900 leading-none"
-                  >{{ rejectedCount }}</span
-                >
+                <span class="text-3xl font-extrabold text-gray-900 leading-none">{{ rejectedCount }}</span>
                 <div class="p-2 bg-red-50 rounded-lg">
-                  <svg
-                    class="w-5 h-5 text-red-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    ></path>
+                  <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                   </svg>
                 </div>
               </div>
@@ -445,31 +265,15 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-2xl font-bold text-gray-900">แก้ไขข้อมูลหอพัก</h2>
-            <button
-              (click)="closeEditMode()"
-              class="text-gray-500 hover:text-gray-700"
-            >
-              <svg
-                class="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12"
-                ></path>
+            <button (click)="closeEditMode()" class="text-gray-500 hover:text-gray-700">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
               </svg>
             </button>
           </div>
 
-          <app-admin-edit-dorm 
-            *ngIf="reviewingDormId"
-            [dormId]="reviewingDormId"
-            (editSuccess)="onEditSuccess()"
-          ></app-admin-edit-dorm>
+          <app-admin-edit-dorm *ngIf="reviewingDormId" [dormId]="reviewingDormId"
+            (editSuccess)="onEditSuccess()"></app-admin-edit-dorm>
         </div>
       </ng-container>
 
@@ -484,9 +288,9 @@
                 <div class="flex items-center gap-3 flex-wrap">
                   <h2 class="text-2xl font-bold text-gray-900">
                     {{
-                      reviewDormDetail?.dormitory?.dorm_name ||
-                        reviewDormDetail?.dorm_name ||
-                        "—"
+                    reviewDormDetail?.dormitory?.dorm_name ||
+                    reviewDormDetail?.dorm_name ||
+                    "—"
                     }}
                   </h2>
                   <!-- 🔸 ย้าย span สถานะออกจากตรงนี้ -->
@@ -496,18 +300,18 @@
                   <div class="text-sm text-gray-600">
                     <span class="font-semibold">ที่อยู่:</span>
                     {{
-                      reviewDormDetail?.dormitory?.address ||
-                        reviewDormDetail?.address ||
-                        "—"
+                    reviewDormDetail?.dormitory?.address ||
+                    reviewDormDetail?.address ||
+                    "—"
                     }}
                   </div>
 
                   <div class="text-sm text-gray-600">
                     <span class="font-semibold">โซน:</span>
                     {{
-                      reviewDormDetail?.dormitory?.zone_name ||
-                        reviewDormDetail?.zone_name ||
-                        "—"
+                    reviewDormDetail?.dormitory?.zone_name ||
+                    reviewDormDetail?.zone_name ||
+                    "—"
                     }}
                   </div>
                 </div>
@@ -519,14 +323,12 @@
                 </div>
 
                 <!-- ✅ ย้ายสถานะ “ว่าง / เต็ม” มาอยู่ตรงนี้ -->
-                <span
-                  *ngIf="
+                <span *ngIf="
                     reviewDormDetail?.dormitory?.status_dorm ||
                     reviewDormDetail?.dormitory?.statusDorm ||
                     reviewDormDetail?.status_dorm ||
                     reviewDormDetail?.statusDorm
-                  "
-                  [ngClass]="{
+                  " [ngClass]="{
                     'bg-green-100 text-green-700 border-green-300':
                       (reviewDormDetail?.dormitory?.status_dorm ||
                         reviewDormDetail?.dormitory?.statusDorm ||
@@ -537,14 +339,12 @@
                         reviewDormDetail?.dormitory?.statusDorm ||
                         reviewDormDetail?.status_dorm ||
                         reviewDormDetail?.statusDorm) === 'เต็ม',
-                  }"
-                  class="px-3 py-1 rounded-lg text-sm font-semibold border whitespace-nowrap inline-block mt-2"
-                >
+                  }" class="px-3 py-1 rounded-lg text-sm font-semibold border whitespace-nowrap inline-block mt-2">
                   {{
-                    reviewDormDetail?.dormitory?.status_dorm ||
-                      reviewDormDetail?.dormitory?.statusDorm ||
-                      reviewDormDetail?.status_dorm ||
-                      reviewDormDetail?.statusDorm
+                  reviewDormDetail?.dormitory?.status_dorm ||
+                  reviewDormDetail?.dormitory?.statusDorm ||
+                  reviewDormDetail?.status_dorm ||
+                  reviewDormDetail?.statusDorm
                   }}
                 </span>
               </div>
@@ -553,67 +353,29 @@
 
           <!-- รูปภาพหอพัก - Carousel แบบเดิม -->
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3
-              class="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b border-gray-200"
-            >
+            <h3 class="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b border-gray-200">
               รูปภาพหอพัก
             </h3>
             <div class="center-carousel">
               <div class="carousel-viewport select-none">
                 <!-- แทร็กที่เลื่อนทั้งชุด -->
-                <div
-                  class="carousel-track"
-                  [style.transform]="
+                <div class="carousel-track" [style.transform]="
                     'translateX(-' + currentImageIndex * 100 + '%)'
-                  "
-                >
-                  <img
-                    *ngFor="let p of reviewDormDetail?.images; let i = index"
-                    [src]="p.image_url"
-                    alt="slide"
-                    class="carousel-slide"
-                    (click)="openImageModalReview(i)"
-                  />
+                  ">
+                  <img *ngFor="let p of reviewDormDetail?.images; let i = index" [src]="p.image_url" alt="slide"
+                    class="carousel-slide" (click)="openImageModalReview(i)" />
                 </div>
                 <!-- Controls -->
-                <button
-                  type="button"
-                  class="carousel-btn left rounded-lg"
-                  (click)="onPrevImage()"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    class="w-6 h-6"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M15 19l-7-7 7-7"
-                    />
+                <button type="button" class="carousel-btn left rounded-lg" (click)="onPrevImage()">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
-                <button
-                  type="button"
-                  class="carousel-btn right rounded-lg"
-                  (click)="onNextImage()"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    class="w-6 h-6"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M9 5l7 7-7 7"
-                    />
+                <button type="button" class="carousel-btn right rounded-lg" (click)="onNextImage()">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
               </div>
@@ -622,9 +384,7 @@
 
           <!-- ข้อมูลพื้นฐาน -->
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3
-              class="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b border-gray-200"
-            >
+            <h3 class="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b border-gray-200">
               ค่าใช้จ่าย
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -633,50 +393,38 @@
                 <div class="flex flex-col">
                   <span class="text-blue-700 font-medium mb-2">ค่าน้ำ</span>
                   <div class="font-bold text-blue-900 text-lg">
-                    <ng-container
-                      [ngSwitch]="
+                    <ng-container [ngSwitch]="
                         reviewDormDetail?.water_price_type ||
                         reviewDormDetail?.dormitory?.water_price_type
-                      "
-                    >
-                      <span *ngSwitchCase="'per_unit'"
-                        >{{
-                          reviewDormDetail?.water_price ||
-                            reviewDormDetail?.dormitory?.water_price
+                      ">
+                      <span *ngSwitchCase="'per_unit'">{{
+                        reviewDormDetail?.water_price ||
+                        reviewDormDetail?.dormitory?.water_price
                         }}
-                        บาท/หน่วย</span
-                      >
-                      <span *ngSwitchCase="'flat_rate'"
-                        >{{
-                          reviewDormDetail?.water_price ||
-                            reviewDormDetail?.dormitory?.water_price
+                        บาท/หน่วย</span>
+                      <span *ngSwitchCase="'flat_rate'">{{
+                        reviewDormDetail?.water_price ||
+                        reviewDormDetail?.dormitory?.water_price
                         }}
-                        บาท/เดือน</span
-                      >
-                      <span *ngSwitchCase="'คิดตามหน่วย (บาท/หน่วย)'"
-                        >{{
-                          reviewDormDetail?.water_price ||
-                            reviewDormDetail?.dormitory?.water_price
+                        บาท/เดือน</span>
+                      <span *ngSwitchCase="'คิดตามหน่วย (บาท/หน่วย)'">{{
+                        reviewDormDetail?.water_price ||
+                        reviewDormDetail?.dormitory?.water_price
                         }}
-                        บาท/หน่วย</span
-                      >
-                      <span *ngSwitchCase="'คิดรายเดือน (บาท/เดือน)'"
-                        >{{
-                          reviewDormDetail?.water_price ||
-                            reviewDormDetail?.dormitory?.water_price
+                        บาท/หน่วย</span>
+                      <span *ngSwitchCase="'เหมาจ่าย (บาท/เดือน)'">{{
+                        reviewDormDetail?.water_price ||
+                        reviewDormDetail?.dormitory?.water_price
                         }}
-                        บาท/เดือน</span
-                      >
-                      <span *ngSwitchCase="'ตามอัตราการประปา'"
-                        >ตามอัตราการประปา</span
-                      >
+                        บาท/เดือน</span>
+                      <span *ngSwitchCase="'ตามอัตราการประปา'">ตามอัตราการประปา</span>
                       <span *ngSwitchDefault>{{
                         reviewDormDetail?.water_price ||
                         reviewDormDetail?.dormitory?.water_price
-                          ? (reviewDormDetail?.water_price ||
-                              reviewDormDetail?.dormitory?.water_price) + " บาท"
-                          : "ไม่ระบุ"
-                      }}</span>
+                        ? (reviewDormDetail?.water_price ||
+                        reviewDormDetail?.dormitory?.water_price) + " บาท"
+                        : "ไม่ระบุ"
+                        }}</span>
                     </ng-container>
                   </div>
                 </div>
@@ -686,79 +434,42 @@
                 <div class="flex flex-col">
                   <span class="text-yellow-700 font-medium mb-2">ค่าไฟ</span>
                   <div class="font-bold text-yellow-900 text-lg">
-                    <ng-container
-                      *ngIf="
+                    <ng-container *ngIf="
                         reviewDormDetail?.electricity_price ||
                           reviewDormDetail?.dormitory?.electricity_price;
                         else noElec
-                      "
-                    >
+                      ">
                       {{
-                        reviewDormDetail?.electricity_price ||
-                          reviewDormDetail?.dormitory?.electricity_price
+                      reviewDormDetail?.electricity_price ||
+                      reviewDormDetail?.dormitory?.electricity_price
                       }}
                       บาท/หน่วย
                     </ng-container>
                     <ng-template #noElec>
                       {{
-                        (reviewDormDetail?.electricity_price_type ||
-                          reviewDormDetail?.dormitory
-                            ?.electricity_price_type) === "ตามอัตราการไฟฟ้า"
-                          ? "ตามอัตราการไฟฟ้า"
-                          : "ไม่ระบุ"
+                      (reviewDormDetail?.electricity_price_type ||
+                      reviewDormDetail?.dormitory
+                      ?.electricity_price_type) === "ตามอัตราการไฟฟ้า"
+                      ? "ตามอัตราการไฟฟ้า"
+                      : "ไม่ระบุ"
                       }}
                     </ng-template>
                   </div>
                 </div>
               </div>
             </div>
-
-            <!-- รายละเอียดคำบรรยายหอพัก -->
-            <div
-              class="mt-8 pt-6 border-t border-gray-100"
-              *ngIf="
-                reviewDormDetail?.dormitory?.dorm_description ||
-                reviewDormDetail?.dormitory?.description ||
-                reviewDormDetail?.dorm_description ||
-                reviewDormDetail?.description
-              "
-            >
-              <h4
-                class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3"
-              >
-                รายละเอียดเพิ่มเติม
-              </h4>
-              <p
-                class="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm"
-              >
-                {{
-                  reviewDormDetail?.dormitory?.dorm_description ||
-                    reviewDormDetail?.dormitory?.description ||
-                    reviewDormDetail?.dorm_description ||
-                    reviewDormDetail?.description
-                }}
-              </p>
-            </div>
           </div>
 
           <!-- ประเภทห้อง -->
-          <div
-            class="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
-            *ngIf="
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6" *ngIf="
               reviewDormDetail?.room_types &&
               reviewDormDetail.room_types.length > 0
-            "
-          >
-            <h3
-              class="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b border-gray-200"
-            >
+            ">
+            <h3 class="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b border-gray-200">
               ประเภทห้อง ({{ reviewDormDetail.room_types.length }} ประเภท)
             </h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div
-                *ngFor="let room of reviewDormDetail.room_types"
-                class="border border-gray-200 rounded-lg p-4"
-              >
+              <div *ngFor="let room of reviewDormDetail.room_types" class="border border-gray-200 rounded-lg p-4">
                 <div class="mb-3">
                   <h4 class="font-semibold text-gray-900">
                     {{ room.room_name || room.name || room.type || "—" }}
@@ -768,41 +479,21 @@
                   </p>
                 </div>
                 <div class="space-y-2">
-                  <div
-                    *ngIf="room.monthly_price"
-                    class="flex justify-between items-center text-sm"
-                  >
+                  <div *ngIf="room.monthly_price" class="flex justify-between items-center text-sm">
                     <span class="text-gray-600">รายเดือน</span>
-                    <span class="font-semibold text-gray-900"
-                      >{{ room.monthly_price | number }} ฿</span
-                    >
+                    <span class="font-semibold text-gray-900">{{ room.monthly_price | number }} ฿</span>
                   </div>
-                  <div
-                    *ngIf="room.daily_price"
-                    class="flex justify-between items-center text-sm"
-                  >
+                  <div *ngIf="room.daily_price" class="flex justify-between items-center text-sm">
                     <span class="text-gray-600">รายวัน</span>
-                    <span class="font-semibold text-gray-900"
-                      >{{ room.daily_price | number }} ฿</span
-                    >
+                    <span class="font-semibold text-gray-900">{{ room.daily_price | number }} ฿</span>
                   </div>
-                  <div
-                    *ngIf="room.term_price"
-                    class="flex justify-between items-center text-sm"
-                  >
+                  <div *ngIf="room.term_price" class="flex justify-between items-center text-sm">
                     <span class="text-gray-600">รายเทอม</span>
-                    <span class="font-semibold text-gray-900"
-                      >{{ room.term_price | number }} ฿</span
-                    >
+                    <span class="font-semibold text-gray-900">{{ room.term_price | number }} ฿</span>
                   </div>
-                  <div
-                    *ngIf="room.summer_price"
-                    class="flex justify-between items-center text-sm"
-                  >
+                  <div *ngIf="room.summer_price" class="flex justify-between items-center text-sm">
                     <span class="text-gray-600">ภาคร้อน</span>
-                    <span class="font-semibold text-gray-900"
-                      >{{ room.summer_price | number }} ฿</span
-                    >
+                    <span class="font-semibold text-gray-900">{{ room.summer_price | number }} ฿</span>
                   </div>
                 </div>
               </div>
@@ -811,17 +502,15 @@
 
           <!-- รายละเอียดหอพัก -->
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3
-              class="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b border-gray-200"
-            >
+            <h3 class="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b border-gray-200">
               รายละเอียดหอพัก
             </h3>
             <div class="prose prose-sm max-w-none">
               <p class="text-gray-700 leading-relaxed whitespace-pre-line">
                 {{
-                  reviewDormDetail?.dormitory?.dorm_description ||
-                    reviewDormDetail?.dorm_description ||
-                    "—"
+                reviewDormDetail?.dormitory?.dorm_description ||
+                reviewDormDetail?.dorm_description ||
+                "—"
                 }}
               </p>
             </div>
@@ -829,63 +518,24 @@
 
           <!-- สิ่งอำนวยความสะดวก -->
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3
-              class="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b border-gray-200"
-            >
+            <h3 class="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b border-gray-200">
               สิ่งอำนวยความสะดวก
             </h3>
 
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              <app-amenity-icon
-                *ngFor="let amenity of getAllAmenitiesWithStatus()"
-                [name]="amenity.name"
-                [available]="amenity.has"
-              >
+              <app-amenity-icon *ngFor="let amenity of getAllAmenitiesWithStatus()" [name]="amenity.name"
+                [available]="amenity.has">
               </app-amenity-icon>
             </div>
           </div>
 
           <!-- ตำแหน่งหอพัก -->
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3
-              class="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b border-gray-200"
-            >
+            <h3 class="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b border-gray-200">
               ตำแหน่งหอพัก
             </h3>
 
-            <!-- พิกัด (Latitude/Longitude) -->
-            <div
-              class="mb-4 flex flex-wrap gap-4 text-sm text-gray-600 font-medium"
-            >
-              <div
-                class="bg-gray-100 px-3 py-1.5 rounded-lg flex items-center shadow-sm"
-              >
-                <span class="text-blue-600 mr-2"
-                  ><i class="fas fa-location-dot"></i> Lat:</span
-                >
-                <span class="text-gray-900">{{
-                  reviewDormDetail?.dormitory?.latitude ||
-                    reviewDormDetail?.latitude ||
-                    "—"
-                }}</span>
-              </div>
-              <div
-                class="bg-gray-100 px-3 py-1.5 rounded-lg flex items-center shadow-sm"
-              >
-                <span class="text-blue-600 mr-2"
-                  ><i class="fas fa-location-dot"></i> Long:</span
-                >
-                <span class="text-gray-900">{{
-                  reviewDormDetail?.dormitory?.longitude ||
-                    reviewDormDetail?.longitude ||
-                    "—"
-                }}</span>
-              </div>
-            </div>
-
-            <div
-              class="w-full h-[500px] md:h-[600px] rounded-lg overflow-hidden border border-gray-200 mb-4"
-            >
+            <div class="w-full h-[500px] md:h-[600px] rounded-lg overflow-hidden border border-gray-200 mb-4">
               <div id="preview-map" class="w-full h-full"></div>
             </div>
 
@@ -894,40 +544,28 @@
           <!-- ปุ่มอนุมัติ/แก้ไข/ไม่อนุมัติ/อนุมัติใหม่อีกครั้ง -->
           <div class="mt-8 flex justify-center gap-4">
             <!-- ปฏิเสธ (แสดงเฉพาะเมื่อยังไม่ถูกปฏิเสธ) -->
-            <button
-              *ngIf="
+            <button *ngIf="
                 reviewDormDetail?.dormitory?.approval_status !== 'rejected'
-              "
-              type="button"
-              (click)="rejectDormitory()"
-              class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
-            >
+              " type="button" (click)="rejectDormitory()"
+              class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
               ไม่อนุมัติ
             </button>
-            <button
-              type="button"
-              (click)="editDormitory(reviewDormDetail?.dormitory?.dorm_id)"
-              class="px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors font-medium"
-            >
+            <button type="button" (click)="editDormitory(reviewDormDetail?.dormitory?.dorm_id)"
+              class="px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors font-medium">
               แก้ไขข้อมูล
             </button>
             <!-- อนุมัติ (แสดงเฉพาะเมื่อยังไม่อนุมัติ) -->
-            <button
-              *ngIf="
+            <button *ngIf="
                 reviewDormDetail?.dormitory?.approval_status !== 'approved'
-              "
-              type="button"
-              (click)="
+              " type="button" (click)="
                 reviewDormDetail?.dormitory?.approval_status === 'rejected'
                   ? reApproveDormFromReview()
                   : approveDormitory()
-              "
-              class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-            >
+              " class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
               {{
-                reviewDormDetail?.dormitory?.approval_status === "rejected"
-                  ? "อนุมัติใหม่อีกครั้ง"
-                  : "อนุมัติ"
+              reviewDormDetail?.dormitory?.approval_status === "rejected"
+              ? "อนุมัติใหม่อีกครั้ง"
+              : "อนุมัติ"
               }}
             </button>
           </div>
@@ -935,209 +573,115 @@
 
         <!-- Image Fullscreen Modal -->
         <div *ngIf="imageModalOpen" class="fixed inset-0 z-50">
-          <div
-            class="absolute inset-0 bg-black/70"
-            (click)="closeImageModalReview()"
-          ></div>
+          <div class="absolute inset-0 bg-black/70" (click)="closeImageModalReview()"></div>
           <div class="absolute inset-0 flex items-center justify-center p-4">
-            <button
-              type="button"
-              (click)="closeImageModalReview()"
-              class="absolute top-4 right-4 text-white p-3 hover:bg-white/10 rounded-lg transition-colors z-10"
-            >
+            <button type="button" (click)="closeImageModalReview()"
+              class="absolute top-4 right-4 text-white p-3 hover:bg-white/10 rounded-lg transition-colors z-10">
               <span class="material-symbols-rounded text-3xl">close</span>
             </button>
 
             <!-- Prev -->
-            <button
-              type="button"
-              (click)="prevModalImage()"
-              class="absolute left-6 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-3 shadow rounded-lg transition-colors z-10"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                class="w-6 h-6"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 19l-7-7 7-7"
-                />
+            <button type="button" (click)="prevModalImage()"
+              class="absolute left-6 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-3 shadow rounded-lg transition-colors z-10">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
 
             <!-- Next -->
-            <button
-              type="button"
-              (click)="nextModalImage()"
-              class="absolute right-6 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-3 shadow rounded-lg transition-colors z-10"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                class="w-6 h-6"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 5l7 7-7 7"
-                />
+            <button type="button" (click)="nextModalImage()"
+              class="absolute right-6 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-3 shadow rounded-lg transition-colors z-10">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
             </button>
 
-            <img
-              [src]="reviewDormDetail?.images?.[imageModalIndex]?.image_url"
+            <img [src]="reviewDormDetail?.images?.[imageModalIndex]?.image_url"
               [alt]="'รูปภาพหอพัก ' + (imageModalIndex + 1)"
-              class="max-h-[85vh] max-w-[92vw] object-contain select-none"
-            />
+              class="max-h-[85vh] max-w-[92vw] object-contain select-none" />
           </div>
         </div>
       </ng-container>
 
       <!-- Bulk Actions Bar -->
       <div
+        *ngIf="!reviewDormDetail"
         class="mb-6 bg-white border border-gray-200 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between shadow-sm transition-all duration-300 gap-4"
-        [ngClass]="{ 'bg-blue-50 border-blue-200': selectedDorms.length > 0 }"
-      >
+        [ngClass]="{ 'bg-blue-50 border-blue-200': selectedDorms.length > 0 }">
         <div class="flex items-center">
-          <div
-            class="p-2 rounded-lg mr-4"
-            [ngClass]="
+          <div class="p-2 rounded-lg mr-4" [ngClass]="
               selectedDorms.length > 0
                 ? 'bg-blue-100 text-blue-600'
                 : 'bg-gray-100 text-gray-400'
-            "
-          >
-            <svg
-              class="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-              ></path>
+            ">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4">
+              </path>
             </svg>
           </div>
           <div>
-            <p
-              class="text-sm font-semibold"
-              [ngClass]="
+            <p class="text-sm font-semibold" [ngClass]="
                 selectedDorms.length > 0 ? 'text-blue-900' : 'text-gray-500'
-              "
-            >
+              ">
               {{
-                selectedDorms.length > 0
-                  ? "เลือกแล้ว " + selectedDorms.length + " รายการ"
-                  : "เลือกรายการในตารางเพื่อจัดการหลายรายการพร้อมกัน"
+              selectedDorms.length > 0
+              ? "เลือกแล้ว " + selectedDorms.length + " รายการ"
+              : "เลือกรายการในตารางเพื่อจัดการหลายรายการพร้อมกัน"
               }}
             </p>
-            <p
-              class="text-xs"
-              [ngClass]="
+            <p class="text-xs" [ngClass]="
                 selectedDorms.length > 0 ? 'text-blue-700' : 'text-gray-400'
-              "
-            >
+              ">
               {{
-                selectedDorms.length > 0
-                  ? "เลือกการกระทำที่ต้องการจัดการข้อมูลที่เลือก"
-                  : "คุณสามารถ อนุมัติ, ไม่อนุมัติ หรือ ลบ ข้อมูลจำนวนมากได้ที่นี่"
+              selectedDorms.length > 0
+              ? "เลือกการกระทำที่ต้องการจัดการข้อมูลที่เลือก"
+              : "คุณสามารถ อนุมัติ, ไม่อนุมัติ หรือ ลบ ข้อมูลจำนวนมากได้ที่นี่"
               }}
             </p>
           </div>
         </div>
         <div class="flex flex-wrap gap-2 w-full sm:w-auto justify-end">
           <!-- Pending/Rejected Specific Actions -->
-          <button
-            *ngIf="
+          <button *ngIf="
               (selectedTab === 'pending' || selectedTab === 'rejected') &&
               selectedDorms.length > 0
-            "
-            (click)="approveSelectedDorms()"
-            class="flex-1 sm:flex-none px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center justify-center"
-          >
-            <svg
-              class="w-4 h-4 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M5 13l4 4L19 7"
-              ></path>
+            " (click)="approveSelectedDorms()"
+            class="flex-1 sm:flex-none px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center justify-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
             </svg>
             {{ selectedTab === "rejected" ? "อนุมัติใหม่" : "อนุมัติที่เลือก" }}
           </button>
 
-          <button
-            *ngIf="selectedTab === 'pending' && selectedDorms.length > 0"
-            (click)="rejectSelectedDorms()"
-            class="flex-1 sm:flex-none px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium flex items-center justify-center"
-          >
-            <svg
-              class="w-4 h-4 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              ></path>
+          <button *ngIf="selectedTab === 'pending' && selectedDorms.length > 0" (click)="rejectSelectedDorms()"
+            class="flex-1 sm:flex-none px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium flex items-center justify-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
             ไม่อนุมัติที่เลือก
           </button>
 
           <!-- Common Actions -->
-          <button
-            *ngIf="selectedDorms.length > 0"
-            (click)="deleteSelectedDorms()"
-            class="flex-1 sm:flex-none px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium flex items-center justify-center"
-          >
-            <svg
-              class="w-4 h-4 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              ></path>
+          <button *ngIf="selectedDorms.length > 0" (click)="deleteSelectedDorms()"
+            class="flex-1 sm:flex-none px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium flex items-center justify-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+              </path>
             </svg>
             ลบที่เลือก
           </button>
 
           <!-- Placeholder/Empty state info -->
-          <div
-            *ngIf="selectedDorms.length === 0"
-            class="text-xs text-gray-400 italic py-2"
-          >
+          <div *ngIf="selectedDorms.length === 0" class="text-xs text-gray-400 italic py-2">
             ยังไม่มีรายการที่เลือก
           </div>
 
-          <button
-            *ngIf="selectedDorms.length > 0"
-            (click)="selectedDorms = []"
-            class="px-4 py-2 text-gray-500 hover:text-gray-700 text-sm font-medium"
-          >
+          <button *ngIf="selectedDorms.length > 0" (click)="selectedDorms = []"
+            class="px-4 py-2 text-gray-500 hover:text-gray-700 text-sm font-medium">
             ยกเลิก
           </button>
         </div>
@@ -1146,10 +690,7 @@
       <!-- STEP 2 REVIEW CONTENT -->
 
       <!-- Approved Dormitories Section -->
-      <div
-        *ngIf="selectedTab === 'all'"
-        class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
-      >
+      <div *ngIf="selectedTab === 'all'" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
           <div class="flex items-center justify-between">
             <div>
@@ -1165,30 +706,16 @@
 
         <!-- Loading State -->
         <div *ngIf="isLoading" class="flex justify-center items-center py-12">
-          <div
-            class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
-          ></div>
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           <span class="ml-3 text-gray-600">กำลังโหลดข้อมูล...</span>
         </div>
 
         <!-- Error State -->
-        <div
-          *ngIf="errorMessage && !isLoading"
-          class="px-6 py-4 bg-red-50 border border-red-200 rounded-lg mx-6 mb-4"
-        >
+        <div *ngIf="errorMessage && !isLoading" class="px-6 py-4 bg-red-50 border border-red-200 rounded-lg mx-6 mb-4">
           <div class="flex items-center">
-            <svg
-              class="w-5 h-5 text-red-400 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              ></path>
+            <svg class="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
             <span class="text-red-700">{{ errorMessage }}</span>
           </div>
@@ -1198,72 +725,43 @@
           <table class="w-full table-fixed">
             <thead class="bg-gray-50">
               <tr>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12"
-                >
-                  <input
-                    type="checkbox"
-                    [checked]="areAllCurrentDormsSelected"
-                    (change)="toggleSelectAll()"
-                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                  <input type="checkbox" [checked]="areAllCurrentDormsSelected" (change)="toggleSelectAll()"
+                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
                 </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
-                >
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                   รูปภาพ
                 </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4"
-                >
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">
                   ชื่อหอพัก
                 </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5"
-                >
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">
                   เจ้าของ
                 </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
-                >
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                   โซน
                 </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28"
-                >
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
                   วันที่เพิ่ม
                 </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40"
-                >
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
                   การจัดการ
                 </th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr
-                *ngFor="let dorm of getApprovedDorms()"
-                class="hover:bg-gray-50 transition-colors duration-200"
-              >
+              <tr *ngFor="let dorm of getApprovedDorms()" class="hover:bg-gray-50 transition-colors duration-200">
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <input
-                    type="checkbox"
-                    [checked]="isDormSelected(dorm.dorm_id)"
+                  <input type="checkbox" [checked]="isDormSelected(dorm.dorm_id)"
                     (change)="toggleDormSelection(dorm.dorm_id)"
-                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
+                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <img
-                    [src]="dorm.main_image_url || dorm.thumbnail_url || 'assets/images/photo.png'"
-                    [attr.data-main-image]="dorm.main_image_url"
-                    [attr.data-thumbnail]="dorm.thumbnail_url"
-                    [attr.data-fallback]="'assets/images/photo.png'"
+                  <img [src]="dorm.main_image_url || dorm.thumbnail_url || 'assets/images/photo.png'"
                     [alt]="dorm.dorm_name"
                     class="w-16 h-16 rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity duration-200"
                     (click)="showImageModal(dorm.main_image_url || dorm.thumbnail_url || 'assets/images/photo.png', dorm.dorm_name)"
-                    (error)="onImageError($event)"
-                  />
+                    (error)="onImageError($event)" />
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm font-medium text-gray-900">
@@ -1287,18 +785,14 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div class="flex space-x-2">
-                    <button
-                      (click)="editDormitory(dorm.dorm_id)"
-                      class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
-                    >
+                    <button (click)="editDormitory(dorm.dorm_id)"
+                      class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200">
                       แก้ไข
                     </button>
-                    <button
-                      (click)="
+                    <button (click)="
                         deleteDormitoryWithCheck(dorm.dorm_id, dorm.dorm_name)
                       "
-                      class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200"
-                    >
+                      class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200">
                       ลบ
                     </button>
                   </div>
@@ -1311,12 +805,8 @@
         <div *ngIf="!isLoading" class="md:hidden divide-y divide-gray-200">
           <div *ngFor="let dorm of getApprovedDorms()" class="p-4">
             <div class="flex items-center">
-              <img
-                [src]="dorm.main_image_url || 'assets/images/photo.png'"
-                [alt]="dorm.dorm_name"
-                class="w-16 h-16 rounded-lg object-cover mr-3"
-                (error)="onImageError($event)"
-              />
+              <img [src]="dorm.main_image_url || 'assets/images/photo.png'" [alt]="dorm.dorm_name"
+                class="w-16 h-16 rounded-lg object-cover mr-3" (error)="onImageError($event)" />
               <div class="flex-1">
                 <div class="font-medium text-gray-900">
                   {{ dorm.dorm_name }}
@@ -1331,16 +821,11 @@
               </div>
             </div>
             <div class="flex gap-2 mt-3">
-              <button
-                (click)="editDormitory(dorm.dorm_id)"
-                class="flex-1 bg-blue-600 text-white py-2 rounded-lg"
-              >
+              <button (click)="editDormitory(dorm.dorm_id)" class="flex-1 bg-blue-600 text-white py-2 rounded-lg">
                 แก้ไข
               </button>
-              <button
-                (click)="deleteDormitoryWithCheck(dorm.dorm_id, dorm.dorm_name)"
-                class="flex-1 bg-red-600 text-white py-2 rounded-lg"
-              >
+              <button (click)="deleteDormitoryWithCheck(dorm.dorm_id, dorm.dorm_name)"
+                class="flex-1 bg-red-600 text-white py-2 rounded-lg">
                 ลบ
               </button>
             </div>
@@ -1349,10 +834,8 @@
       </div>
 
       <!-- Pending Approval Section -->
-      <div
-        *ngIf="selectedTab === 'pending'"
-        class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
-      >
+      <div *ngIf="selectedTab === 'pending'"
+        class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
           <div class="flex items-center justify-between">
             <div>
@@ -1368,30 +851,16 @@
 
         <!-- Loading State -->
         <div *ngIf="isLoading" class="flex justify-center items-center py-12">
-          <div
-            class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
-          ></div>
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           <span class="ml-3 text-gray-600">กำลังโหลดข้อมูล...</span>
         </div>
 
         <!-- Error State -->
-        <div
-          *ngIf="errorMessage && !isLoading"
-          class="px-6 py-4 bg-red-50 border border-red-200 rounded-lg mx-6 mb-4"
-        >
+        <div *ngIf="errorMessage && !isLoading" class="px-6 py-4 bg-red-50 border border-red-200 rounded-lg mx-6 mb-4">
           <div class="flex items-center">
-            <svg
-              class="w-5 h-5 text-red-400 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              ></path>
+            <svg class="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
             <span class="text-red-700">{{ errorMessage }}</span>
           </div>
@@ -1401,72 +870,43 @@
           <table class="w-full table-fixed">
             <thead class="bg-gray-50">
               <tr>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12"
-                >
-                  <input
-                    type="checkbox"
-                    [checked]="areAllCurrentDormsSelected"
-                    (change)="toggleSelectAll()"
-                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                  <input type="checkbox" [checked]="areAllCurrentDormsSelected" (change)="toggleSelectAll()"
+                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
                 </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
-                >
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                   รูปภาพ
                 </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4"
-                >
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">
                   ชื่อหอพัก
                 </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5"
-                >
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">
                   เจ้าของ
                 </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
-                >
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                   โซน
                 </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28"
-                >
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
                   วันที่ส่ง
                 </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40"
-                >
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
                   การจัดการ
                 </th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr
-                *ngFor="let dorm of getPendingDorms()"
-                class="hover:bg-gray-50 transition-colors duration-200"
-              >
+              <tr *ngFor="let dorm of getPendingDorms()" class="hover:bg-gray-50 transition-colors duration-200">
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <input
-                    type="checkbox"
-                    [checked]="isDormSelected(dorm.dorm_id)"
+                  <input type="checkbox" [checked]="isDormSelected(dorm.dorm_id)"
                     (change)="toggleDormSelection(dorm.dorm_id)"
-                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
+                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <img
-                    [src]="dorm.main_image_url || dorm.thumbnail_url || 'assets/images/photo.png'"
-                    [attr.data-main-image]="dorm.main_image_url"
-                    [attr.data-thumbnail]="dorm.thumbnail_url"
-                    [attr.data-fallback]="'assets/images/photo.png'"
+                  <img [src]="dorm.main_image_url || dorm.thumbnail_url || 'assets/images/photo.png'"
                     [alt]="dorm.dorm_name"
                     class="w-16 h-16 rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity duration-200"
                     (click)="showImageModal(dorm.main_image_url || dorm.thumbnail_url || 'assets/images/photo.png', dorm.dorm_name)"
-                    (error)="onImageError($event)"
-                  />
+                    (error)="onImageError($event)" />
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm font-medium text-gray-900">
@@ -1490,16 +930,12 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div class="flex gap-2">
-                    <button
-                      (click)="reviewDormitory(dorm.dorm_id)"
-                      class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-xs"
-                    >
+                    <button (click)="reviewDormitory(dorm.dorm_id)"
+                      class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-xs">
                       ตรวจสอบ
                     </button>
-                    <button
-                      (click)="editDormitory(dorm.dorm_id)"
-                      class="bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 transition-colors duration-200 text-xs"
-                    >
+                    <button (click)="editDormitory(dorm.dorm_id)"
+                      class="bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 transition-colors duration-200 text-xs">
                       แก้ไข
                     </button>
                   </div>
@@ -1512,12 +948,8 @@
         <div *ngIf="!isLoading" class="md:hidden divide-y divide-gray-200">
           <div *ngFor="let dorm of getPendingDorms()" class="p-4">
             <div class="flex items-center">
-              <img
-                [src]="dorm.main_image_url || 'assets/images/photo.png'"
-                [alt]="dorm.dorm_name"
-                class="w-16 h-16 rounded-lg object-cover mr-3"
-                (error)="onImageError($event)"
-              />
+              <img [src]="dorm.main_image_url || 'assets/images/photo.png'" [alt]="dorm.dorm_name"
+                class="w-16 h-16 rounded-lg object-cover mr-3" (error)="onImageError($event)" />
               <div class="flex-1">
                 <div class="font-medium text-gray-900">
                   {{ dorm.dorm_name }}
@@ -1532,16 +964,12 @@
               </div>
             </div>
             <div class="mt-3 flex gap-2">
-              <button
-                (click)="reviewDormitory(dorm.dorm_id)"
-                class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm"
-              >
+              <button (click)="reviewDormitory(dorm.dorm_id)"
+                class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm">
                 ตรวจสอบ
               </button>
-              <button
-                (click)="editDormitory(dorm.dorm_id)"
-                class="flex-1 bg-yellow-500 text-white py-2 rounded-lg text-sm"
-              >
+              <button (click)="editDormitory(dorm.dorm_id)"
+                class="flex-1 bg-yellow-500 text-white py-2 rounded-lg text-sm">
                 แก้ไข
               </button>
             </div>
@@ -1550,10 +978,8 @@
       </div>
 
       <!-- Rejected Dormitories Section -->
-      <div
-        *ngIf="selectedTab === 'rejected'"
-        class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
-      >
+      <div *ngIf="selectedTab === 'rejected'"
+        class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
           <div class="flex items-center justify-between">
             <div>
@@ -1569,30 +995,16 @@
 
         <!-- Loading State -->
         <div *ngIf="isLoading" class="flex justify-center items-center py-12">
-          <div
-            class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
-          ></div>
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           <span class="ml-3 text-gray-600">กำลังโหลดข้อมูล...</span>
         </div>
 
         <!-- Error State -->
-        <div
-          *ngIf="errorMessage && !isLoading"
-          class="px-6 py-4 bg-red-50 border border-red-200 rounded-lg mx-6 mb-4"
-        >
+        <div *ngIf="errorMessage && !isLoading" class="px-6 py-4 bg-red-50 border border-red-200 rounded-lg mx-6 mb-4">
           <div class="flex items-center">
-            <svg
-              class="w-5 h-5 text-red-400 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              ></path>
+            <svg class="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
             <span class="text-red-700">{{ errorMessage }}</span>
           </div>
@@ -1602,72 +1014,43 @@
           <table class="w-full table-fixed">
             <thead class="bg-gray-50">
               <tr>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12"
-                >
-                  <input
-                    type="checkbox"
-                    [checked]="areAllCurrentDormsSelected"
-                    (change)="toggleSelectAll()"
-                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                  <input type="checkbox" [checked]="areAllCurrentDormsSelected" (change)="toggleSelectAll()"
+                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
                 </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
-                >
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                   รูปภาพ
                 </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4"
-                >
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">
                   ชื่อหอพัก
                 </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5"
-                >
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">
                   เจ้าของ
                 </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
-                >
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                   โซน
                 </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28"
-                >
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
                   วันที่ส่ง
                 </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40"
-                >
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
                   การจัดการ
                 </th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr
-                *ngFor="let dorm of getRejectedDorms()"
-                class="hover:bg-gray-50 transition-colors duration-200"
-              >
+              <tr *ngFor="let dorm of getRejectedDorms()" class="hover:bg-gray-50 transition-colors duration-200">
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <input
-                    type="checkbox"
-                    [checked]="isDormSelected(dorm.dorm_id)"
+                  <input type="checkbox" [checked]="isDormSelected(dorm.dorm_id)"
                     (change)="toggleDormSelection(dorm.dorm_id)"
-                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
+                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <img
-                    [src]="dorm.main_image_url || dorm.thumbnail_url || 'assets/images/photo.png'"
-                    [attr.data-main-image]="dorm.main_image_url"
-                    [attr.data-thumbnail]="dorm.thumbnail_url"
-                    [attr.data-fallback]="'assets/images/photo.png'"
+                  <img [src]="dorm.main_image_url || dorm.thumbnail_url || 'assets/images/photo.png'"
                     [alt]="dorm.dorm_name"
                     class="w-16 h-16 rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity duration-200"
                     (click)="showImageModal(dorm.main_image_url || dorm.thumbnail_url || 'assets/images/photo.png', dorm.dorm_name)"
-                    (error)="onImageError($event)"
-                  />
+                    (error)="onImageError($event)" />
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm font-medium text-gray-900">
@@ -1691,16 +1074,12 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div class="flex gap-2">
-                    <button
-                      (click)="reviewDormitory(dorm.dorm_id)"
-                      class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-xs"
-                    >
+                    <button (click)="reviewDormitory(dorm.dorm_id)"
+                      class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-xs">
                       ตรวจสอบ
                     </button>
-                    <button
-                      (click)="editDormitory(dorm.dorm_id)"
-                      class="bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 transition-colors duration-200 text-xs"
-                    >
+                    <button (click)="editDormitory(dorm.dorm_id)"
+                      class="bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 transition-colors duration-200 text-xs">
                       แก้ไข
                     </button>
                   </div>
@@ -1713,12 +1092,8 @@
         <div *ngIf="!isLoading" class="md:hidden divide-y divide-gray-200">
           <div *ngFor="let dorm of getRejectedDorms()" class="p-4">
             <div class="flex items-center">
-              <img
-                [src]="dorm.main_image_url || 'assets/images/photo.png'"
-                [alt]="dorm.dorm_name"
-                class="w-16 h-16 rounded-lg object-cover mr-3"
-                (error)="onImageError($event)"
-              />
+              <img [src]="dorm.main_image_url || 'assets/images/photo.png'" [alt]="dorm.dorm_name"
+                class="w-16 h-16 rounded-lg object-cover mr-3" (error)="onImageError($event)" />
               <div class="flex-1">
                 <div class="font-medium text-gray-900">
                   {{ dorm.dorm_name }}
@@ -1733,16 +1108,12 @@
               </div>
             </div>
             <div class="mt-3 flex gap-2">
-              <button
-                (click)="reviewDormitory(dorm.dorm_id)"
-                class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm"
-              >
+              <button (click)="reviewDormitory(dorm.dorm_id)"
+                class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm">
                 ตรวจสอบ
               </button>
-              <button
-                (click)="editDormitory(dorm.dorm_id)"
-                class="flex-1 bg-yellow-500 text-white py-2 rounded-lg text-sm"
-              >
+              <button (click)="editDormitory(dorm.dorm_id)"
+                class="flex-1 bg-yellow-500 text-white py-2 rounded-lg text-sm">
                 แก้ไข
               </button>
             </div>
@@ -1752,73 +1123,45 @@
     </div>
 
     <!-- Toast Notification -->
-    <div
-      *ngIf="showToast"
+    <div *ngIf="showToast"
       class="fixed top-4 right-4 z-50 max-w-sm w-full bg-white rounded-lg shadow-lg border-l-4 p-4 transform transition-all duration-300 ease-in-out"
       [ngClass]="{
         'border-green-500': toastType === 'success',
         'border-red-500': toastType === 'error',
         'border-blue-500': toastType === 'info',
-      }"
-      (click)="hideToast()"
-    >
+      }" (click)="hideToast()">
       <div class="flex items-start">
         <div class="flex-shrink-0">
           <!-- Success Icon -->
-          <svg
-            *ngIf="toastType === 'success'"
-            class="w-5 h-5 text-green-500"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fill-rule="evenodd"
+          <svg *ngIf="toastType === 'success'" class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd"
               d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-              clip-rule="evenodd"
-            ></path>
+              clip-rule="evenodd"></path>
           </svg>
           <!-- Error Icon -->
-          <svg
-            *ngIf="toastType === 'error'"
-            class="w-5 h-5 text-red-500"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fill-rule="evenodd"
+          <svg *ngIf="toastType === 'error'" class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd"
               d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-              clip-rule="evenodd"
-            ></path>
+              clip-rule="evenodd"></path>
           </svg>
           <!-- Info Icon -->
-          <svg
-            *ngIf="toastType === 'info'"
-            class="w-5 h-5 text-blue-500"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fill-rule="evenodd"
+          <svg *ngIf="toastType === 'info'" class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd"
               d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-              clip-rule="evenodd"
-            ></path>
+              clip-rule="evenodd"></path>
           </svg>
         </div>
         <div class="ml-3 w-0 flex-1">
           <p class="text-sm font-medium text-gray-900">{{ toastMessage }}</p>
         </div>
         <div class="ml-4 flex-shrink-0 flex">
-          <button
-            (click)="hideToast()"
-            class="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
+          <button (click)="hideToast()"
+            class="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
             <span class="sr-only">ปิด</span>
             <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path
-                fill-rule="evenodd"
+              <path fill-rule="evenodd"
                 d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                clip-rule="evenodd"
-              ></path>
+                clip-rule="evenodd"></path>
             </svg>
           </button>
         </div>
@@ -1826,49 +1169,27 @@
     </div>
 
     <!-- Profile Modal -->
-    <div
-      *ngIf="showProfileModalFlag"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      (click)="closeProfileModal()"
-    >
-      <div
-        class="bg-white rounded-xl p-6 max-w-md w-full mx-4"
-        (click)="$event.stopPropagation()"
-      >
+    <div *ngIf="showProfileModalFlag" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      (click)="closeProfileModal()">
+      <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4" (click)="$event.stopPropagation()">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold text-gray-900">ข้อมูลผู้ดูแลระบบ</h3>
-          <button
-            (click)="closeProfileModal()"
-            class="text-gray-400 hover:text-gray-600"
-          >
-            <svg
-              class="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              ></path>
+          <button (click)="closeProfileModal()" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </button>
         </div>
 
         <div class="text-center">
-          <img
-            [src]="getAdminAvatarUrl()"
-            [alt]="adminProfile?.displayName || 'Admin Avatar'"
+          <img [src]="getAdminAvatarUrl()" [alt]="adminProfile?.displayName || 'Admin Avatar'"
             class="w-20 h-20 rounded-full mx-auto mb-4 object-cover border-4 border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
             (click)="
               showImageModal(
                 getAdminAvatarUrl(),
                 adminProfile?.displayName || 'Admin Avatar'
               )
-            "
-          />
+            " />
 
           <h4 class="text-xl font-semibold text-gray-900 mb-2">
             {{ adminProfile?.displayName || "Admin" }}
@@ -1882,10 +1203,7 @@
 
           <!-- Mobile-only Logout Button inside the card -->
           <div class="mt-5 md:hidden">
-            <button
-              (click)="onLogout()"
-              class="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg"
-            >
+            <button (click)="onLogout()" class="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg">
               ออกจากระบบ
             </button>
           </div>
@@ -1894,54 +1212,29 @@
     </div>
 
     <!-- Image Modal -->
-    <div
-      *ngIf="showImageModalFlag"
-      class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
-      (click)="closeImageModal()"
-    >
+    <div *ngIf="showImageModalFlag" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+      (click)="closeImageModal()">
       <div class="max-w-4xl max-h-full p-4" (click)="$event.stopPropagation()">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold text-white">
             {{ selectedImageTitle }}
           </h3>
-          <button
-            (click)="closeImageModal()"
-            class="text-white hover:text-gray-300"
-          >
-            <svg
-              class="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              ></path>
+          <button (click)="closeImageModal()" class="text-white hover:text-gray-300">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </button>
         </div>
 
-        <img
-          [src]="selectedImageUrl"
-          [alt]="selectedImageTitle"
-          class="max-w-full max-h-[80vh] rounded-lg object-contain"
-        />
+        <img [src]="selectedImageUrl" [alt]="selectedImageTitle"
+          class="max-w-full max-h-[80vh] rounded-lg object-contain" />
       </div>
     </div>
 
     <!-- Rejection Reason Modal -->
-    <div
-      *ngIf="showRejectionModal"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-      (click)="cancelRejection()"
-    >
-      <div
-        class="bg-white rounded-lg p-6 w-full max-w-md mx-4"
-        (click)="$event.stopPropagation()"
-      >
+    <div *ngIf="showRejectionModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+      (click)="cancelRejection()">
+      <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4" (click)="$event.stopPropagation()">
         <div class="mb-4">
           <h3 class="text-lg font-semibold text-gray-800 mb-2">
             ไม่อนุมัติหอพัก
@@ -1952,26 +1245,17 @@
         </div>
 
         <div class="mb-6">
-          <textarea
-            [(ngModel)]="rejectionReason"
-            placeholder="ระบุเหตุผล... (ไม่บังคับ)"
-            class="w-full h-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
-          ></textarea>
+          <textarea [(ngModel)]="rejectionReason" placeholder="ระบุเหตุผล... (ไม่บังคับ)"
+            class="w-full h-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"></textarea>
         </div>
 
         <div class="flex justify-end gap-3">
-          <button
-            type="button"
-            (click)="cancelRejection()"
-            class="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-          >
+          <button type="button" (click)="cancelRejection()"
+            class="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
             ยกเลิก
           </button>
-          <button
-            type="button"
-            (click)="confirmRejection()"
-            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
+          <button type="button" (click)="confirmRejection()"
+            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
             ยืนยันไม่อนุมัติ
           </button>
         </div>
@@ -1979,33 +1263,21 @@
     </div>
 
     <!-- Success Modal -->
-    <div
-      *ngIf="showSuccessModal"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-      (click)="closeSuccessModal()"
-    >
-      <div
-        class="bg-white rounded-lg p-6 w-full max-w-md mx-4"
-        (click)="$event.stopPropagation()"
-      >
+    <div *ngIf="showSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+      (click)="closeSuccessModal()">
+      <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4" (click)="$event.stopPropagation()">
         <div class="text-center">
           <!-- Success Icon -->
-          <div
-            class="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4"
-            [ngClass]="{
+          <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4" [ngClass]="{
               'bg-green-100': successType === 'approve',
               'bg-red-100':
                 successType === 'reject' || successType === 'delete',
-            }"
-          >
-            <i
-              class="fas fa-check text-2xl"
-              [ngClass]="{
+            }">
+            <i class="fas fa-check text-2xl" [ngClass]="{
                 'text-green-600': successType === 'approve',
                 'text-red-600':
                   successType === 'reject' || successType === 'delete',
-              }"
-            ></i>
+              }"></i>
           </div>
 
           <!-- Message -->
@@ -2015,23 +1287,14 @@
 
           <!-- Description -->
           <p class="text-sm text-gray-500 mb-6">
-            <span *ngIf="successType === 'approve'"
-              >หอพักได้รับการอนุมัติเรียบร้อยแล้ว</span
-            >
-            <span *ngIf="successType === 'reject'"
-              >หอพักถูกปฏิเสธการอนุมัติเรียบร้อยแล้ว</span
-            >
-            <span *ngIf="successType === 'delete'"
-              >หอพักถูกลบออกจากระบบเรียบร้อยแล้ว</span
-            >
+            <span *ngIf="successType === 'approve'">หอพักได้รับการอนุมัติเรียบร้อยแล้ว</span>
+            <span *ngIf="successType === 'reject'">หอพักถูกปฏิเสธการอนุมัติเรียบร้อยแล้ว</span>
+            <span *ngIf="successType === 'delete'">หอพักถูกลบออกจากระบบเรียบร้อยแล้ว</span>
           </p>
 
           <!-- Close Button -->
-          <button
-            type="button"
-            (click)="closeSuccessModal()"
-            class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
+          <button type="button" (click)="closeSuccessModal()"
+            class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
             ตกลง
           </button>
         </div>
@@ -2039,24 +1302,16 @@
     </div>
 
     <!-- Delete Confirmation Modal -->
-    <div
-      *ngIf="showDeleteModal"
+    <div *ngIf="showDeleteModal"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
-      (click)="cancelDelete()"
-    >
-      <div
-        class="bg-white rounded-2xl p-8 w-full max-w-lg mx-4 relative shadow-2xl border border-red-100"
-        (click)="$event.stopPropagation()"
-      >
+      (click)="cancelDelete()">
+      <div class="bg-white rounded-2xl p-8 w-full max-w-lg mx-4 relative shadow-2xl border border-red-100"
+        (click)="$event.stopPropagation()">
         <!-- Loading Overlay -->
-        <div
-          *ngIf="isDeleting"
-          class="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center rounded-2xl z-10 backdrop-blur-sm"
-        >
+        <div *ngIf="isDeleting"
+          class="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center rounded-2xl z-10 backdrop-blur-sm">
           <div class="text-center">
-            <div
-              class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4"
-            >
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
               <i class="fas fa-spinner fa-spin text-2xl text-red-600"></i>
             </div>
             <p class="text-base font-medium text-gray-700 mb-2">
@@ -2069,16 +1324,13 @@
         <div class="text-center">
           <!-- Warning Icon with Animation -->
           <div
-            class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-br from-red-50 to-red-100 mb-6 border-2 border-red-200 animate-pulse"
-          >
+            class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-br from-red-50 to-red-100 mb-6 border-2 border-red-200 animate-pulse">
             <i class="fas fa-exclamation-triangle text-3xl text-red-600"></i>
           </div>
 
           <!-- Warning Header -->
           <div class="mb-6">
-            <div
-              class="inline-flex items-center px-4 py-2 bg-red-50 rounded-lg border border-red-200 mb-4"
-            >
+            <div class="inline-flex items-center px-4 py-2 bg-red-50 rounded-lg border border-red-200 mb-4">
               <i class="fas fa-exclamation-circle text-red-600 mr-3"></i>
               <h3 class="text-lg font-bold text-red-800">
                 คำเตือน: การลบข้อมูล
@@ -2089,9 +1341,7 @@
           <!-- Dorm Info Card -->
           <div class="bg-gray-50 rounded-lg p-4 mb-6 border border-gray-200">
             <div class="flex items-center mb-3">
-              <div
-                class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center mr-3"
-              >
+              <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
                 <i class="fas fa-building text-yellow-600"></i>
               </div>
               <div class="text-left">
@@ -2103,9 +1353,7 @@
             </div>
 
             <div class="flex items-center" *ngIf="memberCount > 0">
-              <div
-                class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3"
-              >
+              <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
                 <i class="fas fa-users text-blue-600"></i>
               </div>
               <div class="text-left">
@@ -2135,19 +1383,13 @@
 
           <!-- Action Buttons -->
           <div class="flex gap-3">
-            <button
-              type="button"
-              (click)="cancelDelete()"
-              class="flex-1 px-6 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all duration-200 font-medium border border-gray-300"
-            >
+            <button type="button" (click)="cancelDelete()"
+              class="flex-1 px-6 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all duration-200 font-medium border border-gray-300">
               <i class="fas fa-times mr-2"></i>
               ยกเลิก
             </button>
-            <button
-              type="button"
-              (click)="confirmDelete()"
-              class="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 font-medium border border-red-600 flex items-center justify-center"
-            >
+            <button type="button" (click)="confirmDelete()"
+              class="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 font-medium border border-red-600 flex items-center justify-center">
               <i class="fas fa-trash-alt mr-2"></i>
               ยืนยันการลบ
             </button>
@@ -2156,24 +1398,18 @@
       </div>
     </div>
     <!-- Bulk Confirmation Modal (Premium Design) -->
-    <div
-      *ngIf="showBulkConfirmModal"
+    <div *ngIf="showBulkConfirmModal"
       class="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4 transition-all duration-300"
-      (click)="cancelBulkAction()"
-    >
+      (click)="cancelBulkAction()">
       <div
         class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all duration-300 scale-100"
-        (click)="$event.stopPropagation()"
-      >
+        (click)="$event.stopPropagation()">
         <!-- Modal Header with Pattern/Gradient -->
-        <div
-          class="h-2 w-full"
-          [ngClass]="{
+        <div class="h-2 w-full" [ngClass]="{
             'bg-green-500': bulkConfirmType === 'approve',
             'bg-red-500':
               bulkConfirmType === 'reject' || bulkConfirmType === 'delete',
-          }"
-        ></div>
+          }"></div>
 
         <div class="p-8">
           <!-- Icon Circle -->
@@ -2183,49 +1419,22 @@
               'bg-green-50': bulkConfirmType === 'approve',
               'bg-red-50':
                 bulkConfirmType === 'reject' || bulkConfirmType === 'delete',
-            }"
-          >
-            <svg
-              *ngIf="bulkConfirmType === 'approve'"
-              class="w-8 h-8 text-green-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              ></path>
+            }">
+            <svg *ngIf="bulkConfirmType === 'approve'" class="w-8 h-8 text-green-500" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
-            <svg
-              *ngIf="bulkConfirmType === 'reject'"
-              class="w-8 h-8 text-red-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-              ></path>
+            <svg *ngIf="bulkConfirmType === 'reject'" class="w-8 h-8 text-red-500" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
-            <svg
-              *ngIf="bulkConfirmType === 'delete'"
-              class="w-8 h-8 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              ></path>
+            <svg *ngIf="bulkConfirmType === 'delete'" class="w-8 h-8 text-red-600" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+              </path>
             </svg>
           </div>
 
@@ -2239,58 +1448,35 @@
 
             <!-- Rejection Reason Input -->
             <div *ngIf="bulkConfirmType === 'reject'" class="text-left mt-4">
-              <label
-                class="block text-sm font-semibold text-gray-700 mb-2 ml-1"
-              >
+              <label class="block text-sm font-semibold text-gray-700 mb-2 ml-1">
                 ระบุเหตุผลในการไม่อนุมัติ (ไม่บังคับ):
               </label>
-              <textarea
-                [(ngModel)]="rejectionReason"
+              <textarea [(ngModel)]="rejectionReason"
                 placeholder="ระบุเหตุผล... (เช่น ข้อมูลไม่ครบถ้วน, รูปภาพไม่ชัดเจน)"
-                class="w-full h-28 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none bg-gray-50 text-sm transition-all"
-              ></textarea>
+                class="w-full h-28 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none bg-gray-50 text-sm transition-all"></textarea>
             </div>
           </div>
 
           <!-- Actions -->
           <div class="flex flex-col sm:flex-row gap-3">
-            <button
-              (click)="cancelBulkAction()"
-              [disabled]="isProcessingBulk"
-              class="flex-1 px-6 py-3 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
-            >
+            <button (click)="cancelBulkAction()" [disabled]="isProcessingBulk"
+              class="flex-1 px-6 py-3 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50">
               ยกเลิก
             </button>
-            <button
-              (click)="confirmBulkAction()"
-              [disabled]="isProcessingBulk"
+            <button (click)="confirmBulkAction()" [disabled]="isProcessingBulk"
               class="flex-1 px-6 py-3 text-white font-semibold rounded-xl shadow-lg shadow-opacity-20 transition-all transform active:scale-95 disabled:opacity-50 flex items-center justify-center"
               [ngClass]="{
                 'bg-green-600 hover:bg-green-700 shadow-green-200':
                   bulkConfirmType === 'approve',
                 'bg-red-600 hover:bg-red-700 shadow-red-200':
                   bulkConfirmType === 'reject' || bulkConfirmType === 'delete',
-              }"
-            >
-              <svg
-                *ngIf="isProcessingBulk"
-                class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                ></circle>
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
+              }">
+              <svg *ngIf="isProcessingBulk" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none"
+                viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
               </svg>
               {{ isProcessingBulk ? "กำลังดำเนินการ..." : "ยืนยัน" }}
             </button>

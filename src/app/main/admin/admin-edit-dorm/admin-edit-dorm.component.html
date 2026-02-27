@@ -221,13 +221,10 @@
               <label class="block text-sm font-medium text-gray-700 mb-2">
                 เบอร์โทรศัพท์เจ้าของ{{ getAccommodationType() }}
               </label>
-              <input type="tel" formControlName="contact_phone" maxlength="15" inputmode="numeric"
-                (keypress)="allowNumbersOnly($event)" (paste)="onPhonePaste($event)" (input)="onPhoneInput($event)"
+              <input type="tel" formControlName="contact_phone" maxlength="10" inputmode="numeric"
+                (keypress)="allowNumbersOnly($event)" (paste)="onPhonePaste($event)"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="เช่น 0812345678, 090-962-8055, 096 280 5555" />
-              <div class="text-xs text-gray-500 mt-1">
-                รองรับรูปแบบ: 0812345678, 090-962-8055, 096 280 5555
-              </div>
+                placeholder="เช่น 0812345678" />
               <div *ngIf="
                   dormForm.get('contact_phone')?.invalid &&
                   dormForm.get('contact_phone')?.touched
@@ -392,7 +389,7 @@
                   <label class="block text-sm font-medium text-gray-700 mb-2">
                     ค่าไฟ (บาท/หน่วย) <span class="text-red-500">*</span>
                   </label>
-                  <input type="number" formControlName="electricity_price" min="0" step="0.01" placeholder="เช่น 8.50"
+                  <input type="number" formControlName="electricity_price" min="0" step="0.01" placeholder="เช่น 8"
                     class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
                 </div>
               </div>
@@ -425,7 +422,7 @@
                   </label>
                   <input type="number" formControlName="water_price" min="0" step="0.01" [placeholder]="
             dormForm.get('water_price_type')?.value === 'ราคาหน่วยละ (บาท/หน่วย)'
-              ? 'เช่น 25.00'
+              ? 'เช่น 25'
               : 'เช่น 180'
           " class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
                 </div>
@@ -452,8 +449,8 @@
               </span>
             </div>
 
-            <!-- Upload Buttons -->
-            <div class="flex flex-col sm:flex-row gap-3">
+            <!-- Upload Buttons - DISABLED TEMPORARILY -->
+            <!-- <div class="flex flex-col sm:flex-row gap-3">
               <button type="button" (click)="openCamera()" [disabled]="images.length >= maxImages || isUploadingImages"
                 class="flex-1 flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 <i class="fas fa-camera w-6 h-6 mr-2 text-gray-400"></i>
@@ -471,19 +468,32 @@
                   }}
                 </span>
               </button>
+            </div> -->
+
+            <!-- TEMPORARY MESSAGE - IMAGE UPLOAD DISABLED -->
+            <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+              <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <div>
+                  <p class="text-sm font-medium text-amber-800">การอัปโหลดรูปภาพถูกปิดชั่วคราว</p>
+                  <p class="text-xs text-amber-600 mt-1">สามารถจัดการรูปภาพเดิมได้เท่านั้น ไม่สามารถเพิ่มรูปใหม่ได้ในขณะนี้</p>
+                </div>
+              </div>
             </div>
 
-            <!-- Hidden File Inputs -->
-            <input #cameraInput type="file" accept="image/*" capture="environment" (change)="onCameraCapture($event)"
+            <!-- Hidden File Inputs - DISABLED TEMPORARILY -->
+            <!-- <input #cameraInput type="file" accept="image/*" capture="environment" (change)="onCameraCapture($event)"
               class="hidden" />
 
-            <input #fileInput type="file" accept="image/*" multiple (change)="onGallerySelect($event)" class="hidden" />
+            <input #fileInput type="file" accept="image/*" multiple (change)="onGallerySelect($event)" class="hidden" /> -->
 
             <!-- Error message -->
-            <div *ngIf="images.length < minImages && currentStep === 4"
+            <!-- <div *ngIf="images.length < minImages && currentStep === 4"
               class="text-red-500 text-sm font-medium bg-red-50 border border-red-200 rounded-lg p-3 mt-2">
               ⚠️ กรุณาอัพโหลดรูปภาพอย่างน้อย {{ minImages }} รูป
-            </div>
+            </div> -->
 
             <!-- Existing Images Display -->
             <div *ngIf="existingImages.length > 0" class="mb-4">
@@ -513,54 +523,6 @@
               </div>
             </div>
 
-            <!-- New Images Section -->
-            <div *ngIf="images.length > 0">
-              <h4 class="text-sm font-medium text-gray-700 mb-2">รูปภาพใหม่</h4>
-            </div>
-
-            <!-- Image Preview Grid -->
-            <div *ngIf="images.length > 0" #imageGrid
-              class="image-preview-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-              <div *ngFor="let image of images; let i = index" class="image-item relative group" [attr.data-index]="i">
-                <img [src]="image.preview" [alt]="'รูปภาพ ' + (i + 1)"
-                  class="w-full h-24 sm:h-32 object-cover rounded-lg border-2" [class.border-blue-500]="image.isPrimary"
-                  [class.border-gray-200]="!image.isPrimary" />
-
-                <!-- Upload Status -->
-                <div *ngIf="image.uploadStatus === 'pending' || isUploadingImages"
-                  class="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
-                  <div class="text-white text-sm">กำลังอัปโหลด...</div>
-                </div>
-                
-                <!-- Upload Error Status -->
-                <div *ngIf="image.uploadStatus === 'error'"
-                  class="absolute inset-0 bg-red-500 bg-opacity-75 rounded-lg flex items-center justify-center">
-                  <div class="text-white text-xs text-center">อัปโหลด<br/>ไม่สำเร็จ</div>
-                </div>
-
-                <!-- Remove Button -->
-                <button type="button" (click)="removeImage(i)" [disabled]="isUploadingImages"
-                  class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
-                    </path>
-                  </svg>
-                </button>
-
-                <!-- Primary Badge -->
-                <div *ngIf="image.isPrimary"
-                  class="absolute top-1 left-1 px-2 py-1 bg-blue-500 text-white text-xs rounded">
-                  รูปหลัก
-                </div>
-
-                <!-- Set Primary Button -->
-                <button *ngIf="!image.isPrimary" type="button" (click)="setPrimaryImage(i)"
-                  [disabled]="isUploadingImages"
-                  class="absolute bottom-1 left-1 px-2 py-1 bg-black bg-opacity-50 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50">
-                  ตั้งเป็นรูปหลัก
-                </button>
-              </div>
-            </div>
           </div>
 
           <!-- Amenities - Compact Design -->

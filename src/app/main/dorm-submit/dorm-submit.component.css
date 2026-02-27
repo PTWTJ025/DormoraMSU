@@ -1,35 +1,229 @@
-/* Responsive Design */
+/* Enhanced Responsive Design */
 @media (max-width: 640px) {
   .container {
-    padding: 1rem;
+    padding: 0.75rem;
   }
   
   .form-container {
-    padding: 1.5rem;
+    padding: 1rem;
   }
   
   .step-title {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
+    line-height: 1.4;
   }
   
   .grid-responsive {
     grid-template-columns: 1fr;
   }
+  
+  /* Mobile form fields */
+  input, select, textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 0.75rem 0.875rem;
+  }
+  
+  /* Mobile buttons */
+  button {
+    min-height: 44px; /* Touch-friendly */
+    font-size: 0.875rem;
+  }
+  
+  /* Mobile spacing */
+  .space-y-4 > * + * {
+    margin-top: 1rem;
+  }
+  
+  /* Mobile text adjustments */
+  .text-xs {
+    font-size: 0.75rem;
+  }
+  
+  .text-sm {
+    font-size: 0.875rem;
+  }
+  
+  .text-lg {
+    font-size: 1.125rem;
+  }
+  
+  .text-xl {
+    font-size: 1.25rem;
+  }
+  
+  .text-2xl {
+    font-size: 1.5rem;
+  }
+  
+  /* Mobile modal adjustments */
+  .modal-content {
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  /* Mobile map adjustments */
+  .map-container {
+    height: 250px !important;
+  }
+  
+  /* Mobile image grid */
+  .image-preview-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .image-preview-grid img {
+    height: 120px !important;
+  }
+  
+  /* Mobile amenities grid */
+  .amenities-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  
+  .amenity-item {
+    padding: 0.75rem;
+    font-size: 0.813rem;
+  }
+  
+  /* Mobile navigation */
+  .step-nav {
+    padding: 1rem 0.75rem;
+    gap: 0.75rem;
+  }
+  
+  /* Mobile preview card */
+  .preview-card {
+    padding: 1rem;
+  }
+  
+  /* Mobile loading overlay */
+  .loading-overlay {
+    padding: 1rem;
+  }
+  
+  /* Mobile form validation */
+  .error-message {
+    font-size: 0.75rem;
+    line-height: 1.3;
+  }
+  
+  /* Mobile success modal */
+  .success-modal {
+    margin: 1rem;
+    max-width: calc(100vw - 2rem);
+  }
 }
 
-@media (min-width: 641px) and (max-width: 1024px) {
+@media (min-width: 641px) and (max-width: 768px) {
   .container {
-    padding: 1.5rem;
+    padding: 1.25rem;
   }
   
   .grid-responsive {
     grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .image-preview-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .amenities-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .grid-responsive {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .image-preview-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .amenities-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
 @media (min-width: 1025px) {
   .grid-responsive {
     grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .image-preview-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  
+  .amenities-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* Touch-friendly adjustments */
+@media (hover: none) and (pointer: coarse) {
+  button, .amenity-item, .image-item {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .amenity-item:hover {
+    background-color: transparent;
+  }
+  
+  .amenity-item:active {
+    background-color: #fef3c7;
+  }
+}
+
+/* Landscape mobile optimizations */
+@media (max-width: 640px) and (orientation: landscape) {
+  .map-container {
+    height: 200px !important;
+  }
+  
+  .image-preview-grid img {
+    height: 100px !important;
+  }
+  
+  .modal-content {
+    max-height: 80vh;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 375px) {
+  .container {
+    padding: 0.5rem;
+  }
+  
+  .form-container {
+    padding: 0.75rem;
+  }
+  
+  .step-title {
+    font-size: 1rem;
+  }
+  
+  button {
+    font-size: 0.813rem;
+    padding: 0.625rem 0.875rem;
+  }
+  
+  .amenity-item {
+    padding: 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .image-preview-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  
+  .image-preview-grid img {
+    height: 100px !important;
   }
 }
 

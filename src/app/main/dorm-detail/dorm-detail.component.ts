@@ -398,7 +398,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       22: { name: 'ที่จอดรถ' },
       23: { name: 'ฟิตเนส' },
       24: { name: 'Lobby' },
-      25: { name: 'ตู้น้ำหยอดเหรียญ' },
+      25: { name: 'ตู้กดน้ำหยอดเหรียญ' },
       26: { name: 'สระว่ายน้ำ' },
       27: { name: 'ที่วางพัสดุ' },
       28: { name: 'อนุญาตให้เลี้ยงสัตว์' },

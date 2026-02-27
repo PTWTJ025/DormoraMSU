@@ -46,6 +46,7 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild('cameraInput') cameraInput!: ElementRef<HTMLInputElement>;
   @ViewChild('mapContainer') mapContainer!: ElementRef<HTMLDivElement>;
+  @ViewChild('popupMapContainer') popupMapContainer!: ElementRef<HTMLDivElement>;
   @ViewChild('progressBar') progressBar!: ElementRef<HTMLDivElement>;
   @ViewChild('step1') step1!: ElementRef<HTMLDivElement>;
   @ViewChild('step2') step2!: ElementRef<HTMLDivElement>;
@@ -72,6 +73,7 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
   // Data from API
   zones: Zone[] = [];
   amenities: string[] = [];
+  lastCalculatedDistance: number | null = null; // เก็บค่าระยะทางล่าสุด
   isLoadingData = false;
 
   // Map loading state
@@ -84,8 +86,17 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
   map: maptilersdk.Map | null = null;
   marker: maptilersdk.Marker | null = null;
   currentMapStyle: 'satellite' | 'streets' = 'satellite';
+  
+  // Popup map properties
+  popupMap: maptilersdk.Map | null = null;
+  popupMarker: maptilersdk.Marker | null = null;
+  popupMapStyle: 'satellite' | 'streets' = 'satellite';
 
   private backendUrl = environment.backendApiUrl;
+maptilersdk: any;
+
+  // Make encodeURIComponent available in template
+  encodeURIComponent = encodeURIComponent;
 
   constructor(
     private fb: FormBuilder,
@@ -94,7 +105,9 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
     private supabaseService: SupabaseService,
     private gsapService: GsapAnimationService,
     private distanceService: DistanceService,
-  ) {}
+  ) {
+    this.maptilersdk = maptilersdk;
+  }
 
   ngOnInit() {
     this.initForm();
@@ -157,8 +170,12 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
     // ฟังการเปลี่ยนแปลงของ water_price_type
     this.dormForm.get('water_price_type')?.valueChanges.subscribe((value) => {
       const waterPriceControl = this.dormForm.get('water_price');
-      if (value) {
+      if (value === 'ตามอัตราการประปา') {
+        waterPriceControl?.setValue(null);
+        waterPriceControl?.disable();
+      } else if (value) {
         waterPriceControl?.enable();
+        waterPriceControl?.setValue(null);
       } else {
         waterPriceControl?.disable();
         waterPriceControl?.setValue(null);
@@ -617,7 +634,7 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
       const formValues = this.dormForm.getRawValue();
 
       // จัดรูปแบบค่าไฟตามที่ backend ต้องการ
-      const electricityPriceType = formValues.electricity_price_type;
+      const electricityPriceType = formValues.electricity_price_type || null;
       let electricityPrice = formValues.electricity_price;
 
       // ถ้าเลือก "ตามอัตราการไฟฟ้า" ให้ส่ง null
@@ -632,7 +649,7 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
       }
 
       // จัดรูปแบบค่าน้ำตามที่ backend ต้องการ
-      const waterPriceType = formValues.water_price_type;
+      const waterPriceType = formValues.water_price_type || null;
       let waterPrice = formValues.water_price;
 
       // ถ้าเลือก "ตามอัตราการประปา" ให้ส่ง null
@@ -647,14 +664,33 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
       }
 
       // สร้าง payload ใหม่ที่จัดรูปแบบแล้ว
+      let finalDescription = formValues.description || '';
+      
+      // เพิ่มข้อความระยะทางเฉพาะตอน submit เท่านั้น
+      if (this.lastCalculatedDistance !== null) {
+        const dormName = formValues.dorm_name || 'หอพัก';
+        const zoneId = formValues.zone_id;
+        const zone = this.zones.find(z => z.zone_id === Number(zoneId));
+        const zoneName = zone ? zone.zone_name : '';
+        
+        const distanceText = this.distanceService.createDistanceText(dormName, zoneName, this.lastCalculatedDistance);
+        
+        // ลบ distance text เก่าที่อาจมีอยู่แล้ว แล้วเพิ่มใหม่
+        const distanceRegex = /^หอพัก.*?ห่างจาก.*?ประมาณ.*?กิโลเมตร\s*(\n\n)?/;
+        finalDescription = finalDescription.replace(distanceRegex, '');
+        finalDescription = distanceText + (finalDescription ? '\n\n' + finalDescription : '');
+      }
+      
       const payload = {
         ...formValues,
+        description: finalDescription,
         electricity_price_type: electricityPriceType,
         electricity_price: electricityPrice,
         water_price_type: waterPriceType,
         water_price: waterPrice,
         images: this.imageUrls,
         primary_image_index: this.images.findIndex((img) => img.isPrimary),
+        amenities: this.getSelectedAmenities(),
       };
 
       // ส่ง JSON ไป backend
@@ -778,23 +814,36 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getRoomTypes(): string[] {
-    return [
-      'ห้องพัดลม',
-      'ห้องแอร์',
-      'ห้องสตูดิโอ',
-      'อื่นๆ',
-    ];
+    if (this.isHouse()) {
+      return [
+        '1 ห้องนอน 1 ห้องน้ำ',
+        '2 ห้องนอน 1 ห้องน้ำ',
+        '2 ห้องนอน 2 ห้องน้ำ',
+        '3 ห้องนอน 2 ห้องน้ำ',
+        '3 ห้องนอน 3 ห้องน้ำ',
+        '4 ห้องนอน 3 ห้องน้ำ',
+        '4 ห้องนอน 4 ห้องน้ำ',
+        'อื่นๆ',
+      ];
+    } else {
+      return [
+        'ห้องพัดลม',
+        'ห้องแอร์',
+        'ห้องสตูดิโอ',
+        'อื่นๆ',
+      ];
+    }
   }
 
   getElectricityPriceTypes(): string[] {
-    return ['ตามอัตราการไฟฟ้า', 'กำหนดราคาเอง (บาท/ยูนิต)'];
+    return ['ตามอัตราการไฟฟ้า', 'คิดตามหน่วย (บาท/หน่วย)'];
   }
 
   getWaterPriceTypes(): string[] {
     return [
       'ตามอัตราการประปา',
       'คิดตามหน่วย (บาท/หน่วย)',
-      'คิดรายเดือน (บาท/เดือน)',
+      'เหมาจ่าย (บาท/เดือน)',
     ];
   }
 
@@ -875,23 +924,9 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
       latitude: lat,
     });
     
-    // คำนวณระยะทางจากตำแหน่งหอพักถึงมหาวิทยาลัย
+    // เก็บค่าระยะทางไว้ใช้ตอน submit เท่านั้น ไม่เพิ่มใน description ทุกครั้งที่เลื่อนแผนที่
     const distance = this.distanceService.calculateDistance(lat, lng);
-    const dormName = this.dormForm.get('dorm_name')?.value || 'หอพัก';
-    const zoneId = this.dormForm.get('zone_id')?.value;
-    const zone = this.zones.find(z => z.zone_id === Number(zoneId));
-    const zoneName = zone ? zone.zone_name : '';
-    
-    // สร้างข้อความระยะทาง
-    const distanceText = this.distanceService.createDistanceText(dormName, zoneName, distance);
-    
-    // อัปเดต description โดยเพิ่มข้อมูลระยะทางด้านบน
-    const currentDescription = this.dormForm.get('description')?.value || '';
-    const updatedDescription = currentDescription ? `${distanceText}\n\n${currentDescription}` : distanceText;
-    
-    this.dormForm.patchValue({
-      description: updatedDescription
-    });
+    this.lastCalculatedDistance = distance;
   }
 
   getCurrentLocation() {
@@ -992,6 +1027,20 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
 
   toggleDetailsModal(): void {
     this.showDetailsModal = !this.showDetailsModal;
+    
+    if (this.showDetailsModal) {
+      // Initialize popup map when modal opens
+      setTimeout(() => {
+        this.initPopupMap();
+      }, 100);
+    } else {
+      // Clean up popup map when modal closes
+      if (this.popupMap) {
+        this.popupMap.remove();
+        this.popupMap = null;
+        this.popupMarker = null;
+      }
+    }
   }
 
   // Phone input restriction - only allow numbers
@@ -1047,5 +1096,55 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.map) {
       this.map.remove();
     }
+    if (this.popupMap) {
+      this.popupMap.remove();
+    }
+  }
+
+  // Popup map methods
+  initPopupMap(): void {
+    if (!this.popupMapContainer || this.popupMap) return;
+
+    const lat = this.dormForm.get('latitude')?.value;
+    const lng = this.dormForm.get('longitude')?.value;
+    
+    if (!lat || !lng) return;
+
+    // Configure MapTiler
+    if (this.maptilersdk?.config) {
+      this.maptilersdk.config.apiKey = environment.mapTilerApiKey;
+    }
+
+    this.popupMap = new (this.maptilersdk.Map || maptilersdk.Map)({
+      container: this.popupMapContainer.nativeElement,
+      style: this.popupMapStyle === 'satellite' ? (this.maptilersdk.MapStyle || maptilersdk.MapStyle).SATELLITE : (this.maptilersdk.MapStyle || maptilersdk.MapStyle).STREETS,
+      center: [lng, lat],
+      zoom: 16,
+      geolocateControl: false,
+      navigationControl: false,
+      scaleControl: false,
+    });
+
+    // Add marker
+    this.popupMarker = new (this.maptilersdk.Marker || maptilersdk.Marker)({ color: '#FFCD22', draggable: false })
+      .setLngLat([lng, lat])
+      .addTo(this.popupMap);
+
+    // Hide MapTiler warnings
+    this.popupMap?.on('styleimagemissing', (e: any) => {
+      // Silent - ไม่ต้องทำอะไร เพราะเราไม่ได้ใช้ไอคอนเหล่านั้น
+    });
+  }
+
+  togglePopupMapStyle(): void {
+    if (!this.popupMap) return;
+
+    this.popupMapStyle = this.popupMapStyle === 'satellite' ? 'streets' : 'satellite';
+    
+    const nextStyle = this.popupMapStyle === 'satellite' 
+      ? (this.maptilersdk.MapStyle || maptilersdk.MapStyle).SATELLITE 
+      : (this.maptilersdk.MapStyle || maptilersdk.MapStyle).STREETS;
+
+    this.popupMap.setStyle(nextStyle);
   }
 }

@@ -714,7 +714,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
       'ที่จอดรถ',
       'ฟิตเนส',
       'Lobby',
-      'ผู้ดำหยอดเหรียญ',
+      'ตู้กดน้ำหยอดเหรียญ',
       'สระว่ายน้ำ',
       'ที่วางพัสดุ',
       'อนุญาตให้เลี้ยงสัตว์',
@@ -882,14 +882,6 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onImageError(event: any): void {
-    // Log ค่าเพื่อตรวจสอบ
-    console.log('Image Error - Original src:', event.target.src);
-    console.log('Dorm data for debugging:', {
-      main_image_url: event.target.getAttribute('data-main-image'),
-      thumbnail_url: event.target.getAttribute('data-thumbnail'),
-      fallback: event.target.getAttribute('data-fallback')
-    });
-    
     // ถ้ารูปไม่โหลดได้ ให้ใช้รูป default
     event.target.src = 'assets/images/photo.png';
   }
@@ -1139,9 +1131,17 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
         // ปิด loading และ modal
         this.isDeleting = false;
         this.showDeleteModal = false;
+        
+        // ลบ ID ออกจาก selectedDorms
+        const index = this.selectedDorms.indexOf(String(dormId));
+        if (index > -1) {
+          this.selectedDorms.splice(index, 1);
+        }
+        
         // รีเฟรชข้อมูล
         this.loadDormitories();
         this.loadPendingDormitories();
+        
         // แสดง popup สำเร็จ
         this.showSuccessPopup('ลบหอพักเรียบร้อยแล้ว', 'delete');
       },
@@ -1354,18 +1354,19 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // Helper method to toggle dormitory selection
-  toggleDormSelection(dormId: string): void {
-    const index = this.selectedDorms.indexOf(dormId);
+  toggleDormSelection(dormId: string | number): void {
+    const dormIdStr = String(dormId);
+    const index = this.selectedDorms.indexOf(dormIdStr);
     if (index > -1) {
       this.selectedDorms.splice(index, 1); // Remove if already selected
     } else {
-      this.selectedDorms.push(dormId); // Add if not selected
+      this.selectedDorms.push(dormIdStr); // Add if not selected
     }
   }
 
   // Helper method to check if dormitory is selected
-  isDormSelected(dormId: string): boolean {
-    return this.selectedDorms.includes(dormId);
+  isDormSelected(dormId: string | number): boolean {
+    return this.selectedDorms.includes(String(dormId));
   }
 
   // Getter to check if all current dorms are selected

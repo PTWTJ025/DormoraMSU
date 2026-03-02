@@ -1,5 +1,6 @@
 export const environment = {
   production: false,
+  enableConsoleLogs: true, // Enable console logs in development
   firebaseConfig: {
     apiKey: 'AIzaSyA8u5HYbzrlFm12sNtGTiyzLxwZ2kcS1_o',
     authDomain: 'projectroomaroo.firebaseapp.com',

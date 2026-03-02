@@ -9,6 +9,10 @@ export interface WebsiteStats {
   submission_count: number;
 }
 
+export interface DormCountResponse {
+  dorm_count: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -25,6 +29,18 @@ export class StatsService {
       catchError((error) => {
         console.error('Error fetching website stats:', error);
         return of({ visitor_count: 0, submission_count: 0 });
+      }),
+    );
+  }
+
+  /**
+   * Get dorm count from new API
+   */
+  getDormCount(): Observable<DormCountResponse> {
+    return this.http.get<DormCountResponse>(`${this.backendUrl}/stats`).pipe(
+      catchError((error) => {
+        console.error('Error fetching dorm count:', error);
+        return of({ dorm_count: 0 });
       }),
     );
   }

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { StatsService, WebsiteStats } from '../../services/stats.service';
+import { StatsService, WebsiteStats, DormCountResponse } from '../../services/stats.service';
 
 @Component({
   selector: 'app-about',
@@ -9,23 +9,20 @@ import { StatsService, WebsiteStats } from '../../services/stats.service';
   templateUrl: './about.component.html',
 })
 export class AboutComponent implements OnInit {
-  showImagePopup = false;
-  popupImageUrl = '';
-  showYouTubePopup = false;
-
   stats: WebsiteStats = { visitor_count: 0, submission_count: 0 };
   isLoadingStats = true;
   onlineCount = 0;
+  dormCount = 0;
 
-  constructor(private statsService: StatsService) {}
+  constructor(private statsService: StatsService) { }
 
   ngOnInit() {
     this.loadStats();
     this.generateOnlineCount();
+    this.loadDormCount();
   }
 
   generateOnlineCount() {
-    // Simulate real-time online users for visual effect as requested
     this.onlineCount = Math.floor(Math.random() * (50 - 10 + 1)) + 10;
   }
 
@@ -41,21 +38,44 @@ export class AboutComponent implements OnInit {
     });
   }
 
-  openImagePopup(imageUrl: string) {
-    this.popupImageUrl = imageUrl;
-    this.showImagePopup = true;
+  loadDormCount() {
+    this.statsService.getDormCount().subscribe({
+      next: (data) => {
+        this.dormCount = data.dorm_count;
+      },
+      error: () => {
+        this.dormCount = 0;
+      },
+    });
   }
 
-  closeImagePopup() {
-    this.showImagePopup = false;
-    this.popupImageUrl = '';
+  // Popup states
+  showFacebookPopup = false;
+  showLinePopup = false;
+  showYoutubePopup = false;
+
+  openFacebookPopup() {
+    this.closeAllPopups();
+    this.showFacebookPopup = true;
   }
 
-  openYouTubePopup() {
-    this.showYouTubePopup = true;
+  openLinePopup() {
+    this.closeAllPopups();
+    this.showLinePopup = true;
   }
 
-  closeYouTubePopup() {
-    this.showYouTubePopup = false;
+  openYoutubePopup() {
+    this.closeAllPopups();
+    this.showYoutubePopup = true;
+  }
+
+  closeAllPopups() {
+    this.showFacebookPopup = false;
+    this.showLinePopup = false;
+    this.showYoutubePopup = false;
+  }
+
+  openSocialLink(url: string) {
+    window.open(url, '_blank');
   }
 }

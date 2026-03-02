@@ -8,16 +8,13 @@ import {
   Input,
   Output,
   EventEmitter,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  FormBuilder,
-  FormGroup,
-  Validators,
-  ReactiveFormsModule,
-} from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AdminService } from '../../../services/admin.service';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { SupabaseService } from '../../../services/supabase.service';
 import { environment } from '../../../../environments/environment';
 import * as maptilersdk from '@maptiler/sdk';
@@ -60,11 +57,15 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
   @ViewChild('cameraInput') cameraInput!: ElementRef<HTMLInputElement>;
   @ViewChild('imageGrid') imageGrid!: ElementRef<HTMLDivElement>;
   @ViewChild('mapContainer') mapContainer!: ElementRef<HTMLDivElement>;
+  @ViewChild('successModal') successModal!: ElementRef<HTMLDivElement>;
+  @ViewChild('successModalContent')
+  successModalContent!: ElementRef<HTMLDivElement>;
 
   dormForm!: FormGroup;
   isLoading = true;
   isSubmitting = false;
   isUploadingImages = false;
+  showSuccessModal = false;
 
   // Image management
   images: ImageFile[] = [];
@@ -95,6 +96,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
     public router: Router,
     private adminService: AdminService,
     private supabaseService: SupabaseService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit() {
@@ -251,8 +253,11 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
       if (!data) throw new Error('Data not found');
 
       const dorm = data.dormitory;
-      this.dormImages = data.images || [];
-      this.existingImages = data.images || [];
+      
+      // แก้ไขการโหลดรูปภาพตาม Flow ใหม่
+      // จาก GET /api/admin/dormitories/:dormId → field images
+      this.existingImages = dorm.images || [];
+      this.dormImages = dorm.images || [];
 
       this.dormForm.patchValue({
         accommodation_type: dorm.accommodation_type || 'หอ',
@@ -264,13 +269,13 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
         longitude: dorm.longitude || 103.251, // Default MSU coordinates
         room_type: dorm.room_type || '',
         room_type_other: dorm.room_type_other,
-        monthly_price: dorm.min_price || dorm.monthly_price,
-        daily_price: dorm.term_price || dorm.daily_price,
+        monthly_price: dorm.monthly_price,
+        daily_price: dorm.daily_price,
         summer_price: dorm.summer_price,
         deposit: dorm.deposit,
-        electricity_type: dorm.electricity_type || 'ราคาหน่วยละ (บาท/หน่วย)',
+        electricity_price_type: (dorm as any).electricity_price_type || 'ราคาหน่วยละ (บาท/หน่วย)',
         electricity_price: dorm.electricity_price,
-        water_price_type: dorm.water_type || 'ราคาหน่วยละ (บาท/หน่วย)',
+        water_price_type: (dorm as any).water_price_type || 'ราคาหน่วยละ (บาท/หน่วย)',
         water_price: dorm.water_price,
         approval_status: dorm.approval_status,
         contact_name: dorm.manager_name || dorm.owner_name,
@@ -281,26 +286,67 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
       });
 
       // Patch amenities checkboxes
-      if (data.amenities) {
+      console.log('🔍 Full dorm object:', dorm);
+      console.log('🔍 Dorm amenities type:', typeof dorm.amenities);
+      console.log('🔍 Dorm amenities value:', dorm.amenities);
+      
+      if (dorm.amenities && Array.isArray(dorm.amenities)) {
         const patchObj: any = {};
-        // Flatten amenities from categories
-        const allAmenities = [
-          ...(data.amenities['ภายใน'] || []),
-          ...(data.amenities['ภายนอก'] || []),
-          ...(data.amenities.common || []),
-        ];
-
-        allAmenities.forEach((a: any) => {
+        
+        // ข้อมูลจาก API เป็น array ธรรมดา
+        console.log('🔍 Amenities from API (array):', dorm.amenities);
+        
+        dorm.amenities.forEach((a: any) => {
+          console.log('🔍 Processing amenity:', a);
           if (amenitiesGroup.contains(a.amenity_name)) {
-            patchObj[a.amenity_name] = a.is_available;
+            patchObj[a.amenity_name] = true; // ถ้ามีในฐานข้อมูล = เลือก (true)
           }
         });
+        
+        console.log('🔍 Amenity patch object:', patchObj);
         amenitiesGroup.patchValue(patchObj);
       }
+
+      // Enable/disable price fields based on type
+      const electricityType = this.dormForm.get('electricity_price_type')?.value;
+      const waterType = this.dormForm.get('water_price_type')?.value;
+      
+      console.log('🔍 Raw data from API:', dorm);
+      console.log('⚡ Electricity Type from API:', (dorm as any).electricity_price_type);
+      console.log('💧 Water Type from API:', (dorm as any).water_price_type);
+      console.log('⚡ Electricity Price from API:', dorm.electricity_price);
+      console.log('💧 Water Price from API:', dorm.water_price);
+      console.log('⚡ Electricity Type in form:', electricityType);
+      console.log('💧 Water Type in form:', waterType);
+      
+      if (electricityType === 'ตามอัตราการไฟฟ้า') {
+        this.dormForm.get('electricity_price')?.disable();
+        this.dormForm.get('electricity_price')?.setValue(null);
+        console.log('⚡ Electricity price disabled');
+      } else {
+        this.dormForm.get('electricity_price')?.enable();
+        console.log('⚡ Electricity price enabled with value:', dorm.electricity_price);
+      }
+      
+      if (waterType === 'ตามอัตราการประปา') {
+        this.dormForm.get('water_price')?.disable();
+        this.dormForm.get('water_price')?.setValue(null);
+        console.log('💧 Water price disabled');
+      } else {
+        this.dormForm.get('water_price')?.enable();
+        console.log('💧 Water price enabled with value:', dorm.water_price);
+      }
+
+      // เพิ่มการจัดการพิกัดให้ซิงค์กัน
+      this.setupLocationSync();
 
       this.isLoading = false;
       
       console.log('🏠 Form data after patching:', this.dormForm.value);
+      console.log('⚡ Electricity Type:', this.dormForm.get('electricity_price_type')?.value);
+      console.log('⚡ Electricity Price:', this.dormForm.get('electricity_price')?.value);
+      console.log('💧 Water Type:', this.dormForm.get('water_price_type')?.value);
+      console.log('💧 Water Price:', this.dormForm.get('water_price')?.value);
       console.log('🏠 Available room types:', this.getRoomTypes());
       console.log('🏠 Existing images:', this.existingImages);
       
@@ -309,6 +355,63 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
       console.error('Error fetching initial data:', err);
       this.showToastNotification('เกิดข้อผิดพลาดในการโหลดข้อมูล', 'error');
       this.isLoading = false;
+    }
+  }
+
+  // 🔄 การจัดการพิกัดให้ซิงค์กันระหว่างแผนที่และฟอร์ม
+  setupLocationSync() {
+    // เมื่อค่าพิกัดในฟอร์มเปลี่ยน → อัปเดตแผนที่
+    this.dormForm.get('latitude')?.valueChanges.subscribe(lat => {
+      const lng = this.dormForm.get('longitude')?.value;
+      if (lat && lng) {
+        this.updateMapPosition(lat, lng);
+      }
+    });
+
+    this.dormForm.get('longitude')?.valueChanges.subscribe(lng => {
+      const lat = this.dormForm.get('latitude')?.value;
+      if (lat && lng) {
+        this.updateMapPosition(lat, lng);
+      }
+    });
+  }
+
+  // 🗺️ เมื่อผู้ใช้คลิกเปลี่ยนตำแหน่งในแผนที่ → อัปเดตฟอร์ม
+  onMapLocationChange(newLat: number, newLng: number) {
+    console.log('📍 Map location changed:', newLat, newLng);
+    
+    // อัปเดตค่าในฟอร์มทันที
+    this.dormForm.patchValue({
+      latitude: newLat,
+      longitude: newLng
+    });
+
+    // แสดง toast แจ้งว่าพิกัดอัปเดตแล้ว
+    this.showToastNotification('อัปเดตตำแหน่งพิกัดเรียบร้อยแล้ว', 'success');
+  }
+
+  // 🗺️ อัปเดตตำแหน่งในแผนที่ (ใช้ MapTiler SDK)
+  updateMapPosition(lat: number, lng: number) {
+    // ตรวจสอบว่ามีแผนที่อยู่ในหน้านี้หรือไม่
+    if (typeof window !== 'undefined' && (window as any).mapInstance) {
+      const map = (window as any).mapInstance;
+      
+      // ล้าง marker เก่า
+      if ((window as any).currentMarker) {
+        map.removeMarker((window as any).currentMarker);
+      }
+
+      // เพิ่ม marker ใหม่ (ใช้ MapTiler SDK)
+      const newMarker = new maptilersdk.Marker()
+        .setLngLat([lng, lat])
+        .addTo(map);
+      (window as any).currentMarker = newMarker;
+
+      // ย้ายแผนที่ไปยังตำแหน่งใหม่
+      map.setCenter([lng, lat]);
+      map.setZoom(15);
+
+      console.log('🗺️ Map updated to:', lat, lng);
     }
   }
 
@@ -378,27 +481,23 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
     }
     
     try {
-      const formData = new FormData();
-      formData.append('image', file);
+      console.log('📤 Uploading image to Supabase draft folder:', file.name);
       
-      const response = await fetch('http://localhost:3000/api/submissions/upload-draft-image', {
-        method: 'POST',
-        body: formData
-      });
+      // อัปโหลดไปที่ Supabase draft folder โดยตรง
+      const { url, error } = await this.supabaseService.uploadImage(file, 'dorm-drafts/');
       
-      if (!response.ok) {
-        throw new Error('Failed to upload image to draft');
+      if (error) {
+        console.error('❌ Supabase upload error:', error);
+        throw new Error('Failed to upload image to Supabase');
       }
       
-      const result = await response.json();
+      console.log('✅ Image uploaded to Supabase:', url);
       
-      // Update the image with the uploaded URL
+      // Update the image with the uploaded URL (draft URL)
       if (this.images[imageIndex]) {
-        this.images[imageIndex].url = result.url;
+        this.images[imageIndex].url = url;
         this.images[imageIndex].uploadStatus = 'success';
       }
-      
-      console.log('✅ Image uploaded to draft:', result.url);
       
     } catch (error) {
       console.error('❌ Error uploading image to draft:', error);
@@ -563,6 +662,36 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
     return Object.keys(group.controls).filter((key) => group.get(key)?.value);
   }
 
+  showApprovalButtons(): boolean {
+    // ไม่แสดง Modal การอนุมัติในหน้าแก้ไขหอพัก
+    // ควรแสดงเฉพาะในหน้าตรวจสอบหอพักใหม่
+    return false;
+  }
+
+  approveDormitory(): void {
+    this.adminService.updateDormitoryApproval(this.dormIdNum, { status: 'approved' }).subscribe({
+      next: () => {
+        this.showToastNotification('อนุมัติหอพักเรียบร้อยแล้ว', 'success');
+        this.dormForm.patchValue({ approval_status: 'approved' });
+      },
+      error: () => {
+        this.showToastNotification('เกิดข้อผิดพลาดในการอนุมัติ', 'error');
+      }
+    });
+  }
+
+  rejectDormitory(): void {
+    this.adminService.updateDormitoryApproval(this.dormIdNum, { status: 'rejected' }).subscribe({
+      next: () => {
+        this.showToastNotification('ไม่อนุมัติหอพัก', 'success');
+        this.dormForm.patchValue({ approval_status: 'rejected' });
+      },
+      error: () => {
+        this.showToastNotification('เกิดข้อผิดพลาดในการไม่อนุมัติ', 'error');
+      }
+    });
+  }
+
   getCurrentDate(): string {
     return new Date().toLocaleDateString('th-TH', {
       year: 'numeric',
@@ -582,6 +711,20 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
         return 'ปฏิเสธ';
       default:
         return 'ไม่ทราบสถานะ';
+    }
+  }
+
+  getApprovalBadgeClass(): string {
+    const status = this.dormForm.get('approval_status')?.value;
+    switch (status) {
+      case 'approved':
+        return 'bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium';
+      case 'rejected':
+        return 'bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium';
+      default:
+        return 'bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium';
     }
   }
 
@@ -697,57 +840,104 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
     this.isSubmitting = true;
     const rawForm = this.dormForm.getRawValue();
 
-    // Collect all image URLs (existing + newly uploaded)
-    const allImageUrls: string[] = [];
-    
-    // Add existing images
-    this.existingImages.forEach(img => {
-      allImageUrls.push(img.image_url);
-    });
-    
-    // Add newly uploaded images
-    this.images.forEach(img => {
-      if (img.url) {
-        allImageUrls.push(img.url);
+    // ตาม Flow ใหม่: แยกการบันทึกข้อมูลทั่วไป และการจัดการรูปภาพ
+    this.saveDormitoryData(rawForm);
+  }
+
+  async saveDormitoryData(rawForm: any) {
+    try {
+      // 1. บันทึกข้อมูลทั่วไป (ไม่รวมรูปภาพ)
+      const payload = {
+        ...rawForm,
+        manager_name: rawForm.contact_name,
+        primary_phone: rawForm.contact_phone,
+        electricity_type: rawForm.electricity_type,
+        electricity_price: rawForm.electricity_price,
+        water_type: rawForm.water_type || rawForm.water_price_type,
+        water_price: rawForm.water_price,
+        amenities: this.getSelectedAmenities(),
+        description: rawForm.description,
+      };
+
+      // Auto change status: rejected → pending
+      const currentStatus = this.dormForm.get('approval_status')?.value;
+      if (currentStatus === 'rejected') {
+        payload.approval_status = 'pending';
       }
-    });
 
-    const payload = {
-      ...rawForm,
-      // Map form fields to backend names if necessary
-      manager_name: rawForm.contact_name,
-      primary_phone: rawForm.contact_phone,
-      electricity_type: rawForm.electricity_type,
-      electricity_price: rawForm.electricity_price,
-      water_type: rawForm.water_type || rawForm.water_price_type,
-      water_price: rawForm.water_price,
-      amenities: this.getSelectedAmenities(),
-      // Send images array with URLs for new backend API
-      images: allImageUrls,
-      // Map description to backend field name
-      description: rawForm.description,
-    };
+      // PUT /api/admin/dormitories/:dormId
+      this.adminService.updateDormitory(this.dormIdNum, payload).subscribe({
+        next: (response) => {
+          console.log('✅ Update response:', response);
+          
+          if (currentStatus === 'rejected') {
+            this.dormForm.patchValue({ approval_status: 'pending' });
+            this.showToastNotification('บันทึกสำเร็จ สถานะเปลี่ยนเป็นรอการอนุมัติ', 'success');
+          } else {
+            this.showToastNotification('ปรับปรุงข้อมูลเรียบร้อยแล้ว', 'success');
+          }
 
-    console.log('📤 Submitting payload with images:', payload);
+          // 2. จัดการรูปภาพ (แยกตาม Flow)
+          this.manageImagesAfterSave();
+        },
+        error: (err) => {
+          console.error('❌ Update failed:', err);
+          this.showToastNotification('เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'error');
+          this.isSubmitting = false;
+        },
+      });
 
-    this.adminService.updateDormitory(this.dormIdNum, payload).subscribe({
-      next: () => {
-        this.showToastNotification('ปรับปรุงข้อมูลเรียบร้อยแล้ว', 'success');
-        this.isSubmitting = false;
-        // Emit success event for inline editing
-        this.editSuccess.emit();
-      },
-      error: (err) => {
-        console.error('Update error:', err);
-        this.showToastNotification('เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'error');
-        this.isSubmitting = false;
-      },
-    });
+    } catch (error) {
+      console.error('❌ Save error:', error);
+      this.showToastNotification('เกิดข้อผิดพลาดในการบันทึก', 'error');
+      this.isSubmitting = false;
+    }
+  }
+
+  async manageImagesAfterSave() {
+    try {
+      // 3. เพิ่มรูปภาพใหม่ (จาก draft)
+      for (const newImage of this.images) {
+        if (newImage.url && !newImage.url.includes('existing')) {
+          // POST /api/admin/dormitories/:dormId/images
+          await this.adminService.addDormitoryImage(this.dormIdNum, {
+            image_url: newImage.url, // draft URL
+            is_primary: newImage.isPrimary || false
+          }).toPromise();
+          
+          console.log('✅ Added new image:', newImage.url);
+        }
+      }
+
+      this.isSubmitting = false;
+      console.log('🎉 All images processed successfully');
+      
+      // แสดง success modal หลังจัดการรูปภาพเรียบร้อย
+      this.showSuccessSimple();
+      
+    } catch (error) {
+      console.error('❌ Error managing images:', error);
+      this.showToastNotification('เกิดข้อผิดพลาดในการจัดการรูปภาพ', 'error');
+      this.isSubmitting = false;
+    }
   }
 
   // Additional helper methods for template
   getAccommodationNameLabel(): string {
-    return this.isHouse() ? 'ชื่อบ้าน' : 'ชื่อหอพัก';
+    return this.dormForm.get('accommodation_type')?.value === 'หอ'
+      ? 'หอพัก'
+      : 'อพาร์ตเมนต์';
+  }
+
+  // แสดง success modal แบบเรียบง่าย
+  private showSuccessSimple(): void {
+    this.showSuccessModal = true;
+  }
+
+  closeSuccessModal() {
+    this.showSuccessModal = false;
+    // กลับไปหน้ารายการหอพักที่รออนุมัติหลังแก้ไขเสร็จ
+    this.router.navigate(['/admin/dormitories/pending']);
   }
 
   getAccommodationAddressLabel(): string {

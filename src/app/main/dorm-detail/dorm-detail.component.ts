@@ -337,11 +337,11 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
       // จัดการข้อมูล contact เจ้าของหอ
       this.ownerContact = {
-        name: detail.owner_manager_name || detail.owner_name || 'เจ้าของหอพัก',
-        phone: detail.owner_phone || '',
+        name: (detail as any).contact_name || detail.owner_manager_name || detail.owner_name || 'เจ้าของหอพัก',
+        phone: (detail as any).contact_phone || detail.owner_phone || '',
         secondaryPhone: detail.owner_secondary_phone || '',
-        lineId: detail.owner_line_id || '',
-        email: detail.owner_email || '',
+        lineId: (detail as any).line_id || detail.owner_line_id || '',
+        email: (detail as any).contact_email || detail.owner_email || '',
         image: detail.owner_photo_url || '../../../assets/icon/home-owner.png'
       };
       
@@ -900,13 +900,16 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       // ถ้าอยู่แล้ว ให้ลบออก
       this.dormCompareService.removeFromCompare(this.dormId);
       this.isInCompareList = false;
+      this.triggerPopup('ลบหอพักออกจากรายการเปรียบเทียบแล้ว', 'success');
     } else {
       // ถ้ายังไม่อยู่ ให้เพิ่มเข้า
       const success = this.dormCompareService.addToCompare(compareItem);
       
       if (success) {
         this.isInCompareList = true;
+        this.triggerPopup('เพิ่มหอพักเข้ารายการเปรียบเทียบแล้ว', 'success');
       } else {
+        this.triggerPopup('ไม่สามารถเพิ่มหอพักได้ (สูงสุด 5 หอพัก)', 'error');
       }
     }
   }

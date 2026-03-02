@@ -72,8 +72,8 @@ export interface DormitoryDetail {
     line_id?: string;
     owner_line_id?: string;
     electricity_price?: number;
-    water_price?: number;
     water_price_type?: string;
+    water_price?: number;
     images?: Array<{
       image_id: number;
       image_url: string;
@@ -96,6 +96,11 @@ export interface DormitoryDetail {
         is_available: boolean;
       }>;
       ภายนอก: Array<{
+        amenity_id: number;
+        amenity_name: string;
+        is_available: boolean;
+      }>;
+      common: Array<{
         amenity_id: number;
         amenity_name: string;
         is_available: boolean;
@@ -172,15 +177,9 @@ export class AdminService {
         try {
           const headers = await this.getAuthHeadersAsync();
           this.http
-            .get<any[]>(`${this.backendUrl}/admin/submissions`, { headers })
+            .get<any[]>(`${this.backendUrl}/admin/dormitories/all`, { headers })
             .subscribe({
               next: (data) => {
-                // Log ข้อมูลสิ่งอำนวยความสะดวก
-                if (data.length > 0) {
-                  console.log('First dorm utilities:', data[0].utilities);
-                  console.log('First dorm room_types:', data[0].room_types);
-                }
-                
                 // Map ข้อมูลเพื่อดึง main_image_url และ thumbnail_url
                 const mappedData = data.map((dorm) => ({
                   ...dorm,
@@ -210,15 +209,9 @@ export class AdminService {
           this.http
             .get<
               any[]
-            >(`${this.backendUrl}/admin/submissions?status=pending`, { headers })
+            >(`${this.backendUrl}/admin/dormitories/pending`, { headers })
             .subscribe({
               next: (data) => {
-                // Log ข้อมูลสิ่งอำนวยความสะดวก
-                if (data.length > 0) {
-                  console.log('First dorm utilities:', data[0].utilities);
-                  console.log('First dorm room_types:', data[0].room_types);
-                }
-                
                 // Map ข้อมูลเพื่อดึง main_image_url และ thumbnail_url
                 const mappedData = data.map((dorm) => ({
                   ...dorm,
@@ -251,12 +244,6 @@ export class AdminService {
             >(`${this.backendUrl}/admin/dormitories/rejected`, { headers })
             .subscribe({
               next: (data) => {
-                // Log ข้อมูลสิ่งอำนวยความสะดวก
-                if (data.length > 0) {
-                  console.log('First dorm utilities:', data[0].utilities);
-                  console.log('First dorm room_types:', data[0].room_types);
-                }
-                
                 // Map ข้อมูลเพื่อดึง main_image_url และ thumbnail_url
                 const mappedData = data.map((dorm) => ({
                   ...dorm,
@@ -401,7 +388,7 @@ export class AdminService {
                     term_price: data.term_price || data.daily_price,
                     summer_price: data.summer_price,
                     deposit: data.deposit,
-                    electricity_type: data.electricity_type,
+                    electricity_type: data.electricity_type || data.electricity_price_type,
                     electricity_rate: data.electricity_price,
                     water_type: data.water_type || data.water_price_type,
                     water_rate: data.water_price,
@@ -409,13 +396,14 @@ export class AdminService {
                     status_dorm: data.status_dorm,
                     zone_name: data.zone_name,
                     owner_username: data.owner_username,
-                    owner_name: data.owner_name || data.manager_name,
+                    // แก้ไขการ mapping ให้ตรงกับ DB
+                    owner_name: data.owner_name || data.manager_name || data.contact_name,
                     owner_email: data.owner_email || data.contact_email,
-                    owner_phone:
-                      data.owner_phone ||
-                      data.primary_phone ||
-                      data.contact_phone,
+                    owner_phone: data.owner_phone || data.primary_phone || data.contact_phone,
+                    owner_line_id: data.owner_line_id || data.line_id,
                     electricity_price: data.electricity_price,
+                    water_price_type: data.water_price_type,
+                    water_price: data.water_price,
                     images: data.images || [],
                     room_types: data.room_types || [],
                     amenities: data.amenities || []
@@ -428,6 +416,37 @@ export class AdminService {
               error: (err) => {
                 subscriber.error(err);
               },
+              complete: () => subscriber.complete(),
+            });
+        } catch (err) {
+          subscriber.error(err);
+        }
+      })();
+    });
+  }
+
+  /**
+   * เพิ่มรูปภาพหอพักใหม่ (จาก draft URL)
+   * POST /api/admin/dormitories/:dormId/images
+   */
+  addDormitoryImage(
+    dormId: string | number,
+    payload: { image_url: string; is_primary: boolean }
+  ): Observable<any> {
+    return new Observable((subscriber) => {
+      (async () => {
+        try {
+          const headers = await this.getAuthHeadersAsync();
+
+          this.http
+            .post(
+              `${this.backendUrl}/admin/dormitories/${dormId}/images`,
+              payload,
+              { headers }
+            )
+            .subscribe({
+              next: (data) => subscriber.next(data),
+              error: (err) => subscriber.error(err),
               complete: () => subscriber.complete(),
             });
         } catch (err) {
@@ -599,37 +618,6 @@ export class AdminService {
           this.http
             .delete(
               `${this.backendUrl}/admin/dormitories/${dormId}/images/${imageId}`,
-              {
-                headers,
-              },
-            )
-            .subscribe({
-              next: (data) => subscriber.next(data),
-              error: (err) => subscriber.error(err),
-              complete: () => subscriber.complete(),
-            });
-        } catch (err) {
-          subscriber.error(err);
-        }
-      })();
-    });
-  }
-
-  /**
-   * เพิ่มรูปภาพหอพัก
-   */
-  addDormitoryImage(
-    dormId: string | number,
-    payload: { image_url: string; is_primary?: boolean },
-  ): Observable<any> {
-    return new Observable((subscriber) => {
-      (async () => {
-        try {
-          const headers = await this.getAuthHeadersAsync();
-          this.http
-            .post(
-              `${this.backendUrl}/admin/dormitories/${dormId}/images`,
-              payload,
               {
                 headers,
               },

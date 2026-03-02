@@ -362,7 +362,7 @@
                 <div class="carousel-track" [style.transform]="
                     'translateX(-' + currentImageIndex * 100 + '%)'
                   ">
-                  <img *ngFor="let p of reviewDormDetail?.images; let i = index" [src]="p.image_url" alt="slide"
+                  <img *ngFor="let p of reviewDormDetail?.dormitory?.images || reviewDormDetail?.images; let i = index" [src]="p.image_url" alt="slide"
                     class="carousel-slide" (click)="openImageModalReview(i)" />
                 </div>
                 <!-- Controls -->
@@ -598,7 +598,7 @@
               </svg>
             </button>
 
-            <img [src]="reviewDormDetail?.images?.[imageModalIndex]?.image_url"
+            <img [src]="(reviewDormDetail?.dormitory?.images || reviewDormDetail?.images)?.[imageModalIndex]?.image_url"
               [alt]="'รูปภาพหอพัก ' + (imageModalIndex + 1)"
               class="max-h-[85vh] max-w-[92vw] object-contain select-none" />
           </div>
@@ -1240,13 +1240,8 @@
             ไม่อนุมัติหอพัก
           </h3>
           <p class="text-sm text-gray-600">
-            ระบุเหตุผลในการไม่อนุมัติ (ไม่บังคับ):
+            คุณต้องการไม่อนุมัติหอพักนี้ใช่หรือไม่?
           </p>
-        </div>
-
-        <div class="mb-6">
-          <textarea [(ngModel)]="rejectionReason" placeholder="ระบุเหตุผล... (ไม่บังคับ)"
-            class="w-full h-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"></textarea>
         </div>
 
         <div class="flex justify-end gap-3">
@@ -1446,15 +1441,15 @@
               {{ bulkConfirmMessage }}
             </p>
 
-            <!-- Rejection Reason Input -->
-            <div *ngIf="bulkConfirmType === 'reject'" class="text-left mt-4">
+            <!-- Rejection Reason - ลบออกชั่วคราวเพราะไม่มีใน backend -->
+            <!-- <div *ngIf="bulkConfirmType === 'reject'" class="text-left mt-4">
               <label class="block text-sm font-semibold text-gray-700 mb-2 ml-1">
                 ระบุเหตุผลในการไม่อนุมัติ (ไม่บังคับ):
               </label>
               <textarea [(ngModel)]="rejectionReason"
                 placeholder="ระบุเหตุผล... (เช่น ข้อมูลไม่ครบถ้วน, รูปภาพไม่ชัดเจน)"
                 class="w-full h-28 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none bg-gray-50 text-sm transition-all"></textarea>
-            </div>
+            </div> -->
           </div>
 
           <!-- Actions -->

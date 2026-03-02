@@ -492,8 +492,34 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   reviewDormitory(dormId: string): void {
     this.reviewingDormId = dormId;
     this.selectedTab = 'review';
+    this.isLoadingDetail = true;
     this.currentReviewStep = 1;
-    this.loadDormitoryDetail(dormId);
+
+    console.log('🔍 [AdminComponent] Loading dormitory detail for ID:', dormId);
+
+    this.adminService.getDormitoryDetail(dormId).subscribe({
+      next: (detail) => {
+        this.reviewDormDetail = detail;
+        this.isLoadingDetail = false;
+
+        console.log('✅ [AdminComponent] Review dorm detail loaded:', detail);
+        const amenities = detail?.dormitory?.amenities || detail?.amenities || [];
+        const images = detail?.dormitory?.images || detail?.images || [];
+        console.log('🔍 [AdminComponent] Amenities count:', Array.isArray(amenities) ? amenities.length : 'Not array');
+        console.log('🔍 [AdminComponent] Images count:', Array.isArray(images) ? images.length : 'Not array');
+
+        // Reset image index when loading new dormitory
+        this.currentImageIndex = 0;
+
+        // Initialize map after a short delay to ensure DOM is ready
+        setTimeout(() => this.initPreviewMap(), 200);
+      },
+      error: (err) => {
+        console.error('❌ [AdminComponent] Failed to load dormitory detail:', err);
+        this.isLoadingDetail = false;
+        this.showToastNotification('เกิดข้อผิดพลาดในการโหลดข้อมูล', 'error');
+      },
+    });
   }
 
   loadDormitoryDetail(dormId: string): void {
@@ -560,50 +586,36 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Image carousel methods
   get prevImageIndex(): number {
-    if (!this.reviewDormDetail?.images) return 0;
-    return this.currentImageIndex === 0
-      ? this.reviewDormDetail.images.length - 1
-      : this.currentImageIndex - 1;
+    const images = this.reviewDormDetail?.dormitory?.images || this.reviewDormDetail?.images || [];
+    if (!images || images.length === 0) return 0;
+    return this.currentImageIndex === 0 ? images.length - 1 : this.currentImageIndex - 1;
   }
 
   get nextImageIndex(): number {
-    if (!this.reviewDormDetail?.images) return 0;
-    return this.currentImageIndex === this.reviewDormDetail.images.length - 1
-      ? 0
-      : this.currentImageIndex + 1;
+    const images = this.reviewDormDetail?.dormitory?.images || this.reviewDormDetail?.images || [];
+    if (!images || images.length === 0) return 0;
+    return this.currentImageIndex === images.length - 1 ? 0 : this.currentImageIndex + 1;
   }
 
   get hasImages(): boolean {
-    return (
-      Array.isArray(this.reviewDormDetail?.images) &&
-      this.reviewDormDetail.images.length > 0
-    );
+    const images = this.reviewDormDetail?.dormitory?.images || this.reviewDormDetail?.images || [];
+    return Array.isArray(images) && images.length > 0;
   }
 
   onPrevImage(): void {
-    if (
-      !this.reviewDormDetail?.images ||
-      this.reviewDormDetail.images.length === 0
-    )
-      return;
+    const images = this.reviewDormDetail?.dormitory?.images || this.reviewDormDetail?.images || [];
+    if (!images || images.length === 0) return;
 
     this.currentImageIndex =
-      this.currentImageIndex === 0
-        ? this.reviewDormDetail.images.length - 1
-        : this.currentImageIndex - 1;
+      this.currentImageIndex === 0 ? images.length - 1 : this.currentImageIndex - 1;
   }
 
   onNextImage(): void {
-    if (
-      !this.reviewDormDetail?.images ||
-      this.reviewDormDetail.images.length === 0
-    )
-      return;
+    const images = this.reviewDormDetail?.dormitory?.images || this.reviewDormDetail?.images || [];
+    if (!images || images.length === 0) return;
 
     this.currentImageIndex =
-      this.currentImageIndex === this.reviewDormDetail.images.length - 1
-        ? 0
-        : this.currentImageIndex + 1;
+      this.currentImageIndex === images.length - 1 ? 0 : this.currentImageIndex + 1;
   }
 
   openImageModalReview(index: number): void {
@@ -616,20 +628,18 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   prevModalImage(): void {
-    if (!this.reviewDormDetail?.images) return;
+    const images = this.reviewDormDetail?.dormitory?.images || this.reviewDormDetail?.images || [];
+    if (!images || images.length === 0) return;
     this.imageModalIndex =
-      this.imageModalIndex === 0
-        ? this.reviewDormDetail.images.length - 1
-        : this.imageModalIndex - 1;
+      this.imageModalIndex === 0 ? images.length - 1 : this.imageModalIndex - 1;
     this.cdr.detectChanges();
   }
 
   nextModalImage(): void {
-    if (!this.reviewDormDetail?.images) return;
+    const images = this.reviewDormDetail?.dormitory?.images || this.reviewDormDetail?.images || [];
+    if (!images || images.length === 0) return;
     this.imageModalIndex =
-      this.imageModalIndex === this.reviewDormDetail.images.length - 1
-        ? 0
-        : this.imageModalIndex + 1;
+      this.imageModalIndex === images.length - 1 ? 0 : this.imageModalIndex + 1;
     this.cdr.detectChanges();
   }
 
@@ -723,11 +733,15 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     ];
 
     // ดึงรายการที่หอนี้มี
-    const dormAmenities = this.reviewDormDetail?.amenities || {};
+    const dormAmenities = this.reviewDormDetail?.dormitory?.amenities || this.reviewDormDetail?.amenities || {};
     let dormAmenityNames: string[] = [];
+
+    console.log('🔍 [AdminComponent] Raw amenities data:', dormAmenities);
+    console.log('🔍 [AdminComponent] Is array?', Array.isArray(dormAmenities));
 
     if (Array.isArray(dormAmenities)) {
       dormAmenityNames = dormAmenities.map((a: any) => a.amenity_name);
+      console.log('🔍 [AdminComponent] Extracted amenity names (array):', dormAmenityNames);
     } else {
       // ถ้าเป็น object ที่แบ่งตามประเภท (ภายใน, ภายนอก, common)
       const internal = dormAmenities['ภายใน'] || [];
@@ -745,16 +759,20 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
           .filter((a: any) => a.is_available)
           .map((a: any) => a.amenity_name),
       ];
+      console.log('🔍 [AdminComponent] Extracted amenity names (object):', dormAmenityNames);
     }
 
     // สร้าง array ที่มีทั้งหมด พร้อมสถานะว่ามีหรือไม่
-    return allAmenityNames.map((name) => ({
+    const result = allAmenityNames.map((name) => ({
       name: name,
       has: dormAmenityNames.some(
         (apiName) =>
           apiName && apiName.toLowerCase().includes(name.toLowerCase()),
       ),
     }));
+
+    console.log('🔍 [AdminComponent] Final amenities with status:', result);
+    return result;
   }
 
   getAmenityIcon(amenityName: string): string {
@@ -1380,7 +1398,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     if (currentDorms.length === 0) return false;
 
     return currentDorms.every((dorm) =>
-      this.selectedDorms.includes(dorm.dorm_id),
+      this.selectedDorms.includes(String(dorm.dorm_id)), // แปลงเป็น string
     );
   }
 
@@ -1392,7 +1410,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
         : this.selectedTab === 'rejected'
           ? this.getRejectedDorms()
           : this.getApprovedDorms();
-    const currentDormIds = currentDorms.map((dorm) => dorm.dorm_id);
+    const currentDormIds = currentDorms.map((dorm) => String(dorm.dorm_id)); // แปลงเป็น string
 
     if (currentDormIds.every((id) => this.selectedDorms.includes(id))) {
       // If all current dorms are selected, deselect them

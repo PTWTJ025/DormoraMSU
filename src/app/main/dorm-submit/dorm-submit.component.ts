@@ -146,16 +146,16 @@ maptilersdk: any;
         room_type_other: [''], // ถ้าเลือก "อื่นๆ"
 
         // ราคา (ต้องเลือกอย่างน้อย 1)
-        monthly_price: ['', [Validators.min(1000), Validators.max(100000)]],
-        term_price: ['', [Validators.min(1000), Validators.max(100000)]], // เปลี่ยนจาก daily_price เป็น term_price
-        summer_price: ['', []], // ราคาซัมเมอร์ (ไม่บังคับ)
-        deposit: ['', []], // ค่าประกันห้อง (ไม่บังคับ)
+        monthly_price: ['', [Validators.min(1000), Validators.max(100000), Validators.pattern('^[0-9]*$')]],
+        term_price: ['', [Validators.min(1000), Validators.max(100000), Validators.pattern('^[0-9]*$')]], // เปลี่ยนจาก daily_price เป็น term_price
+        summer_price: ['', [Validators.pattern('^[0-9]*$')]], // ราคาซัมเมอร์ (ไม่บังคับ)
+        deposit: ['', [Validators.pattern('^[0-9]*$')]], // ค่าประกันห้อง (ไม่บังคับ)
 
         // ค่าน้ำค่าไฟ (บังคับกรอก)
         electricity_price_type: ['', Validators.required], // เพิ่มประเภทค่าไฟ
-        electricity_price: [{ value: '', disabled: true }], // ค่าไฟ บาท/หน่วย - ไม่บังคับถ้า disabled
+        electricity_price: [{ value: '', disabled: true }, [Validators.pattern('^[0-9]*.?[0-9]*$')]], // ค่าไฟ บาท/หน่วย - ไม่บังคับถ้า disabled
         water_price_type: ['', Validators.required], // ประเภทค่าน้ำ - บังคับ
-        water_price: [{ value: '', disabled: true }], // ค่าน้ำ - ไม่บังคับถ้า disabled
+        water_price: [{ value: '', disabled: true }, [Validators.pattern('^[0-9]*.?[0-9]*$')]], // ค่าน้ำ - ไม่บังคับถ้า disabled
 
         // สิ่งอำนวยความสะดวก (จะสร้างแบบ dynamic จาก API)
         amenities: this.fb.group({}),

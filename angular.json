@@ -44,6 +44,11 @@
                   "with": "src/environments/environment.prod.ts"
                 }
               ],
+              "optimization": {
+                "scripts": true,
+                "styles": true
+              },
+              "sourceMap": false,
               "budgets": [
                 {
                   "type": "initial",

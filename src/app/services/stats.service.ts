@@ -13,6 +13,10 @@ export interface DormCountResponse {
   dorm_count: number;
 }
 
+export interface OnlineCountResponse {
+  online_count: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -41,6 +45,18 @@ export class StatsService {
       catchError((error) => {
         console.error('Error fetching dorm count:', error);
         return of({ dorm_count: 0 });
+      }),
+    );
+  }
+
+  /**
+   * Get online count (HTTP fallback for WebSocket)
+   */
+  getOnlineCount(): Observable<OnlineCountResponse> {
+    return this.http.get<OnlineCountResponse>(`${this.backendUrl}/stats/online`).pipe(
+      catchError((error) => {
+        console.error('Error fetching online count:', error);
+        return of({ online_count: 0 });
       }),
     );
   }

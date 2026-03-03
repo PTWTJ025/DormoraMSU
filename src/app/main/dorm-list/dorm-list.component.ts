@@ -265,7 +265,13 @@ export class DormListComponent implements OnInit {
 
     // เพิ่มราคารายวันในบรรทัดที่สอง (ถ้ามี)
     if (d.daily_price) {
-      priceDisplay += `\n${d.daily_price.toLocaleString()} บาท/วัน`;
+      priceDisplay += (priceDisplay ? '\n' : '') + `${Number(d.daily_price).toLocaleString()} บาท/วัน`;
+    }
+
+    // เพิ่มราคารายเทอม (ถ้ามี) สำหรับตัวกรองขั้นสูง
+    const termPrice = (d as any).term_price;
+    if (termPrice != null && termPrice !== '') {
+      priceDisplay += (priceDisplay ? '\n' : '') + `${Number(termPrice).toLocaleString()} บาท/เทอม`;
     }
 
     // Format location display
@@ -340,6 +346,17 @@ export class DormListComponent implements OnInit {
       if (dailyMatch) {
         const [_, number, unit] = dailyMatch;
         html += `<div class="price-daily">
+          <span class="font-english">${number}</span>
+          <span class="font-thai unit">${unit}</span>
+        </div>`;
+      }
+    }
+
+    if (lines[2]) {
+      const termMatch = lines[2].match(/([\d,]+)\s*(บาท\/เทอม)/);
+      if (termMatch) {
+        const [_, number, unit] = termMatch;
+        html += `<div class="price-term">
           <span class="font-english">${number}</span>
           <span class="font-thai unit">${unit}</span>
         </div>`;
@@ -908,6 +925,34 @@ export class DormListComponent implements OnInit {
           this.filteredDorms = this.filteredDorms.filter(dorm => {
             const dormStarLevel = Math.floor(dorm.rating || 0); // 4.5 -> 4, 3.8 -> 3
             return this.currentFilters.stars.includes(dormStarLevel);
+          });
+        }
+        
+        // กรองตามประเภทการเช่าให้ตรวจสอบว่ามีราคาจริงๆ
+        if (this.currentFilters.daily || this.currentFilters.monthly || this.currentFilters.term) {
+          this.filteredDorms = this.filteredDorms.filter(dorm => {
+            // ถ้าเลือกเฉพาะรายวัน ต้องมีราคารายวัน
+            if (this.currentFilters.daily && !this.currentFilters.monthly && !this.currentFilters.term) {
+              return dorm.price.includes('บาท/วัน');
+            }
+            
+            // ถ้าเลือกเฉพาะรายเดือน ต้องมีราคารายเดือน
+            if (this.currentFilters.monthly && !this.currentFilters.daily && !this.currentFilters.term) {
+              return dorm.price.includes('บาท/เดือน');
+            }
+            
+            // ถ้าเลือกเฉพาะรายเทอม ต้องมีราคารายเทอม
+            if (this.currentFilters.term && !this.currentFilters.daily && !this.currentFilters.monthly) {
+              return dorm.price.includes('บาท/เทอม');
+            }
+            
+            // ถ้าเลือกหลายประเภท ให้แสดงหอพักที่มีราคาตรงกับอย่างน้อย 1 ประเภทที่เลือก
+            const hasDaily = dorm.price.includes('บาท/วัน');
+            const hasMonthly = dorm.price.includes('บาท/เดือน');
+            const hasTerm = dorm.price.includes('บาท/เทอม');
+            return (this.currentFilters.daily && hasDaily) ||
+              (this.currentFilters.monthly && hasMonthly) ||
+              (this.currentFilters.term && hasTerm);
           });
         }
         

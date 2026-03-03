@@ -180,26 +180,43 @@
             </div>
           </div>
 
+          <!-- Price Types Summary -->
+          <div class="mb-6">
+            <span class="text-[#4F5356] font-bold text-sm mb-2 block">ประเภทราคา</span>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="bg-gray-50 border border-gray-200 rounded-md p-3">
+                <p class="text-[11px] text-gray-500 mb-1.5">รายเดือน</p>
+                <p class="text-sm font-semibold text-[#4F5356]">
+                  {{ getMonthlyPriceDisplay() }}
+                </p>
+              </div>
+              <div class="bg-gray-50 border border-gray-200 rounded-md p-3">
+                <p class="text-[11px] text-gray-500 mb-1.5">รายวัน</p>
+                <p class="text-sm font-semibold text-[#4F5356]">
+                  {{ getDailyPriceDisplay() }}
+                </p>
+              </div>
+              <div class="bg-gray-50 border border-gray-200 rounded-md p-3">
+                <p class="text-[11px] text-gray-500 mb-1.5">รายเทอม</p>
+                <p class="text-sm font-semibold text-[#4F5356]">
+                  {{ getTermPriceDisplay() }}
+                </p>
+              </div>
+              <div class="bg-gray-50 border border-gray-200 rounded-md p-3">
+                <p class="text-[11px] text-gray-500 mb-1.5">ซัมเมอร์</p>
+                <p class="text-sm font-semibold text-[#4F5356]">
+                  {{ getSummerPriceDisplay() }}
+                </p>
+              </div>
+            </div>
+          </div>
+
           <!-- Dorm Description -->
           <div *ngIf="dormDetail?.description" class="mb-6">
             <span class="text-[#4F5356] font-bold text-sm mb-2 block">รายละเอียดหอพัก</span>
-            <p class="text-[#4F5356] leading-relaxed mb-3">
-              {{ dormDetail?.description }}
+            <p class="text-[#4F5356] leading-relaxed whitespace-pre-line block">
+              {{ getCleanDescription() }}
             </p>
-            <!-- คำอธิบายระยะทาง -->
-            <div *ngIf="calculateDistanceDescription()"
-              class="mt-4 p-4 rounded-xl border border-blue-100 bg-blue-50/80 shadow-sm">
-              <div class="flex items-start gap-3">
-                <div class="space-y-1">
-                  <p class="text-[11px] font-semibold tracking-wide text-blue-900 uppercase">
-                    ทำเล & ระยะทาง
-                  </p>
-                  <p class="text-blue-900 text-sm leading-relaxed">
-                    {{ calculateDistanceDescription() }}
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
 
           <div class="grid grid-cols-1 gap-6 mb-6">
@@ -208,6 +225,35 @@
               <span class="font-medium text-[#4F5356] break-words">{{
                 location
                 }}</span>
+
+              <!-- คำอธิบายระยะทางและสถานที่ใกล้เคียง -->
+              <div *ngIf="calculateDistanceDescription()"
+                class="mt-6 p-6 rounded-xl border border-gray-200 bg-white shadow-sm">
+
+                <div class="space-y-4">
+
+                  <div class="flex items-center gap-4">
+                    <div>
+                      <div class="text-gray-700 font-medium text-lg tracking-tight">
+                        {{ getDistanceText() }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <hr class="border-gray-100">
+
+                  <div class="space-y-4">
+                    <h4 class="text-xs font-bold uppercase tracking-widest text-gray-500">
+                      สถานที่ใกล้เคียง
+                    </h4>
+
+                    <div class="text-gray-700 text-sm leading-relaxed nearby-places-content">
+                      <div [innerHTML]="getNearbyPlacesHTML()"></div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
             </div>
           </div>
 
@@ -451,17 +497,54 @@
       'bg-yellow-600': popupType === 'warning',
       'bg-blue-600': popupType === 'info',
     }">
-    <i class="mt-0.5" [ngClass]="{
-        'fa-solid fa-circle-check': popupType === 'success',
-        'fa-solid fa-triangle-exclamation': popupType === 'warning',
-        'fa-solid fa-circle-info': popupType === 'info',
-        'fa-solid fa-circle-xmark': popupType === 'error',
-      }"></i>
+    <!-- Success Icon - เพิ่มหอพัก -->
+    <svg *ngIf="popupType === 'success' && popupMessage.includes('เพิ่มหอพัก')" class="mt-0.5 w-5 h-5 flex-shrink-0"
+      fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+
+    <!-- Success Icon - ลบหอพัก -->
+    <svg *ngIf="popupType === 'success' && popupMessage.includes('ลบหอพัก')" class="mt-0.5 w-5 h-5 flex-shrink-0"
+      fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+
+    <!-- Default Success Icon -->
+    <svg *ngIf="popupType === 'success' && !popupMessage.includes('เพิ่มหอพัก') && !popupMessage.includes('ลบหอพัก')"
+      class="mt-0.5 w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+
+    <!-- Error Icon -->
+    <svg *ngIf="popupType === 'error'" class="mt-0.5 w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor"
+      viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+
+    <!-- Warning Icon -->
+    <svg *ngIf="popupType === 'warning'" class="mt-0.5 w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor"
+      viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z" />
+    </svg>
+
+    <!-- Info Icon -->
+    <svg *ngIf="popupType === 'info'" class="mt-0.5 w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor"
+      viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
     <div class="flex-1 text-sm leading-5">
       {{ popupMessage }}
     </div>
     <button class="ml-2 text-white/80 hover:text-white" (click)="hidePopup()" aria-label="ปิด">
-      <i class="fa-solid fa-xmark"></i>
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
     </button>
   </div>
 </div>

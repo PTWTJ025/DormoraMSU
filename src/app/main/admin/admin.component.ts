@@ -146,6 +146,14 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.AMENITIES;
   }
 
+  // ปรับชื่อสิ่งอำนวยความสะดวกให้เปรียบเทียบได้ง่ายขึ้น (ตัดจุด/ช่องว่าง และตัวพิมพ์เล็ก-ใหญ่)
+  private normalizeAmenityName(name: string | undefined | null): string {
+    if (!name) {
+      return '';
+    }
+    return name.replace(/[.\s]/g, '').toLowerCase();
+  }
+
   getAmenityIndex(amenityId: string): number {
     return this.amenityIndexMap.get(amenityId) ?? -1;
   }
@@ -250,6 +258,9 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   totalPages = 5;
 
   selectedTab: 'all' | 'pending' | 'review' | 'edit' | 'rejected' = 'all';
+
+  /** คำค้นหาสำหรับกรองรายการหอพัก (ทุกแท็บ: อนุมัติแล้ว / รออนุมัติ / ปฏิเสธแล้ว) */
+  adminSearchQuery = '';
 
   // Review state
   reviewingDormId: string | null = null;
@@ -427,6 +438,55 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
         dorm.approval_status === 'approved' ||
         dorm.approval_status === 'อนุมัติ',
     );
+  }
+
+  /** หอพักทั้งหมดในระบบ (ทุกสถานะ) สำหรับรายการค้นหา */
+  getAllDorms(): Dormitory[] {
+    return this.dorms;
+  }
+
+  /** แปลง approval_status เป็นข้อความสถานะภาษาไทย */
+  getDormStatusLabel(dorm: Dormitory): string {
+    const s = dorm.approval_status;
+    if (s === 'approved' || s === 'อนุมัติ') return 'อนุมัติแล้ว';
+    if (s === 'pending' || s === 'รออนุมัติ') return 'รออนุมัติ';
+    if (s === 'rejected' || s === 'ไม่อนุมัติ') return 'ปฏิเสธแล้ว';
+    return s || 'ไม่ระบุ';
+  }
+
+  /** กรองรายการหอพักตามคำค้นหา (ชื่อหอ, ที่อยู่, เจ้าของ, โซน) */
+  filterDormsBySearch(list: Dormitory[]): Dormitory[] {
+    if (!this.adminSearchQuery || !this.adminSearchQuery.trim()) {
+      return list;
+    }
+    const q = this.adminSearchQuery.trim().toLowerCase();
+    return list.filter(
+      (d) =>
+        (d.dorm_name && d.dorm_name.toLowerCase().includes(q)) ||
+        (d.address && String(d.address).toLowerCase().includes(q)) ||
+        (d.owner_name && d.owner_name.toLowerCase().includes(q)) ||
+        (d.zone_name && d.zone_name.toLowerCase().includes(q)) ||
+        (d.owner_username && d.owner_username.toLowerCase().includes(q)),
+    );
+  }
+
+  /** รายการหอพักที่แสดงในแท็บปัจจุบัน (หลังกรองด้วยคำค้นหา) */
+  getDisplayedDorms(): Dormitory[] {
+    let list: Dormitory[];
+    if (this.selectedTab === 'all') {
+      list = this.getAllDorms();
+    } else if (this.selectedTab === 'pending') {
+      list = this.getPendingDorms();
+    } else if (this.selectedTab === 'rejected') {
+      list = this.getRejectedDorms();
+    } else {
+      return [];
+    }
+    return this.filterDormsBySearch(list);
+  }
+
+  clearAdminSearch(): void {
+    this.adminSearchQuery = '';
   }
 
   getPendingDorms(): any[] {
@@ -693,7 +753,11 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     const apiAmenityNames = apiAmenities.map((api) => api.amenity_name);
 
     return allAmenities.map((amenity) => {
-      const isAvailable = apiAmenityNames.includes(amenity.name);
+      const isAvailable = apiAmenityNames.some(
+        (apiName: string) =>
+          this.normalizeAmenityName(apiName) ===
+          this.normalizeAmenityName(amenity.name),
+      );
       return {
         amenity_name: amenity.name,
         is_available: isAvailable,
@@ -765,10 +829,14 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     // สร้าง array ที่มีทั้งหมด พร้อมสถานะว่ามีหรือไม่
     const result = allAmenityNames.map((name) => ({
       name: name,
-      has: dormAmenityNames.some(
-        (apiName) =>
-          apiName && apiName.toLowerCase().includes(name.toLowerCase()),
-      ),
+      has: dormAmenityNames.some((apiName) => {
+        const normalizedApi = this.normalizeAmenityName(apiName);
+        const normalizedName = this.normalizeAmenityName(name);
+        return (
+          normalizedApi === normalizedName ||
+          normalizedApi.includes(normalizedName)
+        );
+      }),
     }));
 
     console.log('🔍 [AdminComponent] Final amenities with status:', result);
@@ -791,6 +859,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
       โต๊ะเครื่องแป้ง: 'fas fa-magic',
       กล้องวงจรปิด: 'fas fa-video',
       'รปภ.': 'fas fa-shield-alt',
+      รปภ: 'fas fa-shield-alt',
       ลิฟต์: 'fas fa-elevator',
       ที่จอดรถ: 'fas fa-car',
       ฟิตเนส: 'fas fa-dumbbell',
@@ -1387,38 +1456,26 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.selectedDorms.includes(String(dormId));
   }
 
-  // Getter to check if all current dorms are selected
+  // Getter to check if all displayed (filtered) dorms are selected
   get areAllCurrentDormsSelected(): boolean {
-    const currentDorms =
-      this.selectedTab === 'pending'
-        ? this.getPendingDorms()
-        : this.selectedTab === 'rejected'
-          ? this.getRejectedDorms()
-          : this.getApprovedDorms();
+    const currentDorms = this.getDisplayedDorms();
     if (currentDorms.length === 0) return false;
 
     return currentDorms.every((dorm) =>
-      this.selectedDorms.includes(String(dorm.dorm_id)), // แปลงเป็น string
+      this.selectedDorms.includes(String(dorm.dorm_id)),
     );
   }
 
-  // Helper method to select/deselect all dormitories
+  // Helper method to select/deselect all displayed dormitories
   toggleSelectAll(): void {
-    const currentDorms =
-      this.selectedTab === 'pending'
-        ? this.getPendingDorms()
-        : this.selectedTab === 'rejected'
-          ? this.getRejectedDorms()
-          : this.getApprovedDorms();
-    const currentDormIds = currentDorms.map((dorm) => String(dorm.dorm_id)); // แปลงเป็น string
+    const currentDorms = this.getDisplayedDorms();
+    const currentDormIds = currentDorms.map((dorm) => String(dorm.dorm_id));
 
     if (currentDormIds.every((id) => this.selectedDorms.includes(id))) {
-      // If all current dorms are selected, deselect them
       this.selectedDorms = this.selectedDorms.filter(
         (id) => !currentDormIds.includes(id),
       );
     } else {
-      // Select all current dormitories
       this.selectedDorms = [
         ...new Set([...this.selectedDorms, ...currentDormIds]),
       ];

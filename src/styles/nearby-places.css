@@ -1,0 +1,80 @@
+/* สถานที่ใกล้เคียงแนวตั้ง */
+.nearby-places-vertical {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.place-category {
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  transition: all 0.2s ease;
+}
+
+.place-category:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(59, 130, 246, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+.category-header svg {
+  flex-shrink: 0;
+}
+
+.category-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: #1e40af;
+  white-space: nowrap;
+}
+
+.place-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.place-item {
+  font-size: 12px;
+  color: #4b5563;
+  line-height: 1.4;
+  padding-left: 4px;
+  transition: color 0.2s ease;
+}
+
+.place-item:hover {
+  color: #1e40af;
+}
+
+/* สำหรับหน้าจอเล็ก */
+@media (max-width: 640px) {
+  .nearby-places-vertical {
+    margin-top: 10px;
+    gap: 10px;
+  }
+  
+  .place-category {
+    padding: 10px;
+  }
+  
+  .category-name {
+    font-size: 12px;
+  }
+  
+  .place-item {
+    font-size: 11px;
+  }
+}

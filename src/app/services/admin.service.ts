@@ -28,6 +28,7 @@ export interface Dormitory {
   submitted_date: string;
   zone_name: string;
   main_image_url: string;
+  thumbnail_url?: string;
   description?: string;
   room_types?: any[];
   utilities?: any;

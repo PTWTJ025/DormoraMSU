@@ -663,27 +663,10 @@ maptilersdk: any;
         waterPrice = waterPrice.trim();
       }
 
-      // สร้าง payload ใหม่ที่จัดรูปแบบแล้ว
-      let finalDescription = formValues.description || '';
-      
-      // เพิ่มข้อความระยะทางเฉพาะตอน submit เท่านั้น
-      if (this.lastCalculatedDistance !== null) {
-        const dormName = formValues.dorm_name || 'หอพัก';
-        const zoneId = formValues.zone_id;
-        const zone = this.zones.find(z => z.zone_id === Number(zoneId));
-        const zoneName = zone ? zone.zone_name : '';
-        
-        const distanceText = this.distanceService.createDistanceText(dormName, zoneName, this.lastCalculatedDistance);
-        
-        // ลบ distance text เก่าที่อาจมีอยู่แล้ว แล้วเพิ่มใหม่
-        const distanceRegex = /^หอพัก.*?ห่างจาก.*?ประมาณ.*?กิโลเมตร\s*(\n\n)?/;
-        finalDescription = finalDescription.replace(distanceRegex, '');
-        finalDescription = distanceText + (finalDescription ? '\n\n' + finalDescription : '');
-      }
-      
       const payload = {
         ...formValues,
-        description: finalDescription,
+        // description จะเก็บเฉพาะข้อความที่ผู้ใช้กรอก ไม่ฝังประโยคระยะทางลงฐานข้อมูลแล้ว
+        description: formValues.description || '',
         electricity_price_type: electricityPriceType,
         electricity_price: electricityPrice,
         water_price_type: waterPriceType,
@@ -836,13 +819,13 @@ maptilersdk: any;
   }
 
   getElectricityPriceTypes(): string[] {
-    return ['ตามอัตราการไฟฟ้า', 'คิดตามหน่วย (บาท/หน่วย)'];
+    return ['ตามอัตราการไฟฟ้า', 'ราคาหน่วยละ (บาท/หน่วย)'];
   }
 
   getWaterPriceTypes(): string[] {
     return [
       'ตามอัตราการประปา',
-      'คิดตามหน่วย (บาท/หน่วย)',
+      'ราคาหน่วยละ (บาท/หน่วย)',
       'เหมาจ่าย (บาท/เดือน)',
     ];
   }

@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { StatsService, WebsiteStats, DormCountResponse, OnlineCountResponse } from '../../services/stats.service';
+import { StatsService, WebsiteStats } from '../../services/stats.service';
 
 @Component({
   selector: 'app-about',
@@ -9,11 +9,17 @@ import { StatsService, WebsiteStats, DormCountResponse, OnlineCountResponse } fr
   templateUrl: './about.component.html',
 })
 export class AboutComponent implements OnInit, OnDestroy {
+  // Stats Data
   stats: WebsiteStats = { visitor_count: 0, submission_count: 0 };
   isLoadingStats = true;
   onlineCount = 0;
   dormCount = 0;
-  
+
+  // Popup States
+  showFacebookPopup = false;
+  showLinePopup = false;
+  showYoutubePopup = false;
+
   private ws: WebSocket | null = null;
 
   constructor(private statsService: StatsService) { }
@@ -31,55 +37,45 @@ export class AboutComponent implements OnInit, OnDestroy {
     }
   }
 
+  // --- Core Logic ---
+
   initWebSocket() {
     try {
-      const wsUrl = 'ws://localhost:3000/ws'; // Update with production URL when needed
+      const wsUrl = 'ws://localhost:3000/ws'; // แก้เป็น URL ของหลังบ้านคุณ
       this.ws = new WebSocket(wsUrl);
-      
+
       this.ws.onmessage = (e) => {
-        const { type, count } = JSON.parse(e.data);
-        if (type === 'online_count') {
-          this.onlineCount = count;
+        try {
+          const data = JSON.parse(e.data);
+          if (data.type === 'online_count') {
+            this.onlineCount = data.count;
+          }
+        } catch (err) {
+          console.error('Error parsing WS message', err);
         }
       };
 
-      this.ws.onerror = () => {
-        console.error('WebSocket error, falling back to HTTP');
-        this.loadOnlineCountFallback();
-      };
-
-      this.ws.onclose = () => {
-        console.log('WebSocket closed, attempting to reconnect...');
-        setTimeout(() => this.initWebSocket(), 5000);
-      };
+      this.ws.onerror = () => this.loadOnlineCountFallback();
+      this.ws.onclose = () => setTimeout(() => this.initWebSocket(), 5000);
     } catch (error) {
-      console.error('Failed to connect WebSocket, using HTTP fallback');
       this.loadOnlineCountFallback();
     }
   }
 
   loadOnlineCountFallback() {
     this.statsService.getOnlineCount().subscribe({
-      next: (data) => {
-        this.onlineCount = data.online_count;
-      },
-      error: () => {
-        this.onlineCount = 0;
-      }
+      next: (data) => this.onlineCount = data.online_count,
+      error: () => this.onlineCount = 0
     });
   }
 
   recordVisitor() {
-    // Record visitor once per session
     const recorded = sessionStorage.getItem('visitor_recorded');
     if (!recorded) {
       this.statsService.recordVisitor().subscribe({
         next: () => {
           sessionStorage.setItem('visitor_recorded', 'true');
-          this.loadStats(); // Refresh stats after recording
-        },
-        error: () => {
-          console.error('Failed to record visitor');
+          this.loadStats();
         }
       });
     }
@@ -91,27 +87,18 @@ export class AboutComponent implements OnInit, OnDestroy {
         this.stats = data;
         this.isLoadingStats = false;
       },
-      error: () => {
-        this.isLoadingStats = false;
-      },
+      error: () => this.isLoadingStats = false
     });
   }
 
   loadDormCount() {
     this.statsService.getDormCount().subscribe({
-      next: (data) => {
-        this.dormCount = data.dorm_count;
-      },
-      error: () => {
-        this.dormCount = 0;
-      },
+      next: (data) => this.dormCount = data.dorm_count,
+      error: () => this.dormCount = 0
     });
   }
 
-  // Popup states
-  showFacebookPopup = false;
-  showLinePopup = false;
-  showYoutubePopup = false;
+  // --- Popup Handlers ---
 
   openFacebookPopup() {
     this.closeAllPopups();
@@ -132,9 +119,5 @@ export class AboutComponent implements OnInit, OnDestroy {
     this.showFacebookPopup = false;
     this.showLinePopup = false;
     this.showYoutubePopup = false;
-  }
-
-  openSocialLink(url: string) {
-    window.open(url, '_blank');
   }
 }

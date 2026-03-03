@@ -260,6 +260,37 @@
         </div>
       </div>
 
+      <!-- Search bar (เมื่ออยู่ที่แท็บรายการหอพัก) -->
+      <div
+        *ngIf="selectedTab === 'all' || selectedTab === 'pending' || selectedTab === 'rejected'"
+        class="mb-6 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row gap-3 sm:items-center">
+          <label class="text-sm font-medium text-gray-700 font-thai sr-only sm:not-sr-only sm:mr-2">
+            ค้นหา
+          </label>
+          <div class="relative flex-1">
+            <input
+              type="text"
+              [(ngModel)]="adminSearchQuery"
+              placeholder="ค้นหาชื่อหอพัก, ที่อยู่, เจ้าของ, โซน..."
+              class="w-full h-10 pl-3 pr-10 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-thai">
+            <button
+              *ngIf="adminSearchQuery"
+              type="button"
+              (click)="clearAdminSearch()"
+              class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 rounded"
+              aria-label="ล้างคำค้นหา">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          <div class="text-sm text-gray-500 font-thai">
+            แสดง {{ getDisplayedDorms().length }} รายการ
+          </div>
+        </div>
+      </div>
+
       <!-- Edit Dormitory Section - Full Edit Form -->
       <ng-container *ngIf="selectedTab === 'edit' && reviewingDormId">
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -689,7 +720,7 @@
 
       <!-- STEP 2 REVIEW CONTENT -->
 
-      <!-- Approved Dormitories Section -->
+      <!-- รายการหอพักทั้งหมดในระบบ (ทุกสถานะ) -->
       <div *ngIf="selectedTab === 'all'" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
           <div class="flex items-center justify-between">
@@ -698,7 +729,7 @@
                 รายการหอพักทั้งหมด
               </h2>
               <p class="hidden sm:block text-sm text-gray-600 mt-1">
-                แสดงเฉพาะหอพักที่ผ่านการอนุมัติแล้ว
+                แสดงหอพักทั้งหมดในระบบ พร้อมสถานะ (อนุมัติแล้ว / รออนุมัติ / ปฏิเสธแล้ว)
               </p>
             </div>
           </div>
@@ -750,7 +781,7 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr *ngFor="let dorm of getApprovedDorms()" class="hover:bg-gray-50 transition-colors duration-200">
+              <tr *ngFor="let dorm of getDisplayedDorms()" class="hover:bg-gray-50 transition-colors duration-200">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <input type="checkbox" [checked]="isDormSelected(dorm.dorm_id)"
                     (change)="toggleDormSelection(dorm.dorm_id)"
@@ -803,7 +834,7 @@
         </div>
         <!-- Mobile Cards (All Approved) -->
         <div *ngIf="!isLoading" class="md:hidden divide-y divide-gray-200">
-          <div *ngFor="let dorm of getApprovedDorms()" class="p-4">
+          <div *ngFor="let dorm of getDisplayedDorms()" class="p-4">
             <div class="flex items-center">
               <img [src]="dorm.main_image_url || 'assets/images/photo.png'" [alt]="dorm.dorm_name"
                 class="w-16 h-16 rounded-lg object-cover mr-3" (error)="onImageError($event)" />
@@ -895,7 +926,7 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr *ngFor="let dorm of getPendingDorms()" class="hover:bg-gray-50 transition-colors duration-200">
+              <tr *ngFor="let dorm of getDisplayedDorms()" class="hover:bg-gray-50 transition-colors duration-200">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <input type="checkbox" [checked]="isDormSelected(dorm.dorm_id)"
                     (change)="toggleDormSelection(dorm.dorm_id)"
@@ -946,7 +977,7 @@
         </div>
         <!-- Mobile Cards (Pending) -->
         <div *ngIf="!isLoading" class="md:hidden divide-y divide-gray-200">
-          <div *ngFor="let dorm of getPendingDorms()" class="p-4">
+          <div *ngFor="let dorm of getDisplayedDorms()" class="p-4">
             <div class="flex items-center">
               <img [src]="dorm.main_image_url || 'assets/images/photo.png'" [alt]="dorm.dorm_name"
                 class="w-16 h-16 rounded-lg object-cover mr-3" (error)="onImageError($event)" />
@@ -1039,7 +1070,7 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr *ngFor="let dorm of getRejectedDorms()" class="hover:bg-gray-50 transition-colors duration-200">
+              <tr *ngFor="let dorm of getDisplayedDorms()" class="hover:bg-gray-50 transition-colors duration-200">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <input type="checkbox" [checked]="isDormSelected(dorm.dorm_id)"
                     (change)="toggleDormSelection(dorm.dorm_id)"
@@ -1090,7 +1121,7 @@
         </div>
         <!-- Mobile Cards (Rejected) -->
         <div *ngIf="!isLoading" class="md:hidden divide-y divide-gray-200">
-          <div *ngFor="let dorm of getRejectedDorms()" class="p-4">
+          <div *ngFor="let dorm of getDisplayedDorms()" class="p-4">
             <div class="flex items-center">
               <img [src]="dorm.main_image_url || 'assets/images/photo.png'" [alt]="dorm.dorm_name"
                 class="w-16 h-16 rounded-lg object-cover mr-3" (error)="onImageError($event)" />

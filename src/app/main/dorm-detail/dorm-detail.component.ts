@@ -11,6 +11,7 @@ import { SentimentService } from '../../services/sentiment.service';
 import { DormCompareService, CompareDormItem } from '../../services/dorm-compare.service';
 import { ComparePopupComponent } from '../shared/compare-popup/compare-popup.component';
 import { AmenityIconComponent } from '../../components/amenity-icon/amenity-icon.component';
+import { DistanceService } from '../../services/distance.service';
 
 interface AmenityDisplay {
   amenity_id: number;
@@ -151,7 +152,8 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     private sanitizer: DomSanitizer,
     private authService: AuthService,
     private sentimentService: SentimentService,
-    public dormCompareService: DormCompareService
+    public dormCompareService: DormCompareService,
+    private distanceService: DistanceService
   ) { }
 
   // Popup state
@@ -794,6 +796,63 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.dormDetail.electricity_type;
   }
 
+  // แสดงราคาแต่ละประเภทในรูปแบบที่อ่านง่าย
+  getMonthlyPriceDisplay(): string {
+    if (!this.dormDetail) return 'ติดต่อสอบถาม';
+
+    const detail: any = this.dormDetail;
+    const monthly =
+      detail.monthly_price ??
+      detail.min_price ??
+      detail.max_price ??
+      null;
+
+    if (monthly == null) {
+      return 'ติดต่อสอบถาม';
+    }
+
+    return `${Number(monthly).toLocaleString()} บาท`;
+  }
+
+  getDailyPriceDisplay(): string {
+    if (!this.dormDetail) return 'ติดต่อสอบถาม';
+
+    const detail: any = this.dormDetail;
+    const daily = detail.daily_price ?? null;
+
+    if (daily == null) {
+      return 'ติดต่อสอบถาม';
+    }
+
+    return `${Number(daily).toLocaleString()} บาท`;
+  }
+
+  getTermPriceDisplay(): string {
+    if (!this.dormDetail) return 'ติดต่อสอบถาม';
+
+    const detail: any = this.dormDetail;
+    const term = detail.term_price ?? null;
+
+    if (term == null) {
+      return 'ติดต่อสอบถาม';
+    }
+
+    return `${Number(term).toLocaleString()} บาท`;
+  }
+
+  getSummerPriceDisplay(): string {
+    if (!this.dormDetail) return 'ติดต่อสอบถาม';
+
+    const detail: any = this.dormDetail;
+    const summer = detail.summer_price ?? null;
+
+    if (summer == null) {
+      return 'ติดต่อสอบถาม';
+    }
+
+    return `${Number(summer).toLocaleString()} บาท`;
+  }
+
   // Helper methods for avatars
   getUserAvatarUrl(): string {
     // ถ้ามีรูปโปรไฟล์ ให้ใช้รูปนั้น
@@ -1017,16 +1076,45 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     return Array(Math.floor(rating)).fill(0);
   }
 
-  getEmptyStars(rating: number): number[] {
-    return Array(5 - Math.floor(rating)).fill(0);
+  // คำนวณระยะทางระหว่าง 2 จุด (Haversine formula)
+  private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    // ใช้ DistanceService เพื่อให้การคำนวณระยะทางสอดคล้องกันทุกที่
+    return this.distanceService.calculateDistance(lat1, lng1, lat2, lng2);
   }
 
-  // คำนวณระยะทางจากจุดสำคัญ
-  calculateDistanceDescription(): string {
-    if (!this.mapLatitude || !this.mapLongitude) {
-      return '';
-    }
+  private deg2rad(deg: number): number {
+    return deg * (Math.PI/180);
+  }
 
+  // แยกระยะทางจาก description และเพิ่มสถานที่ใกล้เคียง
+  calculateDistanceDescription(): string {
+    // คำนวณระยะห่างแบบเรียลไทม์จากพิกัดเสมอ ไม่อ่านจาก description อีกต่อไป
+    if (this.mapLatitude && this.mapLongitude) {
+      const distanceKm = this.distanceService.calculateDistance(
+        this.mapLatitude,
+        this.mapLongitude
+      );
+      const rounded = Math.round(distanceKm * 10) / 10;
+      return `ห่างจากมหาวิทยาลัยมหาสารคาม ประมาณ ${rounded} กิโลเมตร`;
+    }
+    return '';
+  }
+
+  // แยกเฉพาะข้อความระยะทาง
+  getDistanceText(): string {
+    return this.calculateDistanceDescription();
+  }
+
+  // แยกเฉพาะ HTML สถานที่ใกล้เคียง
+  getNearbyPlacesHTML(): string {
+    if (this.mapLatitude && this.mapLongitude) {
+      return this.distanceService.getNearbyPlacesText(this.mapLatitude, this.mapLongitude);
+    }
+    return '';
+  }
+
+  // คำนวณระยะทางจากพิกัด (fallback)
+  private calculateDistanceFromCoordinates(): string {
     const dormLat = this.mapLatitude;
     const dormLng = this.mapLongitude;
     
@@ -1039,7 +1127,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     ];
 
     const distances = landmarks.map(landmark => {
-      const distance = this.calculateDistance(dormLat, dormLng, landmark.lat, landmark.lng);
+      const distance = this.calculateDistance(dormLat!, dormLng!, landmark.lat, landmark.lng);
       return { name: landmark.name, distance: Math.round(distance * 10) / 10 };
     });
 
@@ -1048,30 +1136,21 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       prev.distance < current.distance ? prev : current
     );
 
-    if (nearest.distance < 1) {
-      return `หอพักตั้งอยู่ใกล้${nearest.name} เพียง ${Math.round(nearest.distance * 1000)} เมตร เดินทางสะดวก เหมาะสำหรับนิสิต`;
-    } else if (nearest.distance < 5) {
-      return `หอพักห่างจาก${nearest.name} ประมาณ ${nearest.distance} กิโลเมตร สามารถเดินทางได้สะดวก`;
-    } else {
-      return `หอพักตั้งอยู่ในพื้นที่ ${this.dormDetail?.zone_name} ห่างจาก${nearest.name} ประมาณ ${nearest.distance} กิโลเมตร`;
+    return `ห่างจาก${nearest.name} ประมาณ ${nearest.distance} กิโลเมตร`;
+  }
+
+  // คืนค่ารายละเอียดหอพัก โดยตัดข้อความระยะทางที่เคยฝังไว้ใน description ออก
+  getCleanDescription(): string {
+    if (!this.dormDetail?.description) {
+      return '';
     }
-  }
 
-  // คำนวณระยะทางระหว่าง 2 จุด (Haversine formula)
-  private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
-    const R = 6371; // รัศมีโลกในหน่วยกิโลเมตร
-    const dLat = this.deg2rad(lat2 - lat1);
-    const dLng = this.deg2rad(lng2 - lng1);
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) * 
-      Math.sin(dLng/2) * Math.sin(dLng/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-  }
+    // ตัดบรรทัดขึ้นต้นที่เป็นประโยคระยะทางออก เช่น
+    // "หอพัก xxx ห่างจาก ... ประมาณ 1.1 กิโลเมตร"
+    const distanceRegex =
+      /^หอพัก.*?ห่างจาก.*?ประมาณ.*?(กิโลเมตร|เมตร)\s*(\r?\n\r?\n|\r?\n)?/m;
 
-  private deg2rad(deg: number): number {
-    return deg * (Math.PI/180);
+    return this.dormDetail.description.replace(distanceRegex, '').trim();
   }
 
   viewMoreSimilarDorms(): void {

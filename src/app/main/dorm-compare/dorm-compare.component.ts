@@ -288,18 +288,25 @@ export class DormCompareComponent implements OnInit, OnDestroy {
   }
 
   private formatUtilityCost(type?: string, rate?: number | string): string {
-    if (!type) return 'ไม่ระบุ';
+    if (!type && !rate) return 'ไม่ระบุ';
+    
+    // ถ้ามี rate แต่ไม่มี type ให้แสดง rate กับหน่วย
+    if (!type && rate) {
+      return `${rate} บาท/หน่วย`;
+    }
 
     // Handle API response format
-    if (type === 'คิดตามหน่วย' || type === 'per_unit') {
+    if (type === 'คิดตามหน่วย' || type === 'per_unit' || type === 'ราคาหน่วยละ (บาท/หน่วย)') {
       return rate ? `${rate} บาท/หน่วย` : 'คิดตามหน่วย';
     } else if (type === 'รวมค่าเช่า' || type === 'included') {
       return 'รวมค่าเช่า';
-    } else if (type === 'เหมาจ่าย' || type === 'fixed') {
+    } else if (type === 'เหมาจ่าย' || type === 'fixed' || type === 'เหมาจ่าย (บาท/เดือน)') {
       return rate ? `เหมาจ่าย ${rate} บาท/เดือน` : 'เหมาจ่าย';
+    } else if (type === 'ตามอัตราการประปา') {
+      return 'ตามอัตราการประปา';
     }
 
-    return type;
+    return type || 'ไม่ระบุ';
   }
 
   private calculateDistance(lat?: number | null, lng?: number | null): string {
@@ -320,9 +327,9 @@ export class DormCompareComponent implements OnInit, OnDestroy {
           bValue = b.rating;
           break;
         case 'price':
-          // ใช้ราคาเฉลี่ยจากทุกประเภทที่มี
-          aValue = this.getAveragePrice(a);
-          bValue = this.getAveragePrice(b);
+          // ใช้ราคารายเดือนโดยตรง ถ้าไม่มีให้ใช้ราคาอื่นที่มี
+          aValue = a.monthlyPrice || a.dailyPrice || a.termPrice || 0;
+          bValue = b.monthlyPrice || b.dailyPrice || b.termPrice || 0;
           break;
         case 'name':
           aValue = a.name.toLowerCase();
@@ -427,6 +434,7 @@ export class DormCompareComponent implements OnInit, OnDestroy {
       ลิฟต์: 'fa-elevator',
       WIFI: 'fa-wifi',
       'รปภ.': 'fa-shield-alt',
+      รปภ: 'fa-shield-alt',
       ฟิตเนส: 'fa-dumbbell',
       ตู้กดน้ำหยอดเหรียญ: 'fa-tint',
       สระว่ายน้ำ: 'fa-swimming-pool',
@@ -437,7 +445,12 @@ export class DormCompareComponent implements OnInit, OnDestroy {
   }
 
   hasAmenity(dorm: CompareDormData, amenity: string): boolean {
-    return dorm.amenities.includes(amenity);
+    const normalize = (name: string) =>
+      name.replace(/[.\s]/g, '').toLowerCase();
+    const target = normalize(amenity);
+    return dorm.amenities.some(
+      (a) => normalize(a) === target || normalize(a).includes(target),
+    );
   }
 
   // Helper methods for skeleton

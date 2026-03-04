@@ -75,6 +75,10 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
   amenities: string[] = [];
   lastCalculatedDistance: number | null = null; // เก็บค่าระยะทางล่าสุด
   isLoadingData = false;
+  isLoadingRoadDistance = false;
+  roadDistanceFallback = false;
+  roadNearbySummaryText: string = '';
+  private roadDistanceReqSeq = 0;
 
   // Map loading state
   isLoadingLocation = false;
@@ -906,10 +910,29 @@ maptilersdk: any;
       longitude: lng,
       latitude: lat,
     });
-    
-    // เก็บค่าระยะทางไว้ใช้ตอน submit เท่านั้น ไม่เพิ่มใน description ทุกครั้งที่เลื่อนแผนที่
-    const distance = this.distanceService.calculateDistance(lat, lng);
-    this.lastCalculatedDistance = distance;
+
+    // คำนวณระยะทางตามถนน (ORS). ถ้า ORS ใช้ไม่ได้จะ fallback เป็นเส้นตรง (calculateDistance)
+    const reqSeq = ++this.roadDistanceReqSeq;
+    this.isLoadingRoadDistance = true;
+    this.distanceService.getRoadDistancesFromDorm(lat, lng).subscribe({
+      next: (res) => {
+        if (reqSeq !== this.roadDistanceReqSeq) return;
+        this.lastCalculatedDistance = res.msuKm;
+        this.roadDistanceFallback = res.fallback;
+        this.roadNearbySummaryText = this.distanceService.buildNearbySummaryTextFromRoad(res.places, res.fallback);
+      },
+      error: () => {
+        if (reqSeq !== this.roadDistanceReqSeq) return;
+        const distance = this.distanceService.calculateDistance(lat, lng);
+        this.lastCalculatedDistance = distance;
+        this.roadDistanceFallback = true;
+        this.roadNearbySummaryText = '';
+      },
+      complete: () => {
+        if (reqSeq !== this.roadDistanceReqSeq) return;
+        this.isLoadingRoadDistance = false;
+      },
+    });
   }
 
   getCurrentLocation() {

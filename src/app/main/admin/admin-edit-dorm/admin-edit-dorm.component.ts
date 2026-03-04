@@ -16,6 +16,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AdminService } from '../../../services/admin.service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { SupabaseService } from '../../../services/supabase.service';
+import { DistanceService } from '../../../services/distance.service';
 import { environment } from '../../../../environments/environment';
 import * as maptilersdk from '@maptiler/sdk';
 import '@maptiler/sdk/dist/maptiler-sdk.css';
@@ -97,6 +98,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
     private adminService: AdminService,
     private supabaseService: SupabaseService,
     private cdr: ChangeDetectorRef,
+    private distanceService: DistanceService,
   ) {}
 
   ngOnInit() {
@@ -350,6 +352,13 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
       console.log('🏠 Available room types:', this.getRoomTypes());
       console.log('🏠 Existing images:', this.existingImages);
       
+      // คำนวณระยะทางตามถนนจากพิกัดปัจจุบัน
+      const initialLat = Number(this.dormForm.get('latitude')?.value);
+      const initialLng = Number(this.dormForm.get('longitude')?.value);
+      if (!isNaN(initialLat) && !isNaN(initialLng)) {
+        this.refreshRoadDistance(initialLat, initialLng);
+      }
+
       setTimeout(() => this.initMap(), 100);
     } catch (err) {
       console.error('Error fetching initial data:', err);
@@ -612,6 +621,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
         this.marker.on('dragend', () => {
           const lngLat = this.marker!.getLngLat();
           this.dormForm.patchValue({ latitude: lngLat.lat, longitude: lngLat.lng });
+          this.refreshRoadDistance(lngLat.lat, lngLat.lng);
         });
 
         this.map.on('click', (e) => {
@@ -620,6 +630,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
             latitude: e.lngLat.lat,
             longitude: e.lngLat.lng,
           });
+          this.refreshRoadDistance(e.lngLat.lat, e.lngLat.lng);
         });
         
         console.log('🗺️ Map initialized successfully');
@@ -638,11 +649,35 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
             this.map.setCenter([longitude, latitude]);
             this.marker.setLngLat([longitude, latitude]);
             this.dormForm.patchValue({ latitude, longitude });
+            this.refreshRoadDistance(latitude, longitude);
           }
         },
         (err) => console.error('Geolocation error:', err),
       );
     }
+  }
+
+  private refreshRoadDistance(lat: number, lng: number) {
+    const reqSeq = ++this.roadDistanceReqSeq;
+    this.isLoadingRoadDistance = true;
+    this.distanceService.getRoadDistancesFromDorm(lat, lng).subscribe({
+      next: (res) => {
+        if (reqSeq !== this.roadDistanceReqSeq) return;
+        this.roadDistanceMsuKm = res.msuKm;
+        this.roadDistanceFallback = res.fallback;
+        this.roadNearbySummaryText = this.distanceService.buildNearbySummaryTextFromRoad(res.places, res.fallback);
+      },
+      error: () => {
+        if (reqSeq !== this.roadDistanceReqSeq) return;
+        this.roadDistanceMsuKm = this.distanceService.calculateDistance(lat, lng);
+        this.roadDistanceFallback = true;
+        this.roadNearbySummaryText = '';
+      },
+      complete: () => {
+        if (reqSeq !== this.roadDistanceReqSeq) return;
+        this.isLoadingRoadDistance = false;
+      },
+    });
   }
 
   toggleMapStyle() {
@@ -768,6 +803,11 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
   isLoadingData = false;
   isLoadingLocation = false;
   minImages = 3;
+  isLoadingRoadDistance = false;
+  roadDistanceMsuKm: number | null = null;
+  roadDistanceFallback = false;
+  roadNearbySummaryText: string = '';
+  private roadDistanceReqSeq = 0;
 
   // Multi-step methods
   nextStep() {

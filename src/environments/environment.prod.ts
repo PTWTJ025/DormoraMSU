@@ -16,6 +16,7 @@ export const environment = {
 
   fastApiUrl: 'https://roomaroo-textclassification.onrender.com/api',
   mapTilerApiKey: 'Gpwk2Mpi9cl8hUkVrf6f',
+  openRouteServiceApiKey: 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImViNTVhMjQyOTY1YjRiMmJhOGRjZjRmZTMwODk2OTA3IiwiaCI6Im11cm11cjY0In0=',
 
   // Supabase Configuration - Production with new key
   supabaseUrl: 'https://spismpgbkrpkhedbeevh.supabase.co',

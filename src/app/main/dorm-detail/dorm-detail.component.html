@@ -229,9 +229,7 @@
               <!-- คำอธิบายระยะทางและสถานที่ใกล้เคียง -->
               <div *ngIf="calculateDistanceDescription()"
                 class="mt-6 p-6 rounded-xl border border-gray-200 bg-white shadow-sm">
-
                 <div class="space-y-4">
-
                   <div class="flex items-center gap-4">
                     <div>
                       <div class="text-gray-700 font-medium text-lg tracking-tight">
@@ -240,7 +238,7 @@
                     </div>
                   </div>
 
-                  <hr class="border-gray-100">
+                  <hr class="border-gray-100" />
 
                   <div class="space-y-4">
                     <h4 class="text-xs font-bold uppercase tracking-widest text-gray-500">
@@ -248,10 +246,36 @@
                     </h4>
 
                     <div class="text-gray-700 text-sm leading-relaxed nearby-places-content">
-                      <div [innerHTML]="getNearbyPlacesHTML()"></div>
+                      <ng-container *ngIf="getNearbyPlacesGroups().length > 0">
+                        <div class="nearby-places-vertical">
+                          <div *ngFor="let group of getNearbyPlacesGroups()" class="place-category">
+                            <div class="category-header">
+                              <span class="category-icon">
+                                <hugeicons-icon
+                                  [icon]="categoryIcons[group.category]"
+                                  [size]="24"
+                                  color="currentColor"
+                                  [strokeWidth]="1.5"
+                                ></hugeicons-icon>
+                              </span>
+                              <span class="category-name">{{
+                                group.categoryName
+                                }}</span>
+                            </div>
+                            <div class="place-list">
+                              <div *ngFor="let p of group.places" class="place-item">
+                                • {{ p.name }}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </ng-container>
+                      <div *ngIf="
+                          getNearbyPlacesGroups().length === 0 &&
+                          getNearbyPlacesHTML()
+                        " [innerHTML]="getNearbyPlacesHTML()"></div>
                     </div>
                   </div>
-
                 </div>
               </div>
             </div>
@@ -432,7 +456,6 @@
         </div>
       </div>
 
-
       <!-- Similar Properties Grid - Responsive -->
       <div *ngIf="!loadingState.similar && similarProperties.length > 0"
         class="p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
@@ -512,8 +535,11 @@
     </svg>
 
     <!-- Default Success Icon -->
-    <svg *ngIf="popupType === 'success' && !popupMessage.includes('เพิ่มหอพัก') && !popupMessage.includes('ลบหอพัก')"
-      class="mt-0.5 w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg *ngIf="
+        popupType === 'success' &&
+        !popupMessage.includes('เพิ่มหอพัก') &&
+        !popupMessage.includes('ลบหอพัก')
+      " class="mt-0.5 w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>

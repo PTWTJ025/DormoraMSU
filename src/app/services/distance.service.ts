@@ -1,4 +1,25 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
+
+/** ผลลัพธ์ระยะทางตามถนนจาก ORS (ใช้ในหน้าแอดมินแก้ไขหอ / ฟอร์มส่งหอ) */
+export type NearbyPlaceCategory =
+  | 'convenience'
+  | 'supermarket'
+  | 'gasStation'
+  | 'restaurant'
+  | 'market';
+
+export interface RoadDistancesResult {
+  /** ระยะทางถึงมมส (กม.) */
+  msuKm: number;
+  /** ระยะทางถึงแต่ละจุดใน NEARBY_PLACES (กม.) */
+  places: { name: string; distanceKm: number; category: NearbyPlaceCategory }[];
+  /** true ถ้าใช้ค่าโดยประมาณ (Haversine) เพราะ ORS ล้มหรือไม่มี API key */
+  fallback: boolean;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -10,6 +31,15 @@ export class DistanceService {
 
   // ค่าเพิ่มเติมสำหรับระยะทางประมาณๆ (บวกเพิ่ม 0.2 กิโลเมตร)
   private readonly DISTANCE_BUFFER = 0.2;
+
+  /** ระยะห่างสูงสุดตามประเภทสถานที่ (กม.) - ร้านอาหารใช้ 3 กม. แล้วสุ่มแสดง */
+  private readonly MAX_NEARBY_DISTANCES: Record<NearbyPlaceCategory, number> = {
+    convenience: 0.5,
+    supermarket: 0.5,
+    market: 1,
+    restaurant: 3,
+    gasStation: 1, // แสดงเฉพาะสถานีน้ำมันที่อยู่ใกล้ในระยะ 1 กม.
+  };
 
   // สถานที่ใกล้เคียงในขามเรียง
   private readonly NEARBY_PLACES = {
@@ -23,6 +53,7 @@ export class DistanceService {
       { name: 'เซเว่น หน้ามอ', lat: 16.2493062, lng: 103.2558368 },
       { name: 'เซเว่น หน้ามอ อัครฉัตร', lat: 16.2504317, lng: 103.2595051 },
       { name: 'เซเว่น 1 ท่าขอนยาง', lat: 16.2398196, lng: 103.256362 },
+      { name: 'เซเว่น ทางเข้าซอยวุ่นวาย', lat: 16.2386569, lng: 103.2575375 },
       { name: 'เซเว่น 2 ท่าขอนยาง', lat: 16.238443, lng: 103.2585643 },
       { name: 'เซเว่น ซอยวุ่นวาย', lat: 16.237414, lng: 103.2563543 },
       { name: 'เซเว่น หน้าตลาดท่าขอนยาง', lat: 16.2357176, lng: 103.2629939 },
@@ -49,18 +80,89 @@ export class DistanceService {
       { name: 'แชมป์หมูกระทะ ม.ใหม่', lat: 16.2505787, lng: 103.2616297 },
       { name: 'เดอะนัวหมูกระทะบุฟเฟต์', lat: 16.2505787, lng: 103.2616297 },
       { name: 'ร้านโพธิ์ศรีหมูกระทะ', lat: 16.2496958, lng: 103.2590772 },
-      { name: 'สมเด็จหมูกระทะ มมส. ขามเรียง', lat: 16.2509078, lng: 103.2375079 },
-      { name: 'เมย์มาย', lat: 16.2522347, lng: 103.2364636 },
-      { name: 'เมย์มายหมูกระทะ ขามเรียง', lat: 16.2499466, lng: 103.2661046 },
+      { name: 'สมเด็จหมูกระทะ มมส. ขามเรียง', lat: 16.2511392, lng: 103.2379801 },
+      { name: 'เมย์มายหมูกระทะ', lat: 16.2524034, lng: 103.2361199 },
+      
     ],
     // ตลาด
     market: [
       { name: 'ตลาดเทศบาลขามเรียง', lat: 16.2479841, lng: 103.2430838 },
       { name: 'ตลาดท่าขอนยาง', lat: 16.2359444, lng: 103.2642849 },
+      { name: 'ตลาดนัดคลองถม ท่าขอนยาง', lat: 16.2360864, lng: 103.2620416 },
     ]
   };
 
-  constructor() { }
+  /** ลำดับจุดปลายทางสำหรับ ORS: [มมส, ... flatten NEARBY_PLACES] */
+  private getDestinationsList(): { name: string; lat: number; lng: number; category?: NearbyPlaceCategory }[] {
+    const list: { name: string; lat: number; lng: number; category?: NearbyPlaceCategory }[] = [
+      { name: 'มมส', lat: this.MSU_LAT, lng: this.MSU_LNG }
+    ];
+    (['convenience', 'supermarket', 'gasStation', 'restaurant', 'market'] as const).forEach((key) => {
+      this.NEARBY_PLACES[key].forEach((p) => list.push({ name: p.name, lat: p.lat, lng: p.lng, category: key }));
+    });
+    return list;
+  }
+
+  constructor(private http: HttpClient) { }
+
+  /**
+   * คำนวณระยะทางตามถนนจากพิกัดหอพักไปมมสและจุดใน NEARBY_PLACES (ORS Matrix API)
+   * ถ้าไม่มี API key หรือ API ล้ม จะใช้ค่าโดยประมาณ (Haversine) และตั้ง fallback = true
+   */
+  getRoadDistancesFromDorm(dormLat: number, dormLng: number): Observable<RoadDistancesResult> {
+    const destinations = this.getDestinationsList();
+    const apiKey = (environment as { openRouteServiceApiKey?: string }).openRouteServiceApiKey;
+
+    if (!apiKey) {
+      return of(this.getRoadDistancesFallback(dormLat, dormLng));
+    }
+
+    const locations: [number, number][] = [
+      [dormLng, dormLat],
+      ...destinations.map(d => [d.lng, d.lat] as [number, number])
+    ];
+    const body = {
+      locations,
+      sources: [0],
+      destinations: destinations.map((_, i) => i + 1),
+      metrics: ['distance']
+    };
+
+    return this.http
+      .post<{ distances?: number[][] }>(
+        'https://api.openrouteservice.org/v2/matrix/driving-car',
+        body,
+        { headers: { Authorization: apiKey, 'Content-Type': 'application/json' } }
+      )
+      .pipe(
+        map(res => {
+          const row = res.distances?.[0];
+          if (!row || row.length !== destinations.length) {
+            return this.getRoadDistancesFallback(dormLat, dormLng);
+          }
+          const msuKm = Math.round((row[0] / 1000) * 10) / 10;
+          const places = destinations.slice(1).map((d, i) => ({
+            name: d.name,
+            distanceKm: Math.round((row[i + 1] / 1000) * 10) / 10,
+            category: d.category as NearbyPlaceCategory
+          }));
+          return { msuKm, places, fallback: false };
+        }),
+        catchError(() => of(this.getRoadDistancesFallback(dormLat, dormLng)))
+      );
+  }
+
+  /** ใช้เมื่อ ORS ไม่พร้อม: ระยะมมสจาก Haversine, สถานที่อื่นจาก Haversine เช่นกัน */
+  private getRoadDistancesFallback(dormLat: number, dormLng: number): RoadDistancesResult {
+    const destinations = this.getDestinationsList();
+    const msuKm = this.calculateDistance(dormLat, dormLng, this.MSU_LAT, this.MSU_LNG);
+    const places = destinations.slice(1).map(d => ({
+      name: d.name,
+      distanceKm: this.calculateDistance(dormLat, dormLng, d.lat, d.lng),
+      category: d.category as NearbyPlaceCategory
+    }));
+    return { msuKm, places, fallback: true };
+  }
 
   /**
    * คำนวณระยะทางระหว่างพิกัดสองจุด (เส้นตรง + ค่าประมาณ)
@@ -98,18 +200,9 @@ export class DistanceService {
   getNearbyPlaces(dormLat: number, dormLng: number): string[] {
     const nearbyPlaces: string[] = [];
 
-    // กำหนดระยะห่างสูงสุดตามประเภทสถานที่
-    const maxDistances = {
-      convenience: 0.5,    // ร้านสะดวกซื้อ: 500 เมตร
-      supermarket: 0.5,    // ซูเปอร์มาร์เก็ต: 500 เมตร
-      gasStation: 1,       // สถานีน้ำมัน: 1 กิโลเมตร
-      restaurant: 2,       // ร้านอาหาร: 2 กิโลเมตร
-      market: 1            // ตลาด: 1 กิโลเมตร
-    };
-
     // วนลูปตามประเภทสถานที่
     Object.entries(this.NEARBY_PLACES).forEach(([category, places]) => {
-      const maxDistance = maxDistances[category as keyof typeof maxDistances];
+      const maxDistance = this.MAX_NEARBY_DISTANCES[category as NearbyPlaceCategory];
 
       places.forEach(place => {
         const distance = this.calculateDistance(dormLat, dormLng, place.lat, place.lng);
@@ -120,6 +213,59 @@ export class DistanceService {
     });
 
     return nearbyPlaces;
+  }
+
+  /**
+   * สรุปข้อความ "ใกล้อะไรบ้าง" จากผล ORS (ตามถนน) หรือ fallback (โดยประมาณ)
+   * - convenience/supermarket: ภายใน 0.5 กม.
+   * - market: ภายใน 1 กม.
+   * - restaurant: ภายใน 3 กม.
+   * - gasStation: เลือกที่ใกล้สุดเสมอ (แสดงทุกหอ)
+   */
+  buildNearbySummaryTextFromRoad(
+    places: RoadDistancesResult['places'],
+    fallback: boolean,
+  ): string {
+    if (!places || places.length === 0) return '';
+
+    const label: Record<NearbyPlaceCategory, string> = {
+      convenience: 'ร้านสะดวกซื้อ',
+      supermarket: 'ซูเปอร์มาร์เก็ต',
+      market: 'ตลาด',
+      restaurant: 'ร้านอาหาร',
+      gasStation: 'สถานีน้ำมัน',
+    };
+
+    const pickNearest = (cat: NearbyPlaceCategory, always = false) => {
+      const filtered = places
+        .filter((p) => p.category === cat)
+        .filter((p) => always || p.distanceKm <= this.MAX_NEARBY_DISTANCES[cat])
+        .sort((a, b) => a.distanceKm - b.distanceKm);
+      return filtered[0] || null;
+    };
+
+    const picked: { cat: NearbyPlaceCategory; item: RoadDistancesResult['places'][number] }[] = [];
+
+    const conv = pickNearest('convenience');
+    if (conv) picked.push({ cat: 'convenience', item: conv });
+
+    const sup = pickNearest('supermarket');
+    if (sup) picked.push({ cat: 'supermarket', item: sup });
+
+    const market = pickNearest('market');
+    if (market) picked.push({ cat: 'market', item: market });
+
+    const rest = pickNearest('restaurant');
+    if (rest) picked.push({ cat: 'restaurant', item: rest });
+
+    const gas = pickNearest('gasStation');
+    if (gas) picked.push({ cat: 'gasStation', item: gas });
+
+    if (picked.length === 0) return '';
+
+    const parts = picked.map(({ cat, item }) => `${label[cat]}: ${item.name} (${item.distanceKm.toFixed(1)} กม.)`);
+    const mode = fallback ? 'โดยประมาณ' : 'ตามถนน';
+    return `ใกล้เคียง (${mode}): ${parts.join(' • ')}`;
   }
 
   /**

@@ -11,7 +11,16 @@ import { SentimentService } from '../../services/sentiment.service';
 import { DormCompareService, CompareDormItem } from '../../services/dorm-compare.service';
 import { ComparePopupComponent } from '../shared/compare-popup/compare-popup.component';
 import { AmenityIconComponent } from '../../components/amenity-icon/amenity-icon.component';
-import { DistanceService } from '../../services/distance.service';
+import { DistanceService, RoadDistancesResult, NearbyPlaceCategory } from '../../services/distance.service';
+import { HugeiconsIconComponent } from '@hugeicons/angular';
+import {
+  RestaurantIcon,
+  Store01Icon,
+  ShoppingBasket01Icon,
+  FuelIcon,
+  CreativeMarketIcon,
+} from '@hugeicons/core-free-icons';
+import type { IconSvgObject } from '@hugeicons/angular';
 
 interface AmenityDisplay {
   amenity_id: number;
@@ -50,15 +59,39 @@ interface SimilarProperty {
 
 type SentimentType = 'positive' | 'negative' | 'neutral';
 
+/** กลุ่มสถานที่ใกล้เคียงต่อหมวด (สำหรับแสดงกับ HugeIcons) */
+export interface NearbyPlaceGroup {
+  category: NearbyPlaceCategory;
+  categoryName: string;
+  icon: IconSvgObject;
+  places: { name: string }[];
+}
+
 @Component({
   selector: 'app-dorm-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent, ComparePopupComponent, AmenityIconComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    NavbarComponent,
+    ComparePopupComponent,
+    AmenityIconComponent,
+    HugeiconsIconComponent,
+  ],
   templateUrl: './dorm-detail.component.html',
   styleUrls: ['./dorm-detail.component.css']
 })
 export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('map') mapContainer!: ElementRef;
+
+  /** ไอคอน HugeIcons ต่อหมวด – ต้อง assign เป็น property ของ component เพื่อให้ template bind ได้ (ตาม Full Code Example) */
+  readonly categoryIcons: Record<NearbyPlaceCategory, IconSvgObject> = {
+    convenience: Store01Icon,
+    supermarket: ShoppingBasket01Icon,
+    gasStation: FuelIcon,
+    restaurant: RestaurantIcon,
+    market: CreativeMarketIcon,
+  };
 
   dormId: number = 0;
   dormDetail: DormDetail | null = null;
@@ -71,7 +104,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   newComment: string = '';
   isLoading: boolean = true;
   error: string | null = null;
-  
+
   // Image modal state
   showImageModal: boolean = false;
   modalImageIndex: number = 0;
@@ -105,6 +138,30 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     initPromise: null as Promise<void> | null
   };
 
+  // Road distance (ORS) state
+  roadDistanceLoading: boolean = false;
+  roadDistanceMsuKm: number | null = null;
+  roadDistanceFallback: boolean = false;
+  roadNearbyPlacesHtml: string = '';
+  /** กลุ่มสถานที่ใกล้เคียงต่อหมวด (ใช้แสดงกับ HugeIcons, ร้านอาหารสุ่มภายใน 3 กม.) */
+  roadNearbyPlacesByCategory: NearbyPlaceGroup[] = [];
+  roadNearbySummaryText: string = '';
+  private roadDistanceReqSeq = 0;
+
+  /** ไอคอน HugeIcons ต่อหมวด (ใช้ใน buildNearbyPlacesGroupsFromRoad) */
+  private readonly nearbyCategoryIcons: Record<NearbyPlaceCategory, IconSvgObject> = {
+    convenience: Store01Icon,
+    supermarket: ShoppingBasket01Icon,
+    gasStation: FuelIcon,
+    restaurant: RestaurantIcon,
+    market: CreativeMarketIcon,
+  };
+
+  /** คืนค่า icon สำหรับ template – อ้างอิงจาก property categoryIcons */
+  getCategoryIcon(cat: NearbyPlaceCategory): IconSvgObject {
+    return this.categoryIcons[cat];
+  }
+
   // Auth related
   isLoggedIn: boolean = false;
   userAvatar: string = '';
@@ -114,11 +171,11 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   reviewEligibilityMessage: string = '';
   isResident: boolean = false; // เป็นสมาชิกหอพักนี้หรือไม่
   isPendingApproval: boolean = false; // แยกสถานะรออนุมัติออกจากเหตุผลอื่น
-  
+
   // Review related
   sentimentResult: SentimentType | null = null;
   selectedRating: number = 5; // คะแนนที่ผู้ใช้เลือก (เริ่มต้น 5 ดาว)
-  
+
   // Reviews data
   overallRating: number = 5.0;
   reviews: Review[] = [];
@@ -133,10 +190,10 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Loading states to prevent duplicate actions
   isSubmittingComment: boolean = false;
-  
+
   // Compare state
   isInCompareList: boolean = false;
-  
+
   // Compare state
   isInCompare: boolean = false;
 
@@ -185,12 +242,12 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit(): void {
     // Check login status
     this.checkLoginStatus();
-    
+
     // Subscribe to compare list changes
     this.dormCompareService.compareIds$.subscribe(ids => {
       this.isInCompareList = ids.includes(this.dormId);
     });
-    
+
     // รับ dormId จาก URL และโหลดข้อมูล
     this.route.params.subscribe(params => {
       const id = params['id'];
@@ -200,7 +257,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         this.isInCompareList = this.dormCompareService.isInCompare(this.dormId);
         // ทำลายแมพเก่าเมื่อเปลี่ยน dormId
         this.resetMapState();
-        
+
         // ตรวจสอบสิทธิ์/โหลดข้อมูล หลัง token พร้อม แล้วรันพร้อมกัน
         // removed verbose log
         this.authService.refreshToken(false)
@@ -346,7 +403,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         email: (detail as any).contact_email || detail.owner_email || '',
         image: detail.owner_photo_url || '../../../assets/icon/home-owner.png'
       };
-      
+
 
       // ตั้งค่าแผนที่
       this.setupMapData(detail);
@@ -378,7 +435,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     console.log('🔍 Processing Amenities:');
     console.log('📋 All Amenities:', allAmenities);
     console.log('🏠 Dorm Amenities:', dormAmenities);
-    
+
     // สร้าง amenity mapping พร้อมจัดกลุ่ม
     const amenityMapping: { [key: number]: { name: string } } = {
       // สิ่งอำนวยความสะดวกทั้งหมด (ไม่แบ่งภายใน/ภายนอกแล้ว)
@@ -407,20 +464,20 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       29: { name: 'คีย์การ์ด' },
       30: { name: 'เครื่องซักผ้า' }
     };
-    
+
     // ถ้าไม่มี allAmenities หรือมีแต่ว่าง ให้ใช้ข้อมูลจาก dormAmenities โดยตรง
     if (!allAmenities || allAmenities.length === 0) {
       console.log('⚠️ No allAmenities data, using dormAmenities directly');
-      
+
       // สร้าง Set ของ amenity_id ที่หอพักมี
       const dormAmenityIds = new Set(dormAmenities.map(da => {
         const id = da.amenity_id || da.id;
-        
+
         return id;
       }));
-      
-      
-      
+
+
+
       // สร้างรายการทั้งหมดจาก mapping
       const result = Object.entries(amenityMapping).map(([idStr, amenityInfo]) => {
         const id = parseInt(idStr);
@@ -430,26 +487,26 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
           available: dormAmenityIds.has(id)
         };
       });
-      
+
       console.log('🎉 Final Amenities Result (from mapping):', result);
       return result;
     }
-    
+
     // กรณีปกติ - มี allAmenities
     const dormAmenityIds = new Set(dormAmenities.map(da => {
       const id = da.amenity_id || da.id;
-      
+
       return id;
     }));
-    
-    
+
+
 
     const result = allAmenities.map(amenity => ({
       amenity_id: amenity.amenity_id,
       name: amenity.name,
       available: dormAmenityIds.has(amenity.amenity_id)
     }));
-    
+
     console.log('🎉 Final Amenities Result:', result);
     return result;
   }
@@ -462,7 +519,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       const dorms = await this.dormService.getSimilarDormitories(this.dormId, 6).toPromise();
       if (dorms && Array.isArray(dorms)) {
         console.log('[DormDetail] Received similar dorms:', dorms.length);
-        
+
         // แปลงข้อมูลให้ตรงกับ interface SimilarProperty
         this.similarProperties = dorms.slice(0, 4).map(d => this.mapDormToSimilarProperty(d));
         console.log('[DormDetail] Similar properties loaded:', this.similarProperties.length);
@@ -479,7 +536,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private mapDormToSimilarProperty(dorm: Dorm): SimilarProperty {
-    
+
 
     let priceDisplay = '';
     let dailyPrice: string | undefined;
@@ -550,10 +607,11 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         let lng = typeof detail.longitude === 'string' ? parseFloat(detail.longitude) : detail.longitude;
 
         if (!isNaN(lat) && !isNaN(lng)) {
-          
+
           this.mapLatitude = lat;
           this.mapLongitude = lng;
           this.showMap = true;
+          this.refreshRoadDistances(lat, lng);
         } else {
           console.error('Invalid coordinates after parsing:', { lat, lng });
         }
@@ -586,36 +644,36 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private async initializeMapSafely(): Promise<void> {
     try {
-    const mapContainer = document.getElementById('map');
-    if (mapContainer && this.dormDetail) {
-      
-        
+      const mapContainer = document.getElementById('map');
+      if (mapContainer && this.dormDetail) {
+
+
         // ตรวจสอบว่า map container มีขนาดที่เหมาะสม
         if (mapContainer.offsetWidth === 0 || mapContainer.offsetHeight === 0) {
-          
+
           await new Promise(resolve => setTimeout(resolve, 100));
         }
-        
+
         // ทำลาย map เก่าก่อนสร้างใหม่เสมอ เพื่อป้องกัน WebGL context issues
         this.mapService.destroyMap();
-        
+
         // รอสักครู่เพื่อให้ DOM มีเวลา update
         await new Promise(resolve => setTimeout(resolve, 50));
-        
+
         this.mapService.initializeMap(
-          'map', 
-          this.mapLatitude!, 
-          this.mapLongitude!, 
-          this.dormName, 
-          this.location, 
+          'map',
+          this.mapLatitude!,
+          this.mapLongitude!,
+          this.dormName,
+          this.location,
           this.dormDetail
         );
-        
+
         this.mapState.initialized = true;
-        
-    } else {
-      
-      // ลองอีกครั้งหลังจาก 200ms
+
+      } else {
+
+        // ลองอีกครั้งหลังจาก 200ms
         await new Promise(resolve => setTimeout(resolve, 200));
         if (!this.mapState.initialized) {
           this.mapState.initializing = false;
@@ -738,61 +796,61 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   // Utility rate display methods
   getWaterRateDisplay(): string {
     if (!this.dormDetail) return 'ไม่ระบุ';
-    
+
     // รองรับทั้ง water_price และ water_rate (backward compatibility)
     const waterPrice = (this.dormDetail as any).water_price || this.dormDetail.water_rate;
     const waterType = (this.dormDetail as any).water_price_type || this.dormDetail.water_type;
-    
+
     if (!waterPrice) return 'ไม่ระบุ';
-    
+
     // ถ้าเป็นตามมิเตอร์ ให้แสดงเป็นตามอัตราการประปา
     if (waterType === 'ตามมิเตอร์') {
       return 'ตามอัตราการประปา';
     }
-    
+
     // กรณีอื่นๆ แสดงตามปกติ
-    return waterType === 'per_unit' 
+    return waterType === 'per_unit'
       ? `${waterPrice} บาท/หน่วย`
       : `${waterPrice} บาท/เดือน (เหมาจ่าย)`;
   }
 
   getElectricityRateDisplay(): string {
     if (!this.dormDetail) return 'ไม่ระบุ';
-    
+
     // รองรับทั้ง electricity_price และ electricity_rate (backward compatibility)
     const electricityPrice = (this.dormDetail as any).electricity_price || this.dormDetail.electricity_rate;
     const electricityType = (this.dormDetail as any).electricity_type || this.dormDetail.electricity_type;
-    
+
     if (!electricityPrice) return 'ไม่ระบุ';
-    
+
     // ถ้าเป็นตามมิเตอร์ ให้แสดงเป็นตามอัตราการไฟฟ้า
     if (electricityType === 'ตามมิเตอร์') {
       return 'ตามอัตราการไฟฟ้า';
     }
-    
+
     // ค่าไฟมักเป็นบาท/หน่วยเสมอ
     return `${electricityPrice} บาท/หน่วย`;
   }
 
   getWaterTypeDisplay(): string {
     if (!this.dormDetail?.water_type) return '';
-    
+
     // ถ้าเป็นตามมิเตอร์ ให้แสดงเป็นตามอัตราการประปา
     if (this.dormDetail.water_type === 'ตามมิเตอร์') {
       return 'ตามอัตราการประปา';
     }
-    
+
     return this.dormDetail.water_type;
   }
 
   getElectricityTypeDisplay(): string {
     if (!this.dormDetail?.electricity_type) return '';
-    
+
     // ถ้าเป็นตามมิเตอร์ ให้แสดงเป็นตามอัตราการไฟฟ้า
     if (this.dormDetail.electricity_type === 'ตามมิเตอร์') {
       return 'ตามอัตราการไฟฟ้า';
     }
-    
+
     return this.dormDetail.electricity_type;
   }
 
@@ -859,7 +917,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.userAvatar && this.userAvatar !== '../../../assets/icon/Rectangle 6.png') {
       return this.userAvatar;
     }
-    
+
     // ถ้าไม่มีรูป ให้ใช้ cat avatar.jpg เป็นค่าเริ่มต้นสำหรับสมาชิก
     return 'assets/icon/cat avatar.jpg';
   }
@@ -869,7 +927,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     if (review.avatar && review.avatar !== '../../../assets/icon/Rectangle 6.png') {
       return review.avatar;
     }
-    
+
     // ถ้าไม่มีรูป ให้ใช้ cat avatar.jpg เป็นค่าเริ่มต้นสำหรับผู้รีวิว
     return 'assets/icon/cat avatar.jpg';
   }
@@ -879,7 +937,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.ownerContact?.image) {
       return this.ownerContact.image;
     }
-    
+
     // ถ้าไม่มีรูป ให้ใช้ home-owner.png เป็นค่าเริ่มต้นสำหรับเจ้าของหอพัก
     return 'assets/icon/home-owner.png';
   }
@@ -897,14 +955,14 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   private checkLoginStatus(): void {
     this.authService.currentUser$.subscribe(user => {
       this.isLoggedIn = !!user;
-      
+
       if (user) {
         this.userAvatar = user.photoURL || '';
         this.currentUserId = user.id;
-        
+
       } else {
         this.currentUserId = null;
-        
+
       }
     });
   }
@@ -921,19 +979,19 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   // }
 
   navigateToLogin(): void {
-    this.router.navigate(['/login'], { 
-      queryParams: { returnUrl: this.router.url } 
+    this.router.navigate(['/login'], {
+      queryParams: { returnUrl: this.router.url }
     });
   }
 
   // เพิ่ม method สำหรับดึงสิ่งอำนวยความสะดวกปัจจุบัน
   private getCurrentAmenities(): string {
     if (!this.amenities || this.amenities.length === 0) return '';
-    
+
     const availableAmenities = this.amenities
       .filter(amenity => amenity.available)
       .map(amenity => amenity.name);
-    
+
     return availableAmenities.join(',');
   }
 
@@ -963,7 +1021,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     } else {
       // ถ้ายังไม่อยู่ ให้เพิ่มเข้า
       const success = this.dormCompareService.addToCompare(compareItem);
-      
+
       if (success) {
         this.isInCompareList = true;
         this.triggerPopup('เพิ่มหอพักเข้ารายการเปรียบเทียบแล้ว', 'success');
@@ -976,17 +1034,17 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   // Format date to Thai format
   formatThaiDate(dateString: string): string {
     if (!dateString) return '';
-    
+
     const date = new Date(dateString);
     const thaiMonths = [
       'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
       'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
     ];
-    
+
     const day = date.getDate();
     const month = thaiMonths[date.getMonth()];
     const year = date.getFullYear() + 543; // Convert to Buddhist Era
-    
+
     return `อัพเดทล่าสุด: ${day} ${month} ${year}`;
   }
 
@@ -1063,10 +1121,10 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Create Line URL for adding friend
     const lineUrl = `https://line.me/ti/p/${this.ownerContact.lineId}`;
-    
+
     // Open in new tab
     window.open(lineUrl, '_blank');
-    
+
     // Optional: Show success message
     console.log(`Opening Line chat with ${this.ownerContact.lineId}`);
   }
@@ -1083,21 +1141,15 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private deg2rad(deg: number): number {
-    return deg * (Math.PI/180);
+    return deg * (Math.PI / 180);
   }
 
   // แยกระยะทางจาก description และเพิ่มสถานที่ใกล้เคียง
   calculateDistanceDescription(): string {
-    // คำนวณระยะห่างแบบเรียลไทม์จากพิกัดเสมอ ไม่อ่านจาก description อีกต่อไป
-    if (this.mapLatitude && this.mapLongitude) {
-      const distanceKm = this.distanceService.calculateDistance(
-        this.mapLatitude,
-        this.mapLongitude
-      );
-      const rounded = Math.round(distanceKm * 10) / 10;
-      return `ห่างจากมหาวิทยาลัยมหาสารคาม ประมาณ ${rounded} กิโลเมตร`;
-    }
-    return '';
+    if (this.roadDistanceMsuKm == null) return '';
+    const rounded = Math.round(this.roadDistanceMsuKm * 10) / 10;
+    const mode = this.roadDistanceFallback ? 'โดยประมาณ' : 'ตามถนน';
+    return `ห่างจากมหาวิทยาลัยมหาสารคาม (${mode}) ประมาณ ${rounded} กิโลเมตร`;
   }
 
   // แยกเฉพาะข้อความระยะทาง
@@ -1105,19 +1157,134 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.calculateDistanceDescription();
   }
 
-  // แยกเฉพาะ HTML สถานที่ใกล้เคียง
+  // แยกเฉพาะ HTML สถานที่ใกล้เคียง (fallback เมื่อไม่มีข้อมูล ORS)
   getNearbyPlacesHTML(): string {
-    if (this.mapLatitude && this.mapLongitude) {
-      return this.distanceService.getNearbyPlacesText(this.mapLatitude, this.mapLongitude);
+    return this.roadNearbyPlacesHtml || '';
+  }
+
+  // กลุ่มสถานที่ใกล้เคียงสำหรับแสดงกับ HugeIcons (ร้านอาหารสุ่มภายใน 3 กม.)
+  getNearbyPlacesGroups(): NearbyPlaceGroup[] {
+    return this.roadNearbyPlacesByCategory || [];
+  }
+
+  private refreshRoadDistances(lat: number, lng: number) {
+    const reqSeq = ++this.roadDistanceReqSeq;
+    this.roadDistanceLoading = true;
+    this.distanceService.getRoadDistancesFromDorm(lat, lng).subscribe({
+      next: (res: RoadDistancesResult) => {
+        if (reqSeq !== this.roadDistanceReqSeq) return;
+        this.roadDistanceMsuKm = res.msuKm;
+        this.roadDistanceFallback = res.fallback;
+        this.roadNearbySummaryText = this.distanceService.buildNearbySummaryTextFromRoad(res.places, res.fallback);
+        this.roadNearbyPlacesByCategory = this.buildNearbyPlacesGroupsFromRoad(res.places);
+        this.roadNearbyPlacesHtml = ''; // ใช้โครงสร้าง ByCategory + HugeIcons แทน
+      },
+      error: () => {
+        if (reqSeq !== this.roadDistanceReqSeq) return;
+        // fallback: ใช้เส้นตรง + ใช้ HTML ใกล้เคียงแบบเดิม
+        this.roadDistanceMsuKm = this.distanceService.calculateDistance(lat, lng);
+        this.roadDistanceFallback = true;
+        this.roadNearbySummaryText = '';
+        this.roadNearbyPlacesHtml = this.distanceService.getNearbyPlacesText(lat, lng);
+      },
+      complete: () => {
+        if (reqSeq !== this.roadDistanceReqSeq) return;
+        this.roadDistanceLoading = false;
+      },
+    });
+  }
+
+  /**
+   * สุ่มเลือกจำนวน count รายการจาก list โดยให้น้ำหนักกับรายการที่ใกล้ (distanceKm น้อย) มากกว่า
+   * แล้วเรียงลำดับแสดงจากใกล้ไปไกล (ร้านที่ประชิดหอแสดงก่อน)
+   */
+  private weightedRandomPick(
+    list: { name: string; distanceKm: number }[],
+    count: number,
+  ): { name: string; distanceKm: number }[] {
+    if (list.length <= count) return [...list].sort((a, b) => a.distanceKm - b.distanceKm);
+    // น้ำหนัก = 1/(ระยะ+ε) ให้ที่ใกล้ได้โอกาสมากกว่า
+    const eps = 0.01;
+    const getWeight = (d: number) => 1 / (d + eps);
+    const pool = list.map((p) => ({ ...p, weight: getWeight(p.distanceKm) }));
+    const chosen: { name: string; distanceKm: number }[] = [];
+    while (chosen.length < count && pool.length > 0) {
+      const totalWeight = pool.reduce((s, x) => s + x.weight, 0);
+      let r = Math.random() * totalWeight;
+      for (let i = 0; i < pool.length; i++) {
+        r -= pool[i].weight;
+        if (r <= 0) {
+          chosen.push({ name: pool[i].name, distanceKm: pool[i].distanceKm });
+          pool.splice(i, 1);
+          break;
+        }
+      }
     }
-    return '';
+    return chosen.sort((a, b) => a.distanceKm - b.distanceKm);
+  }
+
+  private buildNearbyPlacesGroupsFromRoad(
+    places: { name: string; distanceKm: number; category: NearbyPlaceCategory }[],
+  ): NearbyPlaceGroup[] {
+    // รัศมีตามหมวด: สะดวกซื้อ/ซูเปอร์ 0.5 กม., สถานีน้ำมัน/ตลาด 1 กม., ร้านอาหารและอื่นๆ 3 กม. แสดงสูงสุด 3 รายการ
+    const maxDistances: Record<NearbyPlaceCategory, number> = {
+      convenience: 0.5,
+      supermarket: 0.5,
+      gasStation: 1,
+      restaurant: 3,
+      market: 1,
+    };
+
+    const categoryNames: Record<NearbyPlaceCategory, string> = {
+      convenience: 'ร้านสะดวกซื้อ',
+      supermarket: 'ซูเปอร์มาร์เก็ต',
+      gasStation: 'สถานีน้ำมัน',
+      restaurant: 'ร้านอาหาร',
+      market: 'ตลาด',
+    };
+
+    const grouped: Record<NearbyPlaceCategory, { name: string; distanceKm: number }[]> = {
+      convenience: [],
+      supermarket: [],
+      gasStation: [],
+      restaurant: [],
+      market: [],
+    };
+
+    places.forEach((p) => {
+      if (p.distanceKm <= maxDistances[p.category]) {
+        grouped[p.category].push({ name: p.name, distanceKm: p.distanceKm });
+      }
+    });
+
+    // ทุกหมวด: สุ่มแบบให้น้ำหนักกับที่ใกล้หอมากกว่า แล้วเรียงจากใกล้ไปไกล (แสดงสูงสุด 3 รายการ)
+    (['convenience', 'supermarket', 'gasStation', 'restaurant', 'market'] as const).forEach((cat) => {
+      if (grouped[cat].length === 0) return;
+      grouped[cat] = this.weightedRandomPick(grouped[cat], 3);
+    });
+
+    const order: NearbyPlaceCategory[] = ['convenience', 'supermarket', 'gasStation', 'restaurant', 'market'];
+    const result: NearbyPlaceGroup[] = [];
+
+    order.forEach((cat) => {
+      const list = grouped[cat];
+      if (list.length === 0) return;
+      result.push({
+        category: cat,
+        categoryName: categoryNames[cat],
+        icon: this.nearbyCategoryIcons[cat],
+        places: list.map((p) => ({ name: p.name })),
+      });
+    });
+
+    return result;
   }
 
   // คำนวณระยะทางจากพิกัด (fallback)
   private calculateDistanceFromCoordinates(): string {
     const dormLat = this.mapLatitude;
     const dormLng = this.mapLongitude;
-    
+
     // จุดสำคัญใน มหาสารคาม
     const landmarks = [
       { name: 'มหาวิทยาลัยมหาสารคาม', lat: 16.2451532, lng: 103.2499106 },
@@ -1132,7 +1299,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     });
 
     // หาจุดที่ใกล้ที่สุด
-    const nearest = distances.reduce((prev, current) => 
+    const nearest = distances.reduce((prev, current) =>
       prev.distance < current.distance ? prev : current
     );
 

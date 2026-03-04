@@ -745,6 +745,16 @@
                 {{ dormForm.get("latitude")?.value | number: "1.6-6" }},
                 {{ dormForm.get("longitude")?.value | number: "1.6-6" }}
               </p>
+              <div class="mt-1 text-xs text-green-700" *ngIf="isLoadingRoadDistance">
+                กำลังคำนวณระยะทางตามถนน...
+              </div>
+              <div class="mt-1 text-xs text-green-700" *ngIf="!isLoadingRoadDistance && roadDistanceMsuKm != null">
+                ห่างจาก มมส ({{ roadDistanceFallback ? 'โดยประมาณ' : 'ตามถนน' }}) ประมาณ
+                {{ roadDistanceMsuKm | number: "1.1-1" }} กม.
+              </div>
+              <div class="mt-1 text-xs text-green-700" *ngIf="!isLoadingRoadDistance && roadNearbySummaryText">
+                {{ roadNearbySummaryText }}
+              </div>
             </div>
 
             <!-- Error message -->

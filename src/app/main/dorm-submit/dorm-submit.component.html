@@ -368,7 +368,7 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">
                   <span *ngIf="
                       dormForm.get('water_price_type')?.value ===
-                      'คิดตามหน่วย (บาท/หน่วย)'
+                      'ราคาหน่วยละ (บาท/หน่วย)'
                     ">
                     ค่าน้ำ (บาท/หน่วย)
                   </span>
@@ -386,7 +386,7 @@
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   [placeholder]="
                     dormForm.get('water_price_type')?.value ===
-                    'คิดตามหน่วย (บาท/หน่วย)'
+                    'ราคาหน่วยละ (บาท/หน่วย)'
                       ? 'เช่น 25'
                       : dormForm.get('water_price_type')?.value ===
                           'เหมาจ่าย (บาท/เดือน)'
@@ -410,15 +410,15 @@
               <h3 class="text-sm font-medium text-gray-900">
                 รูปภาพหอพัก <span class="text-red-500">*</span>
               </h3>
-              <span class="text-xs" [class.text-red-500]="images.length < minImages"
-                [class.text-green-600]="images.length >= minImages">
-                {{ images.length }}/{{ maxImages }} (ขั้นต่ำ {{ minImages }})
+              <span class="text-xs" [class.text-red-500]="imageItems.length < minImages"
+                [class.text-green-600]="imageItems.length >= minImages">
+                {{ imageItems.length }}/{{ maxImages }} (ขั้นต่ำ {{ minImages }})
               </span>
             </div>
 
             <!-- Upload Buttons -->
             <div class="flex flex-col sm:flex-row gap-3">
-              <button type="button" (click)="openCamera()" [disabled]="images.length >= maxImages || isUploadingImages"
+              <button type="button" (click)="openCamera()" [disabled]="imageItems.length >= maxImages || isUploadingImages"
                 class="flex-1 flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 <i class="fas fa-camera w-6 h-6 mr-2 text-gray-400"></i>
                 <span class="text-sm font-medium text-gray-700">
@@ -426,7 +426,7 @@
                 </span>
               </button>
 
-              <button type="button" (click)="openGallery()" [disabled]="images.length >= maxImages || isUploadingImages"
+              <button type="button" (click)="openGallery()" [disabled]="imageItems.length >= maxImages || isUploadingImages"
                 class="flex-1 flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 <i class="fas fa-images w-6 h-6 mr-2 text-gray-400"></i>
                 <span class="text-sm font-medium text-gray-700">
@@ -437,6 +437,25 @@
               </button>
             </div>
 
+            <!-- URL Input Section -->
+            <div class="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                เพิ่มรูปจากลิงก์ URL
+              </label>
+              <div class="flex gap-2">
+                <input type="url" [(ngModel)]="imageUrlInput" [ngModelOptions]="{standalone: true}" 
+                  placeholder="https://example.com/image.jpg"
+                  class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 text-sm"
+                  [disabled]="isAddingUrl || imageItems.length >= maxImages" />
+                <button type="button" (click)="addImageUrl()" 
+                  [disabled]="!imageUrlInput.trim() || isAddingUrl || imageItems.length >= maxImages"
+                  class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium">
+                  {{ isAddingUrl ? "กำลังเพิ่ม..." : "เพิ่มรูป" }}
+                </button>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">รองรับรูปภาพจาก URL ภายนอก (jpg, png, gif)</p>
+            </div>
+
             <!-- Hidden File Inputs -->
             <input #cameraInput type="file" accept="image/*" capture="environment" (change)="onCameraCapture($event)"
               class="hidden" />
@@ -444,31 +463,37 @@
             <input #fileInput type="file" accept="image/*" multiple (change)="onGallerySelect($event)" class="hidden" />
 
             <!-- Error message -->
-            <div *ngIf="images.length < minImages && currentStep === 4"
+            <div *ngIf="imageItems.length < minImages && currentStep === 4"
               class="text-red-500 text-sm font-medium bg-red-50 border border-red-200 rounded-lg p-3 mt-2">
               ⚠️ กรุณาอัพโหลดรูปภาพอย่างน้อย {{ minImages }} รูป
             </div>
 
             <!-- Image Preview Grid -->
-            <div *ngIf="images.length > 0" #imageGrid
+            <div *ngIf="imageItems.length > 0" #imageGrid
               class="image-preview-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-              <div *ngFor="let image of images; let i = index" class="image-item relative group" [attr.data-index]="i">
+              <div *ngFor="let image of imageItems; let i = index" class="image-item relative group" [attr.data-index]="i">
                 <img [src]="image.preview" [alt]="'รูปภาพ ' + (i + 1)"
                   class="w-full h-24 sm:h-32 object-cover rounded-lg border-2"
                   [class.border-yellow-500]="image.isPrimary" [class.border-gray-200]="!image.isPrimary" />
 
                 <!-- Upload Status -->
-                <div *ngIf="isUploadingImages"
+                <div *ngIf="image.uploadStatus === 'pending'"
                   class="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
-                  <div class="text-white text-sm">กำลังอัปโหลด...</div>
+                  <div class="text-white text-sm">กำลังเพิ่ม...</div>
+                </div>
+
+                <!-- Error Status for URL -->
+                <div *ngIf="image.uploadStatus === 'error'"
+                  class="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex flex-col items-center justify-center">
+                  <i class="fas fa-exclamation-triangle text-yellow-400 mb-1"></i>
+                  <div class="text-white text-xs text-center px-2">ไม่สามารถโหลดรูปได้</div>
                 </div>
 
                 <!-- Remove Button -->
-                <button type="button" (click)="removeImage(i)" [disabled]="isUploadingImages"
+                <button type="button" (click)="removeImageItem(i)" [disabled]="isUploadingImages"
                   class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
-                    </path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
 
@@ -479,11 +504,16 @@
                 </div>
 
                 <!-- Set Primary Button -->
-                <button *ngIf="!image.isPrimary" type="button" (click)="setPrimaryImage(i)"
+                <button *ngIf="!image.isPrimary" type="button" (click)="setPrimaryImageItem(i)"
                   [disabled]="isUploadingImages"
                   class="absolute bottom-1 left-1 px-2 py-1 bg-black bg-opacity-50 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50">
                   ตั้งเป็นรูปหลัก
                 </button>
+
+                <!-- Image Type Badge -->
+                <div class="absolute top-1 right-1 px-2 py-1 bg-gray-800 bg-opacity-70 text-white text-xs rounded">
+                  {{ image.type === 'url' ? 'URL' : 'ไฟล์' }}
+                </div>
               </div>
             </div>
           </div>
@@ -504,7 +534,7 @@
             </div>
 
             <!-- Compact Amenities Grid -->
-            <div #amenitiesGrid class="amenities-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+            <div #amenitiesGrid class="amenities-grid grid grid-cols-2 sm:grid-cols-4 gap-2">
               <label *ngFor="let amenity of amenities"
                 class="amenity-item flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 text-sm">
                 <div class="relative flex items-center">
@@ -624,16 +654,6 @@
                 {{ dormForm.get("latitude")?.value | number: "1.6-6" }},
                 {{ dormForm.get("longitude")?.value | number: "1.6-6" }}
               </p>
-              <div class="mt-1 text-xs text-green-700" *ngIf="isLoadingRoadDistance">
-                กำลังคำนวณระยะทางตามถนน...
-              </div>
-              <div class="mt-1 text-xs text-green-700" *ngIf="!isLoadingRoadDistance && lastCalculatedDistance != null">
-                ห่างจาก มมส ({{ roadDistanceFallback ? 'โดยประมาณ' : 'ตามถนน' }}) ประมาณ
-                {{ lastCalculatedDistance | number: "1.1-1" }} กม.
-              </div>
-              <div class="mt-1 text-xs text-green-700" *ngIf="!isLoadingRoadDistance && roadNearbySummaryText">
-                {{ roadNearbySummaryText }}
-              </div>
             </div>
 
             <!-- Error message -->

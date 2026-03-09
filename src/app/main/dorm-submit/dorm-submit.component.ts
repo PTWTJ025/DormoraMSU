@@ -14,6 +14,7 @@ import {
   Validators,
   ReactiveFormsModule,
 } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
@@ -29,6 +30,15 @@ interface ImageFile {
   isPrimary: boolean;
 }
 
+interface ImageItem {
+  type: 'file' | 'url';
+  file?: File;
+  url?: string;
+  preview: string;
+  isPrimary: boolean;
+  uploadStatus?: 'pending' | 'success' | 'error' | 'validated';
+}
+
 interface Zone {
   zone_id: number;
   zone_name: string;
@@ -37,7 +47,7 @@ interface Zone {
 @Component({
   selector: 'app-dorm-submit',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './dorm-submit.component.html',
   styleUrls: ['./dorm-submit.component.css'],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -63,9 +73,12 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
   totalSteps = 4;
   isSubmitting = false;
   images: ImageFile[] = [];
+  imageItems: ImageItem[] = []; // เก็บทั้งไฟล์และ URL
   imageUrls: string[] = []; // เก็บ URL จาก Supabase
   maxImages = 20;
   minImages = 3;
+  imageUrlInput: string = ''; // สำหรับ input ลิงก์
+  isAddingUrl: boolean = false; // สถานะการเพิ่ม URL
   showSuccessModal = false; // สำหรับแสดง success popup
   showDetailsModal = false;
   isUploadingImages = false; // สถานะการอัปโหลดรูป
@@ -246,30 +259,41 @@ maptilersdk: any;
       .get<string[]>(`${this.backendUrl}/dormitories/amenities`)
       .subscribe({
         next: (amenities) => {
-          // UX Sorting: Interior first, then Exterior
-          const interiorKeywords = [
+          // เรียงตามความนิยม/ความสำคัญที่คนหาหอพักพิจารณาก่อน
+          const popularityOrder = [
             'แอร์',
-            'ปรับอากาศ',
-            'ตู้เย็น',
-            'ทีวี',
-            'โถ',
-            'น้ำอุ่น',
-            'เตียง',
-            'ตู้เสื้อผ้า',
-            'โต๊ะ',
-            'พัดลม',
             'WIFI',
-            'เน็ต',
-            'ระเบียง',
-            'ห้องน้ำ',
+            'เครื่องทำน้ำอุ่น',
+            'ตู้เย็น',
+            'พัดลม',
+            'เตียงนอน',
+            'ตู้เสื้อผ้า',
+            'โต๊ะทำงาน',
+            'กล้องวงจรปิด',
+            'คีย์การ์ด',
+            'ที่จอดรถ',
+            'เครื่องซักผ้าหยอดเหรียญ',
+            'ตู้กดน้ำหยอดเหรียญ',
+            'ซิงค์ล้างจาน',
+            'โต๊ะเครื่องแป้ง',
+            'ไมโครเวฟ',
+            'ลิฟต์',
+            'ฟิตเนส',
+            'สระว่ายน้ำ',
+            'TV',
+            'Lobby',
+            'ที่วางพัสดุ',
+            'รปภ',
+            'อนุญาตให้เลี้ยงสัตว์',
           ];
 
           this.amenities = [...amenities].sort((a, b) => {
-            const isAInterior = interiorKeywords.some((key) => a.includes(key));
-            const isBInterior = interiorKeywords.some((key) => b.includes(key));
+            const indexA = popularityOrder.findIndex((key) => a.includes(key));
+            const indexB = popularityOrder.findIndex((key) => b.includes(key));
+            const orderA = indexA === -1 ? 999 : indexA;
+            const orderB = indexB === -1 ? 999 : indexB;
 
-            if (isAInterior && !isBInterior) return -1;
-            if (!isAInterior && isBInterior) return 1;
+            if (orderA !== orderB) return orderA - orderB;
             return a.localeCompare(b, 'th');
           });
 
@@ -350,7 +374,7 @@ maptilersdk: any;
   }
 
   handleImageFile(file: File) {
-    if (this.images.length >= this.maxImages) {
+    if (this.imageItems.length >= this.maxImages) {
       this.showToast(
         `สามารถอัปโหลดรูปภาพได้สูงสุด ${this.maxImages} รูป`,
         'error',
@@ -371,11 +395,20 @@ maptilersdk: any;
 
     const reader = new FileReader();
     reader.onload = (e) => {
-      const newIndex = this.images.length;
+      const newIndex = this.imageItems.length;
+      // Push เข้า images เดิมด้วย (สำหรับ upload)
       this.images.push({
         file,
         preview: e.target?.result as string,
-        isPrimary: this.images.length === 0, // รูปแรกเป็นรูปหลัก
+        isPrimary: this.imageItems.length === 0,
+      });
+      // Push เข้า imageItems ด้วย (สำหรับแสดงผลและ validation)
+      this.imageItems.push({
+        type: 'file',
+        file,
+        preview: e.target?.result as string,
+        isPrimary: this.imageItems.length === 0,
+        uploadStatus: 'pending',
       });
 
       // Animate the new image
@@ -578,8 +611,8 @@ maptilersdk: any;
 
         return hasPrice && hasElectricityType && hasWaterType;
       case 4:
-        // ตรวจสอบจากจำนวนรูปที่เลือกในเครื่อง (Immediate Feedback)
-        const hasEnoughImages = this.images.length >= this.minImages;
+        // ตรวจสอบจากจำนวนรูปทั้งหมด (ทั้งไฟล์และ URL)
+        const hasEnoughImages = this.imageItems.length >= this.minImages;
         const hasLocation = !!(
           this.dormForm.get('latitude')?.value &&
           this.dormForm.get('longitude')?.value
@@ -616,16 +649,23 @@ maptilersdk: any;
     this.isSubmittingFullPage = true; // Show overlay
 
     try {
-      // อัปโหลดรูปขึ้น Supabase ก่อน (ถ้าจำนวนไม่เท่ากัน)
+      // อัปโหลดรูปไฟล์ขึ้น Supabase ก่อน (ถ้ามีไฟล์ที่ยังไม่ได้อัปโหลด)
+      const fileImages = this.imageItems.filter(item => item.type === 'file');
       if (
-        this.images.length > 0 &&
-        this.imageUrls.length !== this.images.length
+        fileImages.length > 0 &&
+        this.imageUrls.length !== fileImages.length
       ) {
         await this.uploadImagesToSupabase();
       }
 
-      // ถ้าจำนวนรูปยังไม่ครบ (รวมที่อัปโหลดแล้ว) ให้หยุด
-      if (this.imageUrls.length < this.minImages) {
+      // รวม URL จาก Supabase + URL ที่ใส่เข้ามาโดยตรง
+      const urlImages = this.imageItems
+        .filter(item => item.type === 'url' && item.url)
+        .map(item => item.url!);
+      const allImageUrls = [...this.imageUrls, ...urlImages];
+
+      // ถ้าจำนวนรูปยังไม่ครบให้หยุด
+      if (allImageUrls.length < this.minImages) {
         this.showToast(
           `กรุณาอัปโหลดรูปให้ครบอย่างน้อย ${this.minImages} รูป`,
           'error',
@@ -675,8 +715,8 @@ maptilersdk: any;
         electricity_price: electricityPrice,
         water_price_type: waterPriceType,
         water_price: waterPrice,
-        images: this.imageUrls,
-        primary_image_index: this.images.findIndex((img) => img.isPrimary),
+        images: allImageUrls,
+        primary_image_index: this.imageItems.findIndex((img) => img.isPrimary),
         amenities: this.getSelectedAmenities(),
       };
 
@@ -749,7 +789,7 @@ maptilersdk: any;
         break;
       case 4:
         // Step 4: ตรวจรูป พิกัด และ amenities
-        if (this.images.length < this.minImages) invalid.push('images');
+        if (this.imageItems.length < this.minImages) invalid.push('images');
         if (!controls['latitude']?.value || !controls['longitude']?.value)
           invalid.push('location');
         if (this.getSelectedAmenities().length < 5) invalid.push('amenities');
@@ -848,7 +888,7 @@ maptilersdk: any;
         return true; // ตรวจสอบราคาใน validator แล้ว
       case 4:
         // ต้องมีรูปอย่างน้อย minImages รูป, มีพิกัด, และเลือกสิ่งอำนวยความสะดวกอย่างน้อย 5 อย่าง
-        const hasEnoughImages = this.images.length >= this.minImages;
+        const hasEnoughImages = this.imageItems.length >= this.minImages;
         const hasLocation = !!(
           this.dormForm.get('latitude')?.value &&
           this.dormForm.get('longitude')?.value
@@ -863,6 +903,103 @@ maptilersdk: any;
   getSelectedAmenities(): string[] {
     const amenitiesGroup = this.dormForm.get('amenities')?.value || {};
     return Object.keys(amenitiesGroup).filter((key) => amenitiesGroup[key]);
+  }
+
+  // URL Image Management Methods
+  isValidImageUrl(url: string): boolean {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  }
+
+  async addImageUrl(): Promise<void> {
+    if (!this.imageUrlInput.trim()) {
+      this.showToast('กรุณาใส่ URL รูปภาพ', 'error');
+      return;
+    }
+
+    if (this.imageItems.length >= this.maxImages) {
+      this.showToast(`สามารถเพิ่มรูปได้สูงสุด ${this.maxImages} รูป`, 'error');
+      return;
+    }
+
+    if (!this.isValidImageUrl(this.imageUrlInput.trim())) {
+      this.showToast('URL ไม่ถูกต้อง', 'error');
+      return;
+    }
+
+    const url = this.imageUrlInput.trim();
+    this.isAddingUrl = true;
+
+    // สร้าง image item ใหม่
+    const imageItem: ImageItem = {
+      type: 'url',
+      url: url,
+      preview: '', // จะโหลดทีหลัง
+      isPrimary: this.imageItems.length === 0,
+      uploadStatus: 'pending'
+    };
+
+    this.imageItems.push(imageItem);
+    this.imageUrlInput = ''; // เคลียร์ input
+
+    try {
+      // ลองโหลด preview
+      const preview = await this.loadImagePreview(url);
+      imageItem.preview = preview;
+      imageItem.uploadStatus = 'success';
+      this.showToast('เพิ่มรูปจาก URL สำเร็จ', 'success');
+    } catch (error) {
+      // URL ใช้ไม่ได้ ใช้ placeholder
+      imageItem.preview = this.getNoImagePlaceholder();
+      imageItem.uploadStatus = 'error';
+      this.showToast('ไม่สามารถโหลดรูปจาก URL นี้ได้ ใช้รูป placeholder แทน', 'info');
+    } finally {
+      this.isAddingUrl = false;
+    }
+  }
+
+  async loadImagePreview(url: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(url);
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = url;
+    });
+  }
+
+  getNoImagePlaceholder(): string {
+    return 'src/assets/images/no image.png';
+  }
+
+  removeImageItem(index: number): void {
+    const wasPrimary = this.imageItems[index].isPrimary;
+    this.imageItems.splice(index, 1);
+
+    // ถ้าลบรูปหลัก ให้รูปแรกเป็นรูปหลักแทน
+    if (wasPrimary && this.imageItems.length > 0) {
+      this.imageItems[0].isPrimary = true;
+    }
+  }
+
+  setPrimaryImageItem(index: number): void {
+    this.imageItems.forEach((img, i) => {
+      img.isPrimary = i === index;
+    });
+  }
+
+  getTotalImages(): number {
+    return this.imageItems.length;
+  }
+
+  getValidImageUrls(): string[] {
+    return this.imageItems
+      .filter(item => item.uploadStatus === 'success' || item.uploadStatus === 'error')
+      .map(item => item.url || '');
   }
 
   // Map methods

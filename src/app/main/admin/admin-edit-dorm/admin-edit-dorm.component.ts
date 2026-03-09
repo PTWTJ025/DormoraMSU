@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AdminService } from '../../../services/admin.service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
@@ -40,10 +41,19 @@ interface ImageFile {
   uploadStatus?: 'pending' | 'success' | 'error';
 }
 
+interface ImageItem {
+  type: 'file' | 'url';
+  file?: File;
+  url?: string;
+  preview: string;
+  isPrimary: boolean;
+  uploadStatus?: 'pending' | 'success' | 'error' | 'validated';
+}
+
 @Component({
   selector: 'app-admin-edit-dorm',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './admin-edit-dorm.component.html',
   styleUrls: ['./admin-edit-dorm.component.css'],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -70,9 +80,12 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
 
   // Image management
   images: ImageFile[] = [];
+  imageItems: ImageItem[] = []; // เก็บทั้งไฟล์และ URL
   imageUrls: string[] = [];
   existingImages: DormImage[] = [];
   maxImages = 20;
+  imageUrlInput: string = ''; // สำหรับ input ลิงก์
+  isAddingUrl: boolean = false; // สถานะการเพิ่ม URL
 
   // Legacy for compatibility
   dormImages: DormImage[] = [];
@@ -90,6 +103,11 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
   toastMessage = '';
   toastType: 'success' | 'error' | 'info' = 'info';
   toastTimeout: any;
+
+  // Step navigation
+  currentStep = 1;
+  totalSteps = 4;
+  minImages = 3;
 
   constructor(
     private fb: FormBuilder,
@@ -206,36 +224,26 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     try {
       // Fetch zones and amenities first to build the form template
-      const [zones, amenities] = await Promise.all([
+      const [zones, amenitiesRaw] = await Promise.all([
         this.adminService.getZones().toPromise(),
         this.adminService.getAmenities().toPromise(),
       ]);
 
-      this.zones = zones || [];
-
-      // UX Sorting: Interior first, then Exterior (Matching Submission Form)
-      const interiorKeywords = [
-        'แอร์',
-        'ปรับอากาศ',
-        'ตู้เย็น',
-        'ทีวี',
-        'โถ',
-        'น้ำอุ่น',
-        'เตียง',
-        'ตู้เสื้อผ้า',
-        'โต๊ะ',
-        'พัดลม',
-        'WIFI',
-        'เน็ต',
-        'ระเบียง',
-        'ห้องน้ำ',
+      // เรียงตามความนิยม/ความสำคัญที่คนหาหอพักพิจารณาก่อน
+      const popularityOrder = [
+        'แอร์', 'WIFI', 'เครื่องทำน้ำอุ่น', 'ตู้เย็น', 'พัดลม',
+        'เตียงนอน', 'ตู้เสื้อผ้า', 'โต๊ะทำงาน', 'กล้องวงจรปิด', 'คีย์การ์ด',
+        'ที่จอดรถ', 'เครื่องซักผ้าหยอดเหรียญ', 'ตู้กดน้ำหยอดเหรียญ', 'ซิงค์ล้างจาน',
+        'โต๊ะเครื่องแป้ง', 'ไมโครเวฟ', 'ลิฟต์', 'ฟิตเนส', 'สระว่ายน้ำ',
+        'TV', 'Lobby', 'ที่วางพัสดุ', 'รปภ', 'อนุญาตให้เลี้ยงสัตว์',
       ];
 
-      this.amenitiesList = (amenities || []).sort((a, b) => {
-        const isAInterior = interiorKeywords.some((key) => a.includes(key));
-        const isBInterior = interiorKeywords.some((key) => b.includes(key));
-        if (isAInterior && !isBInterior) return -1;
-        if (!isAInterior && isBInterior) return 1;
+      this.amenitiesList = [...(amenitiesRaw || [])].sort((a, b) => {
+        const indexA = popularityOrder.findIndex((key) => a.includes(key));
+        const indexB = popularityOrder.findIndex((key) => b.includes(key));
+        const orderA = indexA === -1 ? 999 : indexA;
+        const orderB = indexB === -1 ? 999 : indexB;
+        if (orderA !== orderB) return orderA - orderB;
         return a.localeCompare(b, 'th');
       });
 
@@ -798,11 +806,8 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
   }
 
   // Multi-step form properties
-  currentStep = 1;
-  totalSteps = 4;
   isLoadingData = false;
   isLoadingLocation = false;
-  minImages = 3;
   isLoadingRoadDistance = false;
   roadDistanceMsuKm: number | null = null;
   roadDistanceFallback = false;
@@ -1052,5 +1057,102 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
       'ราคาหน่วยละ (บาท/หน่วย)',
       'เหมาจ่าย (บาท/เดือน)',
     ];
+  }
+
+  // URL Image Management Methods
+  isValidImageUrl(url: string): boolean {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  }
+
+  async addImageUrl(): Promise<void> {
+    if (!this.imageUrlInput.trim()) {
+      this.showToastNotification('กรุณาใส่ URL รูปภาพ', 'error');
+      return;
+    }
+
+    if (this.imageItems.length >= this.maxImages) {
+      this.showToastNotification(`สามารถเพิ่มรูปได้สูงสุด ${this.maxImages} รูป`, 'error');
+      return;
+    }
+
+    if (!this.isValidImageUrl(this.imageUrlInput.trim())) {
+      this.showToastNotification('URL ไม่ถูกต้อง', 'error');
+      return;
+    }
+
+    const url = this.imageUrlInput.trim();
+    this.isAddingUrl = true;
+
+    // สร้าง image item ใหม่
+    const imageItem: ImageItem = {
+      type: 'url',
+      url: url,
+      preview: '', // จะโหลดทีหลัง
+      isPrimary: this.imageItems.length === 0,
+      uploadStatus: 'pending'
+    };
+
+    this.imageItems.push(imageItem);
+    this.imageUrlInput = ''; // เคลียร์ input
+
+    try {
+      // ลองโหลด preview
+      const preview = await this.loadImagePreview(url);
+      imageItem.preview = preview;
+      imageItem.uploadStatus = 'success';
+      this.showToastNotification('เพิ่มรูปจาก URL สำเร็จ', 'success');
+    } catch (error) {
+      // URL ใช้ไม่ได้ ใช้ placeholder
+      imageItem.preview = this.getNoImagePlaceholder();
+      imageItem.uploadStatus = 'error';
+      this.showToastNotification('ไม่สามารถโหลดรูปจาก URL นี้ได้ ใช้รูป placeholder แทน', 'info');
+    } finally {
+      this.isAddingUrl = false;
+    }
+  }
+
+  async loadImagePreview(url: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(url);
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = url;
+    });
+  }
+
+  getNoImagePlaceholder(): string {
+    return 'src/assets/images/no image.png';
+  }
+
+  removeImageItem(index: number): void {
+    const wasPrimary = this.imageItems[index].isPrimary;
+    this.imageItems.splice(index, 1);
+
+    // ถ้าลบรูปหลัก ให้รูปแรกเป็นรูปหลักแทน
+    if (wasPrimary && this.imageItems.length > 0) {
+      this.imageItems[0].isPrimary = true;
+    }
+  }
+
+  setPrimaryImageItem(index: number): void {
+    this.imageItems.forEach((img, i) => {
+      img.isPrimary = i === index;
+    });
+  }
+
+  getTotalImages(): number {
+    return this.imageItems.length;
+  }
+
+  getValidImageUrls(): string[] {
+    return this.imageItems
+      .filter(item => item.uploadStatus === 'success' || item.uploadStatus === 'error')
+      .map(item => item.url || '');
   }
 }

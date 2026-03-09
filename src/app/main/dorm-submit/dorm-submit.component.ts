@@ -24,12 +24,6 @@ import { DistanceService } from '../../services/distance.service';
 import * as maptilersdk from '@maptiler/sdk';
 import '@maptiler/sdk/dist/maptiler-sdk.css';
 
-interface ImageFile {
-  file: File;
-  preview: string;
-  isPrimary: boolean;
-}
-
 interface ImageItem {
   type: 'file' | 'url';
   file?: File;
@@ -37,6 +31,7 @@ interface ImageItem {
   preview: string;
   isPrimary: boolean;
   uploadStatus?: 'pending' | 'success' | 'error' | 'validated';
+  supabaseUrl?: string;
 }
 
 interface Zone {
@@ -72,9 +67,7 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
   currentStep = 1;
   totalSteps = 4;
   isSubmitting = false;
-  images: ImageFile[] = [];
   imageItems: ImageItem[] = []; // เก็บทั้งไฟล์และ URL
-  imageUrls: string[] = []; // เก็บ URL จาก Supabase
   maxImages = 20;
   minImages = 3;
   imageUrlInput: string = ''; // สำหรับ input ลิงก์
@@ -92,6 +85,7 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
   roadDistanceFallback = false;
   roadNearbySummaryText: string = '';
   private roadDistanceReqSeq = 0;
+  private currentUploadPromise: Promise<void> | null = null;
 
   // Map loading state
   isLoadingLocation = false;
@@ -310,28 +304,70 @@ maptilersdk: any;
   }
 
   // การจัดการรูปภาพ
-  async uploadImagesToSupabase() {
-    if (this.images.length === 0) return;
+  async uploadImagesToSupabase(): Promise<void> {
+    if (this.currentUploadPromise) {
+      return this.currentUploadPromise;
+    }
 
+    const itemsToUpload = this.getFileItemsNeedingUpload();
+    if (itemsToUpload.length === 0) {
+      return;
+    }
+
+    this.currentUploadPromise = this.performSupabaseUpload(itemsToUpload);
+
+    try {
+      await this.currentUploadPromise;
+    } finally {
+      this.currentUploadPromise = null;
+
+      const hasQueuedFiles = this.imageItems.some(
+        (item) =>
+          item.type === 'file' &&
+          item.file &&
+          item.uploadStatus === 'pending',
+      );
+
+      if (hasQueuedFiles) {
+        await this.uploadImagesToSupabase();
+      }
+    }
+  }
+
+  private async performSupabaseUpload(items: ImageItem[]): Promise<void> {
     this.isUploadingImages = true;
 
     try {
-      const files = this.images.map((img) => img.file);
-      const result = await this.supabaseService.uploadMultipleImages(
-        files,
-        'dorm-drafts/',
-      );
+      for (const item of items) {
+        item.uploadStatus = 'pending';
+        const { url, error } = await this.supabaseService.uploadImage(
+          item.file!,
+          'dorm-drafts/',
+        );
 
-      if (result.errors.length > 0) {
-        console.error('Some images failed to upload:', result.errors);
-        this.showToast('บางรูปอัปโหลดไม่สำเร็จ', 'error');
-        return;
+        if (url) {
+          item.supabaseUrl = url;
+          item.uploadStatus = 'success';
+        } else {
+          console.error('Failed to upload image to Supabase:', error);
+          item.uploadStatus = 'error';
+        }
       }
 
-      this.imageUrls = result.urls;
-      console.log('✅ Images uploaded to Supabase:', this.imageUrls);
+      const failedCount = items.filter(
+        (item) => item.uploadStatus === 'error',
+      ).length;
+
+      if (failedCount > 0) {
+        this.showToast(`อัปโหลดรูปไม่สำเร็จ ${failedCount} รูป`, 'error');
+      }
     } catch (error) {
       console.error('Error uploading images:', error);
+      items.forEach((item) => {
+        if (item.uploadStatus !== 'success') {
+          item.uploadStatus = 'error';
+        }
+      });
       this.showToast('อัปโหลดรูปไม่สำเร็จ', 'error');
     } finally {
       this.isUploadingImages = false;
@@ -340,13 +376,12 @@ maptilersdk: any;
 
   // อัปโหลดรูปทันทีที่เพิ่มรูป (auto-upload)
   async autoUploadImages() {
-    // เงื่อนไข: ถ้าจำนวนรูปใน local ไม่เท่ากับจำนวน URL ที่อัปโหลดแล้ว
-    if (
-      this.images.length > 0 &&
-      this.images.length !== this.imageUrls.length
-    ) {
-      await this.uploadImagesToSupabase();
+    const needsUpload = this.getFileItemsNeedingUpload();
+    if (needsUpload.length === 0) {
+      return;
     }
+
+    await this.uploadImagesToSupabase();
   }
 
   openCamera() {
@@ -367,10 +402,32 @@ maptilersdk: any;
   onGallerySelect(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files) {
-      Array.from(input.files).forEach((file) => {
+      const files = Array.from(input.files);
+      const availableSlots = this.maxImages - this.imageItems.length;
+
+      if (availableSlots <= 0) {
+        this.showToast(
+          `สามารถอัปโหลดรูปภาพได้สูงสุด ${this.maxImages} รูป`,
+          'error',
+        );
+        input.value = '';
+        return;
+      }
+
+      if (files.length > availableSlots) {
+        this.showToast(
+          `คุณสามารถเลือกเพิ่มได้อีกเพียง ${availableSlots} รูป (สูงสุด ${this.maxImages} รูป)`,
+          'error',
+        );
+      }
+
+      files.slice(0, availableSlots).forEach((file) => {
         this.handleImageFile(file);
       });
     }
+
+    // reset value so selecting same files again will trigger change
+    input.value = '';
   }
 
   handleImageFile(file: File) {
@@ -396,19 +453,13 @@ maptilersdk: any;
     const reader = new FileReader();
     reader.onload = (e) => {
       const newIndex = this.imageItems.length;
-      // Push เข้า images เดิมด้วย (สำหรับ upload)
-      this.images.push({
-        file,
-        preview: e.target?.result as string,
-        isPrimary: this.imageItems.length === 0,
-      });
-      // Push เข้า imageItems ด้วย (สำหรับแสดงผลและ validation)
       this.imageItems.push({
         type: 'file',
         file,
         preview: e.target?.result as string,
         isPrimary: this.imageItems.length === 0,
         uploadStatus: 'pending',
+        supabaseUrl: undefined,
       });
 
       // Animate the new image
@@ -418,40 +469,6 @@ maptilersdk: any;
       this.autoUploadImages();
     };
     reader.readAsDataURL(file);
-  }
-
-  removeImage(index: number) {
-    const wasPrimary = this.images[index].isPrimary;
-    this.images.splice(index, 1);
-
-    // ลบ URL ด้วยถ้ามี
-    if (this.imageUrls.length > index) {
-      this.imageUrls.splice(index, 1);
-    }
-
-    // ถ้าลบรูปหลัก ให้รูปแรกเป็นรูปหลักแทน
-    if (wasPrimary && this.images.length > 0) {
-      this.images[0].isPrimary = true;
-    }
-
-    // ถ้าไม่เหลือรูปเลย ให้เคลียร์ URL ทั้งหมด
-    if (this.images.length === 0) {
-      this.imageUrls = [];
-    }
-
-    // อัปโหลดใหม่เพื่อให้ URL sync กับรูปที่เหลือ (กรณีมีการสลับลำดับหรือลบ)
-    if (this.images.length > 0) {
-      // สำหรับ logic ที่ง่ายที่สุดคือ re-upload หรือแค่จัดการ Array (ในที่นี้เราใช้ simple sync)
-      // แต่ถ้าจะเอาชัวร์คือควรให้ imageUrls ลบตาม index
-      // this.imageUrls.splice(index, 1); // ทำไปแล้วข้างบน
-      // ไม่ต้องเรียก autoUploadImages ซ้ำถ้าลบอย่างเดียว เพราะ URLs จะ sync ตาม index อยู่แล้ว
-    }
-  }
-
-  setPrimaryImage(index: number) {
-    this.images.forEach((img, i) => {
-      img.isPrimary = i === index;
-    });
   }
 
   // การนำทาง
@@ -612,7 +629,7 @@ maptilersdk: any;
         return hasPrice && hasElectricityType && hasWaterType;
       case 4:
         // ตรวจสอบจากจำนวนรูปทั้งหมด (ทั้งไฟล์และ URL)
-        const hasEnoughImages = this.imageItems.length >= this.minImages;
+        const hasEnoughImages = this.getValidImageUrls().length >= this.minImages;
         const hasLocation = !!(
           this.dormForm.get('latitude')?.value &&
           this.dormForm.get('longitude')?.value
@@ -650,19 +667,9 @@ maptilersdk: any;
 
     try {
       // อัปโหลดรูปไฟล์ขึ้น Supabase ก่อน (ถ้ามีไฟล์ที่ยังไม่ได้อัปโหลด)
-      const fileImages = this.imageItems.filter(item => item.type === 'file');
-      if (
-        fileImages.length > 0 &&
-        this.imageUrls.length !== fileImages.length
-      ) {
-        await this.uploadImagesToSupabase();
-      }
+      await this.uploadImagesToSupabase();
 
-      // รวม URL จาก Supabase + URL ที่ใส่เข้ามาโดยตรง
-      const urlImages = this.imageItems
-        .filter(item => item.type === 'url' && item.url)
-        .map(item => item.url!);
-      const allImageUrls = [...this.imageUrls, ...urlImages];
+      const { urls: allImageUrls, primaryIndex } = this.buildImageUrlList();
 
       // ถ้าจำนวนรูปยังไม่ครบให้หยุด
       if (allImageUrls.length < this.minImages) {
@@ -716,7 +723,7 @@ maptilersdk: any;
         water_price_type: waterPriceType,
         water_price: waterPrice,
         images: allImageUrls,
-        primary_image_index: this.imageItems.findIndex((img) => img.isPrimary),
+        primary_image_index: primaryIndex,
         amenities: this.getSelectedAmenities(),
       };
 
@@ -789,7 +796,8 @@ maptilersdk: any;
         break;
       case 4:
         // Step 4: ตรวจรูป พิกัด และ amenities
-        if (this.imageItems.length < this.minImages) invalid.push('images');
+        if (this.getValidImageUrls().length < this.minImages)
+          invalid.push('images');
         if (!controls['latitude']?.value || !controls['longitude']?.value)
           invalid.push('location');
         if (this.getSelectedAmenities().length < 5) invalid.push('amenities');
@@ -997,9 +1005,57 @@ maptilersdk: any;
   }
 
   getValidImageUrls(): string[] {
-    return this.imageItems
-      .filter(item => item.uploadStatus === 'success' || item.uploadStatus === 'error')
-      .map(item => item.url || '');
+    return this.buildImageUrlList().urls;
+  }
+
+  private buildImageUrlList(): { urls: string[]; primaryIndex: number } {
+    const urls: string[] = [];
+    let primaryIndex = -1;
+
+    this.imageItems.forEach((item) => {
+      let resolvedUrl: string | null = null;
+
+      if (item.type === 'file' && item.supabaseUrl) {
+        resolvedUrl = item.supabaseUrl;
+      } else if (
+        item.type === 'url' &&
+        item.url &&
+        item.uploadStatus === 'success'
+      ) {
+        resolvedUrl = item.url;
+      }
+
+      if (!resolvedUrl) {
+        return;
+      }
+
+      if (urls.includes(resolvedUrl)) {
+        if (item.isPrimary) {
+          primaryIndex = urls.indexOf(resolvedUrl);
+        }
+        return;
+      }
+
+      urls.push(resolvedUrl);
+      if (item.isPrimary) {
+        primaryIndex = urls.length - 1;
+      }
+    });
+
+    if (primaryIndex === -1 && urls.length > 0) {
+      primaryIndex = 0;
+    }
+
+    return { urls, primaryIndex };
+  }
+
+  private getFileItemsNeedingUpload(): ImageItem[] {
+    return this.imageItems.filter(
+      (item) =>
+        item.type === 'file' &&
+        item.file &&
+        item.uploadStatus !== 'success',
+    );
   }
 
   // Map methods

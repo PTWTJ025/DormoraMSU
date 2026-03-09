@@ -265,6 +265,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   // Review state
   reviewingDormId: string | null = null;
   reviewDormDetail: any = null;
+  private reviewOriginSelectionCleared = false;
   isLoadingDetail = false;
   currentReviewStep: 1 | 2 = 1;
   currentImageIndex = 0;
@@ -1137,6 +1138,8 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
         // รีเฟรชข้อมูล
         this.loadPendingDormitories();
         this.loadDormitories(); // รีเฟรชข้อมูลทั้งหมดเพื่ออัปเดตสถิติ
+        // ล้างการเลือก (กรณีเลือกหลายแถวไว้)
+        this.deselectDorm(String(dormId));
         // ปิด modal
         this.closeReviewModal();
         // แสดง popup สำเร็จ
@@ -1178,6 +1181,8 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
         // ปิด rejection modal
         this.showRejectionModal = false;
         this.rejectionReason = '';
+        // ล้างการเลือก (กรณีเลือกหลายแถวไว้)
+        this.deselectDorm(String(dormId));
         // ปิด review modal
         this.closeReviewModal();
         // แสดง popup สำเร็จ
@@ -1194,6 +1199,10 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ปิด modal ตรวจสอบ
   closeReviewModal(): void {
+    if (this.reviewDormDetail?.dormitory?.dorm_id && !this.reviewOriginSelectionCleared) {
+      this.deselectDorm(String(this.reviewDormDetail.dormitory.dorm_id));
+    }
+    this.reviewOriginSelectionCleared = false;
     this.cancelReview();
   }
 
@@ -1448,6 +1457,14 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
       this.selectedDorms.splice(index, 1); // Remove if already selected
     } else {
       this.selectedDorms.push(dormIdStr); // Add if not selected
+    }
+  }
+
+  private deselectDorm(dormId: string): void {
+    const index = this.selectedDorms.indexOf(dormId);
+    if (index > -1) {
+      this.selectedDorms.splice(index, 1);
+      this.reviewOriginSelectionCleared = true;
     }
   }
 

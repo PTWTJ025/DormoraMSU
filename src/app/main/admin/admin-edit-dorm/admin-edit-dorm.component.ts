@@ -87,6 +87,34 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
   imageUrlInput: string = ''; // สำหรับ input ลิงก์
   isAddingUrl: boolean = false; // สถานะการเพิ่ม URL
 
+  private getExistingImageCount(): number {
+    return this.existingImages?.length || 0;
+  }
+
+  private getNewUploadCount(): number {
+    return this.images?.length || 0;
+  }
+
+  private getUrlImageCount(): number {
+    return this.imageItems?.length || 0;
+  }
+
+  getCurrentImageCount(): number {
+    return (
+      this.getExistingImageCount() +
+      this.getNewUploadCount() +
+      this.getUrlImageCount()
+    );
+  }
+
+  isImageLimitReached(): boolean {
+    return this.getCurrentImageCount() >= this.maxImages;
+  }
+
+  private getRemainingImageSlots(): number {
+    return Math.max(this.maxImages - this.getCurrentImageCount(), 0);
+  }
+
   // Legacy for compatibility
   dormImages: DormImage[] = [];
 
@@ -229,6 +257,8 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
         this.adminService.getAmenities().toPromise(),
       ]);
 
+      this.zones = zones || [];
+
       // เรียงตามความนิยม/ความสำคัญที่คนหาหอพักพิจารณาก่อน
       const popularityOrder = [
         'แอร์', 'WIFI', 'เครื่องทำน้ำอุ่น', 'ตู้เย็น', 'พัดลม',
@@ -273,7 +303,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
         accommodation_type: dorm.accommodation_type || 'หอ',
         dorm_name: dorm.dorm_name,
         address: dorm.address,
-        zone_id: dorm.zone_id || 1,
+        zone_id: dorm.zone_id || (this.zones[0]?.zone_id ?? ''),
         description: dorm.description || dorm.dorm_description || '',
         latitude: dorm.latitude || 16.244, // Default MSU coordinates
         longitude: dorm.longitude || 103.251, // Default MSU coordinates
@@ -452,15 +482,26 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
 
   onGallerySelect(event: Event) {
     const input = event.target as HTMLInputElement;
-    if (input.files) {
-      Array.from(input.files).forEach(file => {
-        this.handleImageFile(file);
-      });
+    if (!input.files) {
+      return;
     }
+
+    const remainingSlots = this.getRemainingImageSlots();
+    if (remainingSlots <= 0) {
+      this.showToastNotification(`สามารถอัปโหลดรูปภาพได้สูงสุด ${this.maxImages} รูป`, 'error');
+      return;
+    }
+
+    const files = Array.from(input.files).slice(0, remainingSlots);
+    if (files.length < input.files.length) {
+      this.showToastNotification(`เลือกรูปได้สูงสุดอีก ${remainingSlots} รูป`, 'info');
+    }
+
+    files.forEach((file) => this.handleImageFile(file));
   }
 
   handleImageFile(file: File) {
-    if (this.images.length >= this.maxImages) {
+    if (this.isImageLimitReached()) {
       this.showToastNotification(`สามารถอัปโหลดรูปภาพได้สูงสุด ${this.maxImages} รูป`, 'error');
       return;
     }
@@ -999,33 +1040,60 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
 
   // Input validation methods
   allowNumbersOnly(event: KeyboardEvent) {
-    const charCode = (event.which) ? event.which : event.keyCode;
-    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
-      event.preventDefault();
+    const navigationKeys = [
+      'Backspace',
+      'Delete',
+      'Tab',
+      'Escape',
+      'Enter',
+      'ArrowLeft',
+      'ArrowRight',
+    ];
+
+    if (navigationKeys.includes(event.key)) {
+      return;
     }
+
+    if (/^[0-9\s\-]$/.test(event.key)) {
+      return;
+    }
+
+    event.preventDefault();
   }
 
   onPhonePaste(event: ClipboardEvent) {
+    event.preventDefault();
     const clipboardData = event.clipboardData || (window as any).clipboardData;
-    const pastedText = clipboardData.getData('text');
-    if (!/^\d+$/.test(pastedText)) {
-      event.preventDefault();
+    const pastedText = clipboardData?.getData('text') || '';
+    const numericOnly = pastedText.replace(/\D/g, '');
+
+    if (!numericOnly) {
+      return;
     }
+
+    const input = event.target as HTMLInputElement;
+    const start = input.selectionStart ?? input.value.length;
+    const end = input.selectionEnd ?? input.value.length;
+    const currentValue = input.value;
+    const newValue = (
+      currentValue.substring(0, start) +
+      numericOnly +
+      currentValue.substring(end)
+    ).substring(0, 10);
+
+    input.value = newValue;
+    this.dormForm.get('contact_phone')?.setValue(newValue, { emitEvent: false });
   }
 
   onPhoneInput(event: Event) {
     const input = event.target as HTMLInputElement;
-    let value = input.value;
-    
-    // ลบอักขระที่ไม่ใช่ตัวเลขและเครื่องหมายที่อนุญาต
-    value = value.replace(/[^\d\s\-]/g, '');
-    
-    // จำกัดความยาว
-    if (value.length > 15) {
-      value = value.substring(0, 15);
+    let value = input.value.replace(/\D/g, '');
+
+    if (value.length > 10) {
+      value = value.substring(0, 10);
     }
-    
-    // อัปเดตค่าใน form
+
+    input.value = value;
     this.dormForm.get('contact_phone')?.setValue(value, { emitEvent: false });
   }
 
@@ -1075,7 +1143,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.imageItems.length >= this.maxImages) {
+    if (this.isImageLimitReached()) {
       this.showToastNotification(`สามารถเพิ่มรูปได้สูงสุด ${this.maxImages} รูป`, 'error');
       return;
     }

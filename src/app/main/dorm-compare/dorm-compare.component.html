@@ -54,211 +54,163 @@
   </div>
 
   <!-- Main Content -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-9 py-2">
-    <!-- Mobile: Card Layout with Sticky Header -->
-  <div
-    *ngIf="!isLoading && compareDorms.length > 0"
-    class="block md:hidden"
-  >
-    <!-- Sticky Header Container -->
-    <div class="sticky top-0 bg-white border-b border-gray-200 z-10 shadow-sm">
-      <!-- Comparison Options -->
-      <div class="px-4 py-3 flex items-center justify-between bg-gray-50">
-        <div class="flex items-center space-x-3">
-          <label class="flex items-center text-xs font-thai">
-            <input type="checkbox" class="mr-1 rounded text-blue-600">
-            <span>แสดงเฉพาะที่ต่างกัน</span>
-          </label>
-          <label class="flex items-center text-xs font-thai">
-            <input type="checkbox" class="mr-1 rounded text-blue-600">
-            <span>ไฮไลท์เฉพาะที่ต่างกัน</span>
-          </label>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-9 py-2 space-y-4">
+    <div
+      *ngIf="!isLoading && compareDorms.length > 0"
+      class="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm shadow-sm"
+    >
+      <span class="text-gray-700 font-medium">โหมดการแสดงผล:</span>
+      <button
+        type="button"
+        class="compare-toggle-btn"
+        [class.toggle-active]="showOnlyDifferences"
+        (click)="toggleShowOnlyDifferences()"
+      >
+        <i class="fas fa-filter mr-1"></i>
+        แสดงเฉพาะข้อมูลที่ต่างกัน
+      </button>
+      <button
+        type="button"
+        class="compare-toggle-btn"
+        [class.toggle-active]="highlightDifferences"
+        (click)="toggleHighlightDifferences()"
+      >
+        <i class="fas fa-highlighter mr-1"></i>
+        ไฮไลท์ความแตกต่าง
+      </button>
+    </div>
+
+    <!-- Mobile stacked comparison cards for better readability -->
+    <div
+      *ngIf="!isLoading && compareDorms.length > 0"
+      class="grid gap-4 md:hidden"
+    >
+      <div
+        *ngFor="let dorm of compareDorms"
+        class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
+      >
+        <div class="relative">
+          <img
+            [src]="dorm.image"
+            [alt]="dorm.name"
+            class="w-full h-40 object-cover"
+            (error)="onImageError($event)"
+          />
+          <button
+            (click)="removeFromCompare(dorm.id)"
+            class="absolute top-3 right-3 w-8 h-8 bg-red-500/90 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-lg font-bold shadow-lg"
+          >
+            ×
+          </button>
         </div>
-      </div>
-      
-      <!-- Dorm Cards Header -->
-      <div class="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory md:snap-none">
-        <div 
-          *ngFor="let dorm of compareDorms; let i = index"
-          class="flex-shrink-0 w-80 px-2 py-3 snap-center md:snap-start"
-        >
-          <div class="bg-white rounded-lg border border-gray-200 overflow-hidden dorm-card-mobile">
-            <!-- Remove Button -->
+
+        <div class="p-4 space-y-3 text-sm">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3 class="text-base font-semibold text-gray-900">{{ dorm.name }}</h3>
+              <p
+                *ngIf="shouldShowRow('zone')"
+                class="text-gray-500 text-xs"
+                [ngClass]="getFieldCellClasses('zone', dorm)"
+              >
+                {{ dorm.zone }}
+              </p>
+            </div>
             <button
-              (click)="removeFromCompare(dorm.id)"
-              class="absolute top-2 right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-lg z-20"
+              (click)="viewDormDetail(dorm.id)"
+              class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium"
             >
-              ×
+              รายละเอียด
             </button>
-            
-            <!-- Dorm Image -->
-            <div class="relative h-32 bg-gray-100">
-              <img
-                [src]="dorm.image"
-                [alt]="dorm.name"
-                class="w-full h-full object-cover"
-                (error)="onImageError($event)"
-              />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div
+              *ngIf="shouldShowRow('dailyPrice')"
+              class="mobile-compare-chip"
+              [ngClass]="getFieldCellClasses('dailyPrice', dorm)"
+            >
+              <p class="text-gray-500 text-xs">รายวัน</p>
+              <p class="font-semibold">{{ dorm.dailyPrice ? (dorm.dailyPrice | number) + ' ฿' : '-' }}</p>
             </div>
-            
-            <!-- Dorm Info -->
-            <div class="p-3 space-y-2">
-              <h3 class="text-sm font-bold text-gray-900 line-clamp-2">
-                {{ dorm.name }}
-              </h3>
-              
-              <!-- Price -->
-              <div class="text-lg font-bold text-blue-600">
-                ราคา {{ dorm.monthlyPrice ? (dorm.monthlyPrice | number) : 'ติดต่อสอบถาม' }} บาท
-              </div>
-              
-              <!-- Details Button -->
-              <button
-                (click)="viewDormDetail(dorm.id)"
-                class="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors font-medium"
+            <div
+              *ngIf="shouldShowRow('monthlyPrice')"
+              class="mobile-compare-chip"
+              [ngClass]="getFieldCellClasses('monthlyPrice', dorm)"
+            >
+              <p class="text-gray-500 text-xs">รายเดือน</p>
+              <p class="font-semibold text-blue-600">{{ dorm.monthlyPrice ? (dorm.monthlyPrice | number) + ' ฿' : '-' }}</p>
+            </div>
+            <div
+              *ngIf="shouldShowRow('termPrice')"
+              class="mobile-compare-chip"
+              [ngClass]="getFieldCellClasses('termPrice', dorm)"
+            >
+              <p class="text-gray-500 text-xs">รายเทอม</p>
+              <p class="font-semibold">{{ dorm.termPrice ? (dorm.termPrice | number) + ' ฿' : '-' }}</p>
+            </div>
+            <div
+              *ngIf="shouldShowRow('electricityCost')"
+              class="mobile-compare-chip"
+              [ngClass]="getFieldCellClasses('electricityCost', dorm)"
+            >
+              <p class="text-gray-500 text-xs">ค่าไฟ</p>
+              <p class="font-semibold">{{ getElectricityCost(dorm) }}</p>
+            </div>
+            <div
+              *ngIf="shouldShowRow('waterCost')"
+              class="mobile-compare-chip"
+              [ngClass]="getFieldCellClasses('waterCost', dorm)"
+            >
+              <p class="text-gray-500 text-xs">ค่าน้ำ</p>
+              <p class="font-semibold">{{ getWaterCost(dorm) }}</p>
+            </div>
+          </div>
+
+          <div class="border-t pt-3 mt-3">
+            <p class="text-gray-600 text-xs mb-2">สิ่งอำนวยความสะดวกเด่น</p>
+            <div class="flex flex-wrap gap-2">
+              <span
+                *ngFor="let amenity of dorm.amenities | slice:0:6"
+                class="px-2 py-1 rounded-full bg-gray-100 text-gray-700 text-xs"
               >
-                รายละเอียด
-              </button>
+                {{ amenity }}
+              </span>
+              <span *ngIf="dorm.amenities.length > 6" class="text-xs text-gray-500">
+                +{{ dorm.amenities.length - 6 }} รายการ
+              </span>
+            </div>
+          </div>
+
+          <div class="border-t pt-3 mt-3 grid grid-cols-1 gap-2 text-xs">
+            <div
+              class="flex justify-between"
+              *ngIf="shouldShowRow('ownerName')"
+              [ngClass]="getFieldCellClasses('ownerName', dorm)"
+            >
+              <span class="text-gray-500">เจ้าของ</span>
+              <span class="font-medium">{{ dorm.ownerName || '-' }}</span>
+            </div>
+            <div
+              class="flex justify-between"
+              *ngIf="shouldShowRow('ownerPhone')"
+              [ngClass]="getFieldCellClasses('ownerPhone', dorm)"
+            >
+              <span class="text-gray-500">โทร</span>
+              <span class="font-medium">{{ dorm.ownerPhone || '-' }}</span>
+            </div>
+            <div
+              class="flex justify-between"
+              *ngIf="shouldShowRow('ownerLineId') && dorm.ownerLineId"
+              [ngClass]="getFieldCellClasses('ownerLineId', dorm)"
+            >
+              <span class="text-gray-500">Line</span>
+              <span class="font-medium">{{ dorm.ownerLineId }}</span>
             </div>
           </div>
         </div>
       </div>
     </div>
-    
-    <!-- Scrollable Comparison Content -->
-    <div class="bg-gray-50 mobile-compare-container">
-      <!-- Combined Comparison Table -->
-      <div class="bg-white">
-        <!-- Price Section -->
-        <div class="px-4 py-3 bg-gray-100 border-b border-gray-200">
-          <h4 class="text-sm font-semibold text-gray-700">ราคา</h4>
-        </div>
-        <div class="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory md:snap-none">
-          <div 
-            *ngFor="let dorm of compareDorms; let i = index"
-            class="flex-shrink-0 w-80 px-2 py-3 border-r border-gray-200 last:border-r-0 snap-center md:snap-start"
-          >
-            <div class="space-y-2 text-sm">
-              <div class="flex justify-between">
-                <span class="text-gray-600">รายวัน:</span>
-                <span class="font-medium">{{ dorm.dailyPrice ? (dorm.dailyPrice | number) + ' ฿' : '-' }}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-gray-600">รายเดือน:</span>
-                <span class="font-medium text-blue-600">{{ dorm.monthlyPrice ? (dorm.monthlyPrice | number) + ' ฿' : '-' }}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-gray-600">รายเทอม:</span>
-                <span class="font-medium">{{ dorm.termPrice ? (dorm.termPrice | number) + ' ฿' : '-' }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Location & Utilities Section -->
-        <div class="px-4 py-3 bg-gray-100 border-b border-gray-200">
-          <h4 class="text-sm font-semibold text-gray-700">ที่ตั้งและสาธารณูปโภค</h4>
-        </div>
-        <div class="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory md:snap-none">
-          <div 
-            *ngFor="let dorm of compareDorms; let i = index"
-            class="flex-shrink-0 w-80 px-2 py-3 border-r border-gray-200 last:border-r-0 snap-center md:snap-start"
-          >
-            <div class="space-y-2 text-sm">
-              <div class="flex justify-between">
-                <span class="text-gray-600">โซน:</span>
-                <span class="font-medium">{{ dorm.zone }}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-gray-600">ค่าไฟ:</span>
-                <span class="font-medium">{{ getElectricityCost(dorm) }}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-gray-600">ค่าน้ำ:</span>
-                <span class="font-medium">{{ getWaterCost(dorm) }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Combined Amenities Section -->
-        <div class="px-4 py-3 bg-gray-100 border-b border-gray-200">
-          <h4 class="text-sm font-semibold text-gray-700">สิ่งอำนวยความสะดวก</h4>
-        </div>
-        <div class="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory md:snap-none">
-          <div 
-            *ngFor="let dorm of compareDorms; let i = index"
-            class="flex-shrink-0 w-80 px-2 py-3 border-r border-gray-200 last:border-r-0 snap-center md:snap-start"
-          >
-            <div class="grid grid-cols-2 gap-2 text-xs">
-              <!-- Internal Amenities -->
-              <div 
-                *ngFor="let amenity of internalAmenities; let j = index"
-                class="flex items-center gap-1"
-              >
-                <app-amenity-icon 
-                  [name]="amenity"
-                  [available]="hasAmenity(dorm, amenity)"
-                  [size]="'sm'"
-                  class="w-4 h-4"
-                ></app-amenity-icon>
-                <span 
-                  [class.text-gray-700]="hasAmenity(dorm, amenity)"
-                  [class.text-gray-400]="!hasAmenity(dorm, amenity)"
-                >
-                  {{ amenity }}
-                </span>
-              </div>
-              <!-- External Amenities -->
-              <div 
-                *ngFor="let amenity of externalAmenities; let j = index"
-                class="flex items-center gap-1"
-              >
-                <app-amenity-icon 
-                  [name]="amenity"
-                  [available]="hasAmenity(dorm, amenity)"
-                  [size]="'sm'"
-                  class="w-4 h-4"
-                ></app-amenity-icon>
-                <span 
-                  [class.text-gray-700]="hasAmenity(dorm, amenity)"
-                  [class.text-gray-400]="!hasAmenity(dorm, amenity)"
-                >
-                  {{ amenity }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Contact Info Section -->
-        <div class="px-4 py-3 bg-gray-100 border-b border-gray-200">
-          <h4 class="text-sm font-semibold text-gray-700">ข้อมูลติดต่อ</h4>
-        </div>
-        <div class="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory md:snap-none">
-          <div 
-            *ngFor="let dorm of compareDorms; let i = index"
-            class="flex-shrink-0 w-80 px-2 py-3 border-r border-gray-200 last:border-r-0 snap-center md:snap-start"
-          >
-            <div class="space-y-2 text-sm">
-              <div class="flex justify-between">
-                <span class="text-gray-600">เจ้าของ:</span>
-                <span class="font-medium">{{ dorm.ownerName }}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-gray-600">โทร:</span>
-                <span class="font-medium">{{ dorm.ownerPhone }}</span>
-              </div>
-              <div *ngIf="dorm.ownerLineId" class="flex justify-between">
-                <span class="text-gray-600">Line:</span>
-                <span class="font-medium">{{ dorm.ownerLineId }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
     <!-- Loading Skeleton -->
     <div
@@ -559,7 +511,11 @@
           </tr>
 
           <!-- Daily Price Row -->
-          <tr class="border-b bg-white">
+          <tr
+            class="border-b bg-white"
+            *ngIf="shouldShowRow('dailyPrice')"
+            [ngClass]="getRowHighlightClasses('dailyPrice')"
+          >
             <td
               class="w-24 sm:w-28 px-2 sm:px-3 py-3 sm:py-4 font-medium text-gray-700 text-xs sm:text-sm border border-gray-200 align-middle"
             >
@@ -571,6 +527,7 @@
                 getColumnWidth() +
                 ' px-2 sm:px-3 py-3 sm:py-4 text-center border border-gray-200 align-middle'
               "
+              [ngClass]="getFieldCellClasses('dailyPrice', dorm)"
             >
               <div class="text-xs sm:text-sm">
                 <div *ngIf="dorm.dailyPrice" class="text-gray-600">
@@ -585,7 +542,11 @@
           </tr>
 
           <!-- Monthly Price Row -->
-          <tr class="border-b bg-gray-50">
+          <tr
+            class="border-b bg-gray-50"
+            *ngIf="shouldShowRow('monthlyPrice')"
+            [ngClass]="getRowHighlightClasses('monthlyPrice')"
+          >
             <td
               class="w-24 sm:w-28 px-2 sm:px-3 py-3 sm:py-4 font-medium text-gray-700 text-xs sm:text-sm border border-gray-200 align-middle"
             >
@@ -597,6 +558,7 @@
                 getColumnWidth() +
                 ' px-2 sm:px-3 py-3 sm:py-4 text-center border border-gray-200 align-middle'
               "
+              [ngClass]="getFieldCellClasses('monthlyPrice', dorm)"
             >
               <div class="text-xs sm:text-sm">
                 <div
@@ -611,7 +573,11 @@
           </tr>
 
           <!-- Term Price Row -->
-          <tr class="border-b bg-white">
+          <tr
+            class="border-b bg-white"
+            *ngIf="shouldShowRow('termPrice')"
+            [ngClass]="getRowHighlightClasses('termPrice')"
+          >
             <td
               class="w-24 sm:w-28 px-2 sm:px-3 py-3 sm:py-4 font-medium text-gray-700 text-xs sm:text-sm border border-gray-200 align-middle"
             >
@@ -623,6 +589,7 @@
                 getColumnWidth() +
                 ' px-2 sm:px-3 py-3 sm:py-4 text-center border border-gray-200 align-middle'
               "
+              [ngClass]="getFieldCellClasses('termPrice', dorm)"
             >
               <div class="text-xs sm:text-sm">
                 <div *ngIf="dorm.termPrice" class="text-gray-500">
@@ -637,7 +604,11 @@
           </tr>
 
           <!-- Location Zone Row -->
-          <tr class="border-b bg-gray-50">
+          <tr
+            class="border-b bg-gray-50"
+            *ngIf="shouldShowRow('zone')"
+            [ngClass]="getRowHighlightClasses('zone')"
+          >
             <td
               class="w-24 sm:w-28 px-2 sm:px-3 py-3 sm:py-4 font-medium text-gray-700 text-xs sm:text-sm border border-gray-200 align-middle"
             >
@@ -649,6 +620,7 @@
                 getColumnWidth() +
                 ' px-2 sm:px-3 py-3 sm:py-4 text-center border border-gray-200 align-middle'
               "
+              [ngClass]="getFieldCellClasses('zone', dorm)"
             >
               <div class="text-xs sm:text-sm text-gray-900">
                 {{ dorm.zone }}
@@ -657,7 +629,11 @@
           </tr>
 
           <!-- Electricity Cost Row -->
-          <tr class="border-b bg-white">
+          <tr
+            class="border-b bg-white"
+            *ngIf="shouldShowRow('electricityCost')"
+            [ngClass]="getRowHighlightClasses('electricityCost')"
+          >
             <td
               class="w-24 sm:w-28 px-2 sm:px-3 py-3 sm:py-4 font-medium text-gray-700 text-xs sm:text-sm border border-gray-200 align-middle"
             >
@@ -669,6 +645,7 @@
                 getColumnWidth() +
                 ' px-2 sm:px-3 py-3 sm:py-4 text-center border border-gray-200 align-middle'
               "
+              [ngClass]="getFieldCellClasses('electricityCost', dorm)"
             >
               <div class="text-xs sm:text-sm text-gray-900">
                 {{ getElectricityCost(dorm) }}
@@ -677,7 +654,11 @@
           </tr>
 
           <!-- Water Cost Row -->
-          <tr class="border-b bg-gray-50">
+          <tr
+            class="border-b bg-gray-50"
+            *ngIf="shouldShowRow('waterCost')"
+            [ngClass]="getRowHighlightClasses('waterCost')"
+          >
             <td
               class="w-24 sm:w-28 px-2 sm:px-3 py-3 sm:py-4 font-medium text-gray-700 text-xs sm:text-sm border border-gray-200 align-middle"
             >
@@ -689,6 +670,7 @@
                 getColumnWidth() +
                 ' px-2 sm:px-3 py-3 sm:py-4 text-center border border-gray-200 align-middle'
               "
+              [ngClass]="getFieldCellClasses('waterCost', dorm)"
             >
               <div class="text-xs sm:text-sm text-gray-900">
                 {{ getWaterCost(dorm) }}
@@ -707,40 +689,43 @@
           </tr>
 
           <!-- Internal Amenities Rows -->
-          <tr
-            *ngFor="let amenity of internalAmenities; let i = index"
-            [ngClass]="i % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
-          >
-            <td
-              class="px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 border border-gray-200 align-middle min-w-0"
+          <ng-container *ngFor="let amenity of internalAmenities; let i = index">
+            <tr
+              *ngIf="shouldShowAmenityRow(amenity)"
+              [ngClass]="[i % 2 === 0 ? 'bg-white' : 'bg-gray-50', getAmenityRowClasses(amenity)]"
             >
-              <div class="flex items-center justify-center sm:justify-start">
-                <i
-                  class="fas {{
-                    getAmenityIcon(amenity)
-                  }} mr-1 sm:mr-2 text-gray-500 text-sm sm:text-base hidden sm:inline w-4 h-4 flex-shrink-0 relative bottom-[5px]"
-                ></i>
-                <span class="truncate text-center sm:text-left"
-                  >&nbsp;{{ amenity }}</span
+              <td
+                class="px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 border border-gray-200 align-middle min-w-0"
+              >
+                <div class="flex items-center justify-center sm:justify-start">
+                  <i
+                    class="fas {{
+                      getAmenityIcon(amenity)
+                    }} mr-1 sm:mr-2 text-gray-500 text-sm sm:text-base hidden sm:inline w-4 h-4 flex-shrink-0 relative bottom-[5px]"
+                  ></i>
+                  <span class="truncate text-center sm:text-left"
+                    >&nbsp;{{ amenity }}</span
+                  >
+                </div>
+              </td>
+              <td
+                *ngFor="let dorm of compareDorms"
+                class="px-3 sm:px-6 py-2 sm:py-3 text-center border border-gray-200 align-middle"
+                [ngClass]="getAmenityCellClasses(amenity, dorm)"
+              >
+                <span
+                  *ngIf="hasAmenity(dorm, amenity)"
+                  class="text-green-600 font-bold text-base sm:text-lg"
+                  >✓</span
                 >
-              </div>
-            </td>
-            <td
-              *ngFor="let dorm of compareDorms"
-              class="px-3 sm:px-6 py-2 sm:py-3 text-center border border-gray-200 align-middle"
-            >
-              <span
-                *ngIf="hasAmenity(dorm, amenity)"
-                class="text-green-600 font-bold text-base sm:text-lg"
-                >✓</span
-              >
-              <span
-                *ngIf="!hasAmenity(dorm, amenity)"
-                class="text-gray-400 font-bold text-base sm:text-lg"
-                >-</span
-              >
-            </td>
-          </tr>
+                <span
+                  *ngIf="!hasAmenity(dorm, amenity)"
+                  class="text-gray-400 font-bold text-base sm:text-lg"
+                  >-</span
+                >
+              </td>
+            </tr>
+          </ng-container>
 
           <!-- External Amenities Section -->
           <tr class="border-b bg-gray-100">
@@ -753,41 +738,44 @@
           </tr>
 
           <!-- External Amenities Rows -->
-          <tr
-            *ngFor="let amenity of externalAmenities; let i = index"
-            class="border-b"
-            [ngClass]="i % 2 === 0 ? 'bg-gray-50' : 'bg-white'"
-          >
-            <td
-              class="px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 border border-gray-200 align-middle min-w-0"
+          <ng-container *ngFor="let amenity of externalAmenities; let i = index">
+            <tr
+              *ngIf="shouldShowAmenityRow(amenity)"
+              class="border-b"
+              [ngClass]="[i % 2 === 0 ? 'bg-gray-50' : 'bg-white', getAmenityRowClasses(amenity)]"
             >
-              <div class="flex items-center justify-center sm:justify-start">
-                <i
-                  class="fas {{
-                    getAmenityIcon(amenity)
-                  }} mr-1 sm:mr-2 text-gray-500 text-sm sm:text-base hidden sm:inline w-4 h-4 flex-shrink-0 relative bottom-[5px]"
-                ></i>
-                <span class="truncate text-center sm:text-left"
-                  >&nbsp;{{ amenity }}</span
+              <td
+                class="px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 border border-gray-200 align-middle min-w-0"
+              >
+                <div class="flex items-center justify-center sm:justify-start">
+                  <i
+                    class="fas {{
+                      getAmenityIcon(amenity)
+                    }} mr-1 sm:mr-2 text-gray-500 text-sm sm:text-base hidden sm:inline w-4 h-4 flex-shrink-0 relative bottom-[5px]"
+                  ></i>
+                  <span class="truncate text-center sm:text-left"
+                    >&nbsp;{{ amenity }}</span
+                  >
+                </div>
+              </td>
+              <td
+                *ngFor="let dorm of compareDorms"
+                class="px-3 sm:px-6 py-2 sm:py-3 text-center border border-gray-200 align-middle"
+                [ngClass]="getAmenityCellClasses(amenity, dorm)"
+              >
+                <span
+                  *ngIf="hasAmenity(dorm, amenity)"
+                  class="text-green-600 font-bold text-base sm:text-lg"
+                  >✓</span
                 >
-              </div>
-            </td>
-            <td
-              *ngFor="let dorm of compareDorms"
-              class="px-3 sm:px-6 py-2 sm:py-3 text-center border border-gray-200 align-middle"
-            >
-              <span
-                *ngIf="hasAmenity(dorm, amenity)"
-                class="text-green-600 font-bold text-base sm:text-lg"
-                >✓</span
-              >
-              <span
-                *ngIf="!hasAmenity(dorm, amenity)"
-                class="text-gray-400 font-bold text-base sm:text-lg"
-                >-</span
-              >
-            </td>
-          </tr>
+                <span
+                  *ngIf="!hasAmenity(dorm, amenity)"
+                  class="text-gray-400 font-bold text-base sm:text-lg"
+                  >-</span
+                >
+              </td>
+            </tr>
+          </ng-container>
 
           <!-- Action Row -->
           <tr class="bg-white">

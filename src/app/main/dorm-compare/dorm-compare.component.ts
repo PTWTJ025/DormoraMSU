@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NavbarComponent } from '../navbar/navbar.component';
-import { AmenityIconComponent } from '../../components/amenity-icon/amenity-icon.component';
 import {
   DormCompareService,
   CompareDormItem,
@@ -34,7 +33,7 @@ interface CompareDormData extends CompareDormItem {
 @Component({
   selector: 'app-dorm-compare',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent, AmenityIconComponent],
+  imports: [CommonModule, FormsModule, NavbarComponent],
   templateUrl: './dorm-compare.component.html',
   styleUrls: ['./dorm-compare.component.css'],
 })
@@ -44,6 +43,8 @@ export class DormCompareComponent implements OnInit, OnDestroy {
   sortBy: string = 'price';
   sortOrder: 'asc' | 'desc' = 'asc';
   isLoading: boolean = false;
+  highlightDifferences = false;
+  showOnlyDifferences = false;
 
   // Calculate column width based on number of dorms
   getColumnWidth(): string {
@@ -507,4 +508,113 @@ export class DormCompareComponent implements OnInit, OnDestroy {
       img.style.display = 'block';
     }
   }
+
+  toggleHighlightDifferences(): void {
+    this.highlightDifferences = !this.highlightDifferences;
+  }
+
+  toggleShowOnlyDifferences(): void {
+    this.showOnlyDifferences = !this.showOnlyDifferences;
+  }
+
+  shouldShowRow(field: ComparisonFieldKey): boolean {
+    if (!this.showOnlyDifferences) return true;
+    return this.isFieldDifferent(field);
+  }
+
+  getRowHighlightClasses(field: ComparisonFieldKey): string {
+    if (this.highlightDifferences && this.isFieldDifferent(field)) {
+      return 'difference-row';
+    }
+    return '';
+  }
+
+  private getFieldValue(dorm: CompareDormData, field: ComparisonFieldKey): any {
+    switch (field) {
+      case 'dailyPrice':
+        return dorm.dailyPrice ?? null;
+      case 'monthlyPrice':
+        return dorm.monthlyPrice ?? null;
+      case 'termPrice':
+        return dorm.termPrice ?? null;
+      case 'zone':
+        return dorm.zone ?? '';
+      case 'electricityCost':
+        return dorm.electricityCost ?? '';
+      case 'waterCost':
+        return dorm.waterCost ?? '';
+      case 'ownerName':
+        return dorm.ownerName ?? '';
+      case 'ownerPhone':
+        return dorm.ownerPhone ?? '';
+      case 'ownerLineId':
+        return dorm.ownerLineId ?? '';
+      default:
+        return null;
+    }
+  }
+
+  private areValuesEqual(a: any, b: any): boolean {
+    if (a == null && b == null) return true;
+    if (typeof a === 'number' && typeof b === 'number') {
+      return a === b;
+    }
+    if (typeof a === 'string' && typeof b === 'string') {
+      return a.trim().toLowerCase() === b.trim().toLowerCase();
+    }
+    return JSON.stringify(a) === JSON.stringify(b);
+  }
+
+  isFieldDifferent(field: ComparisonFieldKey): boolean {
+    if (this.compareDorms.length <= 1) return false;
+    const baseValue = this.getFieldValue(this.compareDorms[0], field);
+    return this.compareDorms.some((dorm) => !this.areValuesEqual(this.getFieldValue(dorm, field), baseValue));
+  }
+
+  isAmenityDifferent(amenity: string): boolean {
+    if (this.compareDorms.length <= 1) return false;
+    const baseline = this.hasAmenity(this.compareDorms[0], amenity);
+    return this.compareDorms.some((dorm) => this.hasAmenity(dorm, amenity) !== baseline);
+  }
+
+  getAmenityRowClasses(amenity: string): string {
+    if (this.highlightDifferences && this.isAmenityDifferent(amenity)) {
+      return 'difference-row';
+    }
+    return '';
+  }
+
+  shouldShowAmenityRow(amenity: string): boolean {
+    if (!this.showOnlyDifferences) return true;
+    return this.isAmenityDifferent(amenity);
+  }
+
+  getAmenityCellClasses(amenity: string, dorm: CompareDormData): string {
+    if (this.highlightDifferences && this.isAmenityDifferent(amenity)) {
+      return this.hasAmenity(dorm, amenity) ? 'difference-cell' : 'difference-cell-muted';
+    }
+    return '';
+  }
+
+  getFieldCellClasses(field: ComparisonFieldKey, dorm: CompareDormData): string {
+    if (!this.highlightDifferences || !this.isFieldDifferent(field) || this.compareDorms.length === 0) {
+      return '';
+    }
+
+    const baseline = this.getFieldValue(this.compareDorms[0], field);
+    const current = this.getFieldValue(dorm, field);
+
+    return this.areValuesEqual(current, baseline) ? 'difference-cell-muted' : 'difference-cell';
+  }
 }
+
+type ComparisonFieldKey =
+  | 'dailyPrice'
+  | 'monthlyPrice'
+  | 'termPrice'
+  | 'zone'
+  | 'electricityCost'
+  | 'waterCost'
+  | 'ownerName'
+  | 'ownerPhone'
+  | 'ownerLineId';

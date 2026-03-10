@@ -1009,11 +1009,11 @@
             <span class="w-1.5 h-1.5 rounded-full bg-amber-400 mt-px"></span>
             <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest">รูปภาพ</p>
           </div>
-          <span class="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">{{ images.length }}
+          <span class="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">{{ imageItems.length }}
             รูป</span>
         </div>
         <div class="grid grid-cols-5 sm:grid-cols-8 gap-2">
-          <div *ngFor="let img of images; let i = index"
+          <div *ngFor="let img of imageItems; let i = index"
             class="relative aspect-square rounded-md overflow-hidden border border-gray-200 bg-gray-50">
             <img [src]="img.preview" class="w-full h-full object-cover" [alt]="'Photo ' + (i + 1)" />
             <div *ngIf="img.isPrimary"

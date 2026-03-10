@@ -13,7 +13,6 @@ import {
   FormGroup,
   Validators,
   ReactiveFormsModule,
-  FormArray,
 } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -91,43 +90,8 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
   // Map loading state
   isLoadingLocation = false;
 
-  // FormArray getters
-  get roomTypesFormArray() {
-    return this.dormForm.get('room_types') as FormArray;
-  }
-
-  // Room types options
-  roomTypeOptions = ['ห้องแอร์', 'ห้องคู่', 'ห้องพัดลม', 'อื่นๆ'];
-
-  // เพิ่มประเภทห้อง
-  addRoomType(type: string = '') {
-    const roomTypeGroup = this.fb.group({
-      type: [type, Validators.required],
-      other_name: [''], // สำหรับประเภทอื่นๆ
-      quantity: [1, [Validators.required, Validators.min(1)]], // จำนวนห้อง
-      monthly_price: ['', [Validators.min(1000), Validators.max(100000), Validators.pattern('^[0-9]*$')]],
-      term_price: ['', [Validators.min(1000), Validators.max(100000), Validators.pattern('^[0-9]*$')]],
-      summer_price: ['', [Validators.pattern('^[0-9]*$')]]
-    });
-    this.roomTypesFormArray.push(roomTypeGroup);
-  }
-
-  // ลบประเภทห้อง
-  removeRoomType(index: number) {
-    if (this.roomTypesFormArray.length > 1) {
-      this.roomTypesFormArray.removeAt(index);
-    }
-  }
-
-  // เช็คว่ามีประเภทห้องที่เลือกหรือไม่
-  hasSelectedRoomTypes(): boolean {
-    return this.roomTypesFormArray.length > 0 && this.roomTypesFormArray.controls.some(rt => rt.get('type')?.value);
-  }
-
-  // ดึงประเภทห้องทั้งหมดที่เลือก
-  getSelectedRoomTypes(): any[] {
-    return this.roomTypesFormArray.controls.map(control => control.value).filter(rt => rt.type);
-  }
+  // Room types
+  roomTypes = ['ห้องแอร์', 'ห้องคู่', 'ห้องพัดลม', 'อื่นๆ'];
 
   // Map properties
   map: maptilersdk.Map | null = null;
@@ -160,8 +124,6 @@ maptilersdk: any;
     this.initForm();
     this.loadZones();
     this.loadAmenities();
-    // เริ่มต้นด้วยประเภทห้อง 1 ประเภท
-    this.addRoomType();
   }
 
   ngAfterViewInit(): void {
@@ -181,7 +143,7 @@ maptilersdk: any;
         zone_id: ['', Validators.required], // เปลี่ยนจาก zone_name เป็น zone_id
         description: [''], // คำอธิบาย/กฎระเบียบ (ไม่บังคับ)
 
-        // ช่องทางติดต่อ (เพิ่มช่องทางใหม่)
+        // ข้อมูลติดต่อ (ไม่บังคับทั้งหมด)
         contact_name: [''],
         contact_phone: [
           '',
@@ -189,13 +151,9 @@ maptilersdk: any;
         ], // รองรับ 090-962-8055 หรือ 0909628055
         contact_email: ['', [Validators.email]],
         line_id: [''],
-        facebook: [''], // เพิ่ม Facebook
-        instagram: [''], // เพิ่ม Instagram
-        website: [''], // เพิ่ม Website
-        contact_note: [''], // หมายเหตุการติดต่อ
 
-        // ประเภทห้อง (รองรับหลายประเภท)
-        room_types: this.fb.array([]), // เปลี่ยนจาก room_type เป็น room_types array
+        // ประเภทห้อง (dropdown + อื่นๆ)
+        room_type: ['', Validators.required],
         room_type_other: [''], // ถ้าเลือก "อื่นๆ"
 
         // ราคา (ต้องเลือกอย่างน้อย 1)
@@ -653,8 +611,13 @@ maptilersdk: any;
         // Step 2: ไม่บังคับ ผ่านเสมอ
         return true;
       case 3:
-        // Step 3: ต้องมีประเภทห้องอย่างน้อย 1 ประเภท + ค่าน้ำค่าไฟต้องกรอก
-        const hasRoomTypes = this.hasSelectedRoomTypes();
+        // Step 3: ต้องกรอกราคาอย่างน้อย 1 ตัว + ค่าน้ำค่าไฟต้องกรอก
+        const monthly = this.dormForm.get('monthly_price')?.value;
+        const term = this.dormForm.get('term_price')?.value;
+        const hasPrice =
+          (monthly && monthly.toString().trim() !== '') ||
+          (term && term.toString().trim() !== '');
+
         const electricityType = this.dormForm.get(
           'electricity_price_type',
         )?.value;
@@ -663,7 +626,7 @@ maptilersdk: any;
           electricityType && electricityType.trim() !== '';
         const hasWaterType = waterType && waterType.trim() !== '';
 
-        return hasRoomTypes && hasElectricityType && hasWaterType;
+        return hasPrice && hasElectricityType && hasWaterType;
       case 4:
         // ตรวจสอบจากจำนวนรูปทั้งหมด (ทั้งไฟล์และ URL)
         const hasEnoughImages = this.getValidImageUrls().length >= this.minImages;
@@ -816,9 +779,15 @@ maptilersdk: any;
         }
         break;
       case 3:
-        // Step 3: ตรวจประเภทห้องและค่าน้ำค่าไฟ
-        if (!this.hasSelectedRoomTypes()) {
-          invalid.push('room_types');
+        // Step 3: ตรวจราคาและค่าน้ำค่าไฟ
+        const monthly = controls['monthly_price']?.value;
+        const term = controls['term_price']?.value;
+        const hasPrice =
+          (monthly && monthly.toString().trim() !== '') ||
+          (term && term.toString().trim() !== '');
+
+        if (!hasPrice) {
+          invalid.push('atLeastOnePrice');
         }
         if (controls['electricity_price_type']?.invalid)
           invalid.push('electricity_price_type');

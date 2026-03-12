@@ -1041,17 +1041,15 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
 
   async manageImagesAfterSave() {
     try {
-      // 3. เพิ่มรูปภาพใหม่ (จาก draft)
-      for (const newImage of this.images) {
-        if (newImage.url && !newImage.url.includes('existing')) {
-          // POST /api/admin/dormitories/:dormId/images
-          await this.adminService.addDormitoryImage(this.dormIdNum, {
-            image_url: newImage.url, // draft URL
-            is_primary: newImage.isPrimary || false
-          }).toPromise();
-          
-          console.log('✅ Added new image:', newImage.url);
-        }
+      // 3. เพิ่มรูปภาพใหม่ (จากไฟล์และ URL)
+      const newImagePayloads = this.buildNewImagePayloads();
+
+      for (const payload of newImagePayloads) {
+        await this.adminService
+          .addDormitoryImage(this.dormIdNum, payload)
+          .toPromise();
+
+        console.log('✅ Added new image:', payload.image_url);
       }
 
       this.isSubmitting = false;
@@ -1278,7 +1276,35 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
 
   getValidImageUrls(): string[] {
     return this.imageItems
-      .filter(item => item.uploadStatus === 'success' || item.uploadStatus === 'error')
+      .filter(item => this.isUrlItemReady(item))
       .map(item => item.url || '');
+  }
+
+  private isUrlItemReady(item: ImageItem): boolean {
+    return ['success', 'validated'].includes(item.uploadStatus || '');
+  }
+
+  private buildNewImagePayloads(): { image_url: string; is_primary: boolean }[] {
+    const payloads: { image_url: string; is_primary: boolean }[] = [];
+
+    this.images.forEach((img) => {
+      if (img.url && img.uploadStatus === 'success') {
+        payloads.push({
+          image_url: img.url,
+          is_primary: !!img.isPrimary,
+        });
+      }
+    });
+
+    this.imageItems.forEach((item) => {
+      if (item.url && this.isUrlItemReady(item)) {
+        payloads.push({
+          image_url: item.url,
+          is_primary: !!item.isPrimary,
+        });
+      }
+    });
+
+    return payloads;
   }
 }

@@ -148,7 +148,7 @@ export class MainComponent implements OnInit, OnDestroy {
           // แสดงแค่โซนเท่านั้น ไม่ต้องแสดงระยะทาง
           subtitle = zoneText;
 
-          // Compute price text: prefer monthly; else daily
+          // Compute price text: แสดงเฉพาะรายเดือน
           let priceText: string | undefined;
           if (d.min_price != null && d.max_price != null) {
             const minVal = Number(d.min_price);
@@ -163,11 +163,6 @@ export class MainComponent implements OnInit, OnDestroy {
             const single = Number((d as any).monthly_price);
             if (!Number.isNaN(single)) {
               priceText = `${single.toLocaleString()} บาท/เดือน`;
-            }
-          } else if ((d as any).daily_price != null) {
-            const daily = Number((d as any).daily_price);
-            if (!Number.isNaN(daily)) {
-              priceText = `${daily.toLocaleString()} บาท/วัน`;
             }
           }
           const slide: BannerSlide = {
@@ -361,18 +356,6 @@ export class MainComponent implements OnInit, OnDestroy {
       }
     }
 
-    // ราคารายวัน (บรรทัดที่สอง ถ้ามี)
-    if (lines[1]) {
-      const dailyMatch = lines[1].match(/([\d,]+)\s*(บาท\/วัน)/);
-      if (dailyMatch) {
-        const [_, number, unit] = dailyMatch;
-        html += `<div class="price-daily">
-          <span class="font-english">${number}</span>
-          <span class="font-thai unit">${unit}</span>
-        </div>`;
-      }
-    }
-
     return html;
   }
 
@@ -431,11 +414,6 @@ export class MainComponent implements OnInit, OnDestroy {
       if (!Number.isNaN(single)) {
         priceDisplay = `${single.toLocaleString()} บาท/เดือน`;
       }
-    }
-
-    // เพิ่มราคารายวันในบรรทัดที่สอง (ถ้ามี)
-    if (d.daily_price) {
-      priceDisplay += `\n${d.daily_price.toLocaleString()} บาท/วัน`;
     }
 
     // Format location display

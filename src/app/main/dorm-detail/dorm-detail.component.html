@@ -263,9 +263,16 @@
                                 }}</span>
                             </div>
                             <div class="place-list">
-                              <div *ngFor="let p of group.places" class="place-item">
-                                • {{ p.name }}
-                              </div>
+                              <ng-container *ngIf="group.places.length > 0; else emptyPoi">
+                                <div *ngFor="let p of group.places" class="place-item">
+                                  • {{ p.name }}
+                                </div>
+                              </ng-container>
+                              <ng-template #emptyPoi>
+                                <div class="place-item text-gray-500">
+                                  {{ group.emptyMessage }}
+                                </div>
+                              </ng-template>
                             </div>
                           </div>
                         </div>

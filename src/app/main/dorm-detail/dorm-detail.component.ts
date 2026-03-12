@@ -65,6 +65,8 @@ export interface NearbyPlaceGroup {
   categoryName: string;
   icon: IconSvgObject;
   places: { name: string }[];
+  /** ถ้าไม่มีสถานที่ในรัศมี ให้แสดงข้อความนี้แทน */
+  emptyMessage?: string;
 }
 
 @Component({
@@ -87,7 +89,6 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   /** ไอคอน HugeIcons ต่อหมวด – ต้อง assign เป็น property ของ component เพื่อให้ template bind ได้ (ตาม Full Code Example) */
   readonly categoryIcons: Record<NearbyPlaceCategory, IconSvgObject> = {
     convenience: Store01Icon,
-    supermarket: ShoppingBasket01Icon,
     gasStation: FuelIcon,
     restaurant: RestaurantIcon,
     market: CreativeMarketIcon,
@@ -143,7 +144,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   roadDistanceMsuKm: number | null = null;
   roadDistanceFallback: boolean = false;
   roadNearbyPlacesHtml: string = '';
-  /** กลุ่มสถานที่ใกล้เคียงต่อหมวด (ใช้แสดงกับ HugeIcons, ร้านอาหารสุ่มภายใน 3 กม.) */
+  /** กลุ่มสถานที่ใกล้เคียงต่อหมวด (ใช้แสดงกับ HugeIcons) */
   roadNearbyPlacesByCategory: NearbyPlaceGroup[] = [];
   roadNearbySummaryText: string = '';
   private roadDistanceReqSeq = 0;
@@ -151,11 +152,17 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   /** ไอคอน HugeIcons ต่อหมวด (ใช้ใน buildNearbyPlacesGroupsFromRoad) */
   private readonly nearbyCategoryIcons: Record<NearbyPlaceCategory, IconSvgObject> = {
     convenience: Store01Icon,
-    supermarket: ShoppingBasket01Icon,
     gasStation: FuelIcon,
     restaurant: RestaurantIcon,
     market: CreativeMarketIcon,
   };
+
+  /** หมวดสถานที่ที่อนุญาตให้แสดง (ยกเว้นร้านอาหารตาม requirement ล่าสุด) */
+  private readonly displayedNearbyCategories: Exclude<NearbyPlaceCategory, 'restaurant'>[] = [
+    'convenience',
+    'gasStation',
+    'market',
+  ];
 
   /** คืนค่า icon สำหรับ template – อ้างอิงจาก property categoryIcons */
   getCategoryIcon(cat: NearbyPlaceCategory): IconSvgObject {
@@ -654,7 +661,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
           await new Promise(resolve => setTimeout(resolve, 100));
         }
 
-        // ทำลาย map เก่าก่อนสร้างใหม่เสมอ เพื่อป้องกัน WebGL context issues
+        // ทำลาย map เก่าเมื่อสร้างใหม่เสมอ เพื่อป้องกัน WebGL context issues
         this.mapService.destroyMap();
 
         // รอสักครู่เพื่อให้ DOM มีเวลา update
@@ -1194,90 +1201,53 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  /**
-   * สุ่มเลือกจำนวน count รายการจาก list โดยให้น้ำหนักกับรายการที่ใกล้ (distanceKm น้อย) มากกว่า
-   * แล้วเรียงลำดับแสดงจากใกล้ไปไกล (ร้านที่ประชิดหอแสดงก่อน)
-   */
-  private weightedRandomPick(
-    list: { name: string; distanceKm: number }[],
-    count: number,
-  ): { name: string; distanceKm: number }[] {
-    if (list.length <= count) return [...list].sort((a, b) => a.distanceKm - b.distanceKm);
-    // น้ำหนัก = 1/(ระยะ+ε) ให้ที่ใกล้ได้โอกาสมากกว่า
-    const eps = 0.01;
-    const getWeight = (d: number) => 1 / (d + eps);
-    const pool = list.map((p) => ({ ...p, weight: getWeight(p.distanceKm) }));
-    const chosen: { name: string; distanceKm: number }[] = [];
-    while (chosen.length < count && pool.length > 0) {
-      const totalWeight = pool.reduce((s, x) => s + x.weight, 0);
-      let r = Math.random() * totalWeight;
-      for (let i = 0; i < pool.length; i++) {
-        r -= pool[i].weight;
-        if (r <= 0) {
-          chosen.push({ name: pool[i].name, distanceKm: pool[i].distanceKm });
-          pool.splice(i, 1);
-          break;
-        }
-      }
-    }
-    return chosen.sort((a, b) => a.distanceKm - b.distanceKm);
-  }
-
   private buildNearbyPlacesGroupsFromRoad(
     places: { name: string; distanceKm: number; category: NearbyPlaceCategory }[],
   ): NearbyPlaceGroup[] {
-    // รัศมีตามหมวด: สะดวกซื้อ/ซูเปอร์ 0.5 กม., สถานีน้ำมัน/ตลาด 1 กม., ร้านอาหารและอื่นๆ 3 กม. แสดงสูงสุด 3 รายการ
-    const maxDistances: Record<NearbyPlaceCategory, number> = {
+    // ใช้รัศมีคงที่ 0.5 กม. สำหรับทุกหมวด (ร้านอาหารยังไม่ใช้)
+    const maxDistances: Record<Exclude<NearbyPlaceCategory, 'restaurant'>, number> = {
       convenience: 0.5,
-      supermarket: 0.5,
-      gasStation: 1,
-      restaurant: 3,
-      market: 1,
+      gasStation: 0.5,
+      market: 0.5,
     };
 
-    const categoryNames: Record<NearbyPlaceCategory, string> = {
+    const categoryNames: Record<Exclude<NearbyPlaceCategory, 'restaurant'>, string> = {
       convenience: 'ร้านสะดวกซื้อ',
-      supermarket: 'ซูเปอร์มาร์เก็ต',
       gasStation: 'สถานีน้ำมัน',
-      restaurant: 'ร้านอาหาร',
       market: 'ตลาด',
     };
 
-    const grouped: Record<NearbyPlaceCategory, { name: string; distanceKm: number }[]> = {
-      convenience: [],
-      supermarket: [],
-      gasStation: [],
-      restaurant: [],
-      market: [],
-    };
+    const groupedAll = this.displayedNearbyCategories.reduce(
+      (acc, cat) => {
+        acc[cat] = [];
+        return acc;
+      },
+      {} as Record<Exclude<NearbyPlaceCategory, 'restaurant'>, { name: string; distanceKm: number }[]>,
+    );
+
+    const isDisplayedCategory = (
+      category: NearbyPlaceCategory,
+    ): category is Exclude<NearbyPlaceCategory, 'restaurant'> =>
+      (this.displayedNearbyCategories as NearbyPlaceCategory[]).includes(category);
 
     places.forEach((p) => {
-      if (p.distanceKm <= maxDistances[p.category]) {
-        grouped[p.category].push({ name: p.name, distanceKm: p.distanceKm });
-      }
+      if (!isDisplayedCategory(p.category)) return;
+      groupedAll[p.category].push({ name: p.name, distanceKm: p.distanceKm });
     });
 
-    // ทุกหมวด: สุ่มแบบให้น้ำหนักกับที่ใกล้หอมากกว่า แล้วเรียงจากใกล้ไปไกล (แสดงสูงสุด 3 รายการ)
-    (['convenience', 'supermarket', 'gasStation', 'restaurant', 'market'] as const).forEach((cat) => {
-      if (grouped[cat].length === 0) return;
-      grouped[cat] = this.weightedRandomPick(grouped[cat], 3);
-    });
+    return this.displayedNearbyCategories.map((cat) => {
+      const sorted = groupedAll[cat].sort((a, b) => a.distanceKm - b.distanceKm);
+      const withinRadius = sorted.filter((p) => p.distanceKm <= maxDistances[cat]);
+      const list = (withinRadius.length > 0 ? withinRadius : sorted).slice(0, 3);
 
-    const order: NearbyPlaceCategory[] = ['convenience', 'supermarket', 'gasStation', 'restaurant', 'market'];
-    const result: NearbyPlaceGroup[] = [];
-
-    order.forEach((cat) => {
-      const list = grouped[cat];
-      if (list.length === 0) return;
-      result.push({
+      return {
         category: cat,
         categoryName: categoryNames[cat],
         icon: this.nearbyCategoryIcons[cat],
         places: list.map((p) => ({ name: p.name })),
-      });
+        emptyMessage: list.length === 0 ? 'ยังไม่มีข้อมูลสถานที่ประเภทนี้' : undefined,
+      };
     });
-
-    return result;
   }
 
   // คำนวณระยะทางจากพิกัด (fallback)

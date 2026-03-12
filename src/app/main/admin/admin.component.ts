@@ -16,6 +16,7 @@ import {
   AdminService,
   Dormitory,
   DormitoryDetail,
+  SimilarDormitory,
 } from '../../services/admin.service';
 import { Auth } from '@angular/fire/auth';
 import { signOut } from '@angular/fire/auth';
@@ -81,6 +82,27 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   bulkConfirmMessage = '';
   bulkConfirmType: 'approve' | 'reject' | 'delete' | null = null;
   isProcessingBulk = false;
+
+  // Duplicate check (single + batch)
+  showDuplicateCheckModal = false;
+  isCheckingDuplicates = false;
+  duplicateCheckDormId: string | null = null;
+  duplicateCheckDormName: string | null = null;
+  duplicateCheckResults: SimilarDormitory[] = [];
+  duplicateCheckErrorMessage: string | null = null;
+
+  showBatchDuplicateCheckModal = false;
+  isBatchCheckingDuplicates = false;
+  batchDuplicateResults: Record<
+    string,
+    {
+      dorm_id: string;
+      dorm_name: string;
+      status: 'success' | 'error';
+      similar_dormitories: SimilarDormitory[];
+      errorMessage?: string;
+    }
+  > = {};
 
   constructor(
     private router: Router,
@@ -555,6 +577,8 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedTab = 'review';
     this.isLoadingDetail = true;
     this.currentReviewStep = 1;
+    // reset duplicate UI when switching dorm review
+    this.closeDuplicateCheckModal();
 
     console.log('🔍 [AdminComponent] Loading dormitory detail for ID:', dormId);
 
@@ -629,6 +653,146 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     this.reviewDormDetail = null;
     this.selectedTab = previousTab;
     this.currentReviewStep = 1;
+    this.closeDuplicateCheckModal();
+  }
+
+  // ----------------------------
+  // Duplicate check helpers
+  // ----------------------------
+  asString(value: unknown): string {
+    return String(value ?? '');
+  }
+
+  /** ใช้เช็คหอซ้ำได้เฉพาะรายการ pending (submission) */
+  get canCheckDuplicatesOnCurrentReview(): boolean {
+    const status =
+      this.reviewDormDetail?.dormitory?.approval_status ??
+      this.reviewDormDetail?.approval_status;
+    return status === 'pending' || status === 'รออนุมัติ';
+  }
+
+  formatDistanceMeters(distance: number | null | undefined): string {
+    if (distance === null || distance === undefined) return '-';
+    const rounded = Math.round(distance);
+    return `${rounded.toLocaleString('th-TH')} ม.`;
+  }
+
+  formatDuplicateMatchSummary(
+    reasons: string[] | null | undefined,
+    distanceMeters: number | null | undefined,
+  ): string {
+    const rs = Array.isArray(reasons) ? reasons : [];
+    const parts: string[] = [];
+    if (rs.includes('พิกัดใกล้เคียง')) {
+      parts.push(
+        distanceMeters === null || distanceMeters === undefined
+          ? 'พิกัดใกล้เคียง'
+          : `พิกัดใกล้กัน (${this.formatDistanceMeters(distanceMeters)})`,
+      );
+    }
+    if (rs.includes('ชื่อคล้ายกัน')) {
+      parts.push('ชื่อคล้ายกัน');
+    }
+    if (parts.length === 0 && rs.length > 0) return rs.join(', ');
+    return parts.join(' + ');
+  }
+
+  openDuplicateCheckModalForDorm(dormId: string | number, dormName?: string) {
+    this.duplicateCheckDormId = String(dormId);
+    this.duplicateCheckDormName = dormName || null;
+    this.showDuplicateCheckModal = true;
+  }
+
+  closeDuplicateCheckModal(): void {
+    this.showDuplicateCheckModal = false;
+    this.isCheckingDuplicates = false;
+    this.duplicateCheckDormId = null;
+    this.duplicateCheckDormName = null;
+    this.duplicateCheckResults = [];
+    this.duplicateCheckErrorMessage = null;
+  }
+
+  checkDuplicatesForCurrentReviewDorm(): void {
+    const dormId =
+      this.reviewDormDetail?.dormitory?.dorm_id ?? this.reviewingDormId;
+    if (!dormId) return;
+
+    if (!this.canCheckDuplicatesOnCurrentReview) {
+      this.showToastNotification(
+        'เช็คหอซ้ำได้เฉพาะหอที่อยู่สถานะรออนุมัติ (pending)',
+        'info',
+      );
+      return;
+    }
+
+    const dormName =
+      this.reviewDormDetail?.dormitory?.dorm_name ??
+      this.reviewDormDetail?.dorm_name ??
+      undefined;
+    this.openDuplicateCheckModalForDorm(dormId, dormName);
+
+    this.isCheckingDuplicates = true;
+    this.duplicateCheckErrorMessage = null;
+    this.duplicateCheckResults = [];
+
+    this.adminService.checkSubmissionDuplicates(String(dormId)).subscribe({
+      next: (res) => {
+        this.duplicateCheckResults = res?.similar_dormitories || [];
+        this.isCheckingDuplicates = false;
+      },
+      error: (err) => {
+        this.isCheckingDuplicates = false;
+        this.duplicateCheckErrorMessage =
+          err?.error?.message || 'เช็คหอซ้ำไม่สำเร็จ กรุณาลองใหม่';
+      },
+    });
+  }
+
+  checkDuplicatesForSelectedPendingDorms(): void {
+    const pendingDorms = this.selectedPendingDorms;
+    if (!pendingDorms || pendingDorms.length === 0) return;
+
+    this.showBatchDuplicateCheckModal = true;
+    this.isBatchCheckingDuplicates = true;
+    this.batchDuplicateResults = {};
+
+    const requests = pendingDorms.map((d) => {
+      const dormId = String(d.dorm_id);
+      return new Promise<void>((resolve) => {
+        this.adminService.checkSubmissionDuplicates(dormId).subscribe({
+          next: (res) => {
+            this.batchDuplicateResults[dormId] = {
+              dorm_id: dormId,
+              dorm_name: d.dorm_name,
+              status: 'success',
+              similar_dormitories: res?.similar_dormitories || [],
+            };
+            resolve();
+          },
+          error: (err) => {
+            this.batchDuplicateResults[dormId] = {
+              dorm_id: dormId,
+              dorm_name: d.dorm_name,
+              status: 'error',
+              similar_dormitories: [],
+              errorMessage:
+                err?.error?.message || 'เช็คไม่สำเร็จ กรุณาลองใหม่',
+            };
+            resolve();
+          },
+        });
+      });
+    });
+
+    Promise.all(requests).finally(() => {
+      this.isBatchCheckingDuplicates = false;
+    });
+  }
+
+  closeBatchDuplicateCheckModal(): void {
+    this.showBatchDuplicateCheckModal = false;
+    this.isBatchCheckingDuplicates = false;
+    this.batchDuplicateResults = {};
   }
 
   goToReviewStep(step: 1 | 2): void {
@@ -1458,6 +1622,7 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     } else {
       this.selectedDorms.push(dormIdStr); // Add if not selected
     }
+    this.syncPendingSelectAllFlag();
   }
 
   private deselectDorm(dormId: string): void {
@@ -1501,22 +1666,22 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Methods for pending dorms selection
   toggleSelectAllPending(): void {
-    const pendingDorms = this.getPendingDorms();
-    const pendingDormIds = pendingDorms.map((dorm) => dorm.dorm_id);
+    // เลือก/ยกเลิกเฉพาะรายการที่กำลังแสดง (รองรับค้นหา/แบ่งหน้า)
+    const pendingDorms = this.getDisplayedDorms();
+    const pendingDormIds = pendingDorms.map((dorm) => String(dorm.dorm_id));
 
     if (pendingDormIds.every((id) => this.selectedDorms.includes(id))) {
       // If all pending dorms are selected, deselect them
       this.selectedDorms = this.selectedDorms.filter(
         (id) => !pendingDormIds.includes(id),
       );
-      this.areAllPendingDormsSelected = false;
     } else {
       // Select all pending dormitories
       this.selectedDorms = [
         ...new Set([...this.selectedDorms, ...pendingDormIds]),
       ];
-      this.areAllPendingDormsSelected = true;
     }
+    this.syncPendingSelectAllFlag();
   }
 
   approveSelectedPendingDorms(): void {
@@ -1541,7 +1706,19 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
   // Getter for selected pending dorms count
   get selectedPendingDorms(): any[] {
     return this.getPendingDorms().filter((dorm) =>
-      this.selectedDorms.includes(dorm.dorm_id),
+      this.selectedDorms.includes(String(dorm.dorm_id)),
     );
+  }
+
+  /** อัปเดตสถานะ checkbox "เลือกทั้งหมด" ของแท็บ pending ให้ตรงกับรายการที่แสดง */
+  private syncPendingSelectAllFlag(): void {
+    if (this.selectedTab !== 'pending') {
+      this.areAllPendingDormsSelected = false;
+      return;
+    }
+    const displayed = this.getDisplayedDorms();
+    const ids = displayed.map((d) => String(d.dorm_id));
+    this.areAllPendingDormsSelected =
+      ids.length > 0 && ids.every((id) => this.selectedDorms.includes(id));
   }
 }

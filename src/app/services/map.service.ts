@@ -239,7 +239,7 @@ export class MapService {
       console.log('[MapService] Marker position updated:', { lat, lng });
     } else {
       // สร้าง marker ใหม่ถ้ายังไม่มี
-      instance.marker = new maptilersdk.Marker({ color: '#FF0000' })
+      instance.marker = new maptilersdk.Marker({ color: '#EF4444' })
         .setLngLat([lng, lat])
         .addTo(instance.map);
       console.log('[MapService] New marker created at:', { lat, lng });
@@ -330,7 +330,7 @@ export class MapService {
 
     if (this.marker) this.marker.remove();
 
-    this.marker = new maptilersdk.Marker({ color: '#EA4335' })
+    this.marker = new maptilersdk.Marker({ color: '#EF4444' })
       .setLngLat([lng, lat])
       .addTo(this.map);
 

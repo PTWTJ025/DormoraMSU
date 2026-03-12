@@ -263,11 +263,6 @@ export class DormListComponent implements OnInit {
       priceDisplay = `${Number(d.monthly_price).toLocaleString()} บาท/เดือน`;
     }
 
-    // เพิ่มราคารายวันในบรรทัดที่สอง (ถ้ามี)
-    if (d.daily_price) {
-      priceDisplay += (priceDisplay ? '\n' : '') + `${Number(d.daily_price).toLocaleString()} บาท/วัน`;
-    }
-
     // เพิ่มราคารายเทอม (ถ้ามี) สำหรับตัวกรองขั้นสูง
     const termPrice = (d as any).term_price;
     if (termPrice != null && termPrice !== '') {
@@ -342,18 +337,7 @@ export class DormListComponent implements OnInit {
     }
 
     if (lines[1]) {
-      const dailyMatch = lines[1].match(/([\d,]+)\s*(บาท\/วัน)/);
-      if (dailyMatch) {
-        const [_, number, unit] = dailyMatch;
-        html += `<div class="price-daily">
-          <span class="font-english">${number}</span>
-          <span class="font-thai unit">${unit}</span>
-        </div>`;
-      }
-    }
-
-    if (lines[2]) {
-      const termMatch = lines[2].match(/([\d,]+)\s*(บาท\/เทอม)/);
+      const termMatch = lines[1].match(/([\d,]+)\s*(บาท\/เทอม)/);
       if (termMatch) {
         const [_, number, unit] = termMatch;
         html += `<div class="price-term">

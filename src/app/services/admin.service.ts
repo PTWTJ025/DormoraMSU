@@ -146,6 +146,19 @@ export interface DormitoryDetail {
   };
 }
 
+export interface SimilarDormitory {
+  dorm_id: string | number;
+  dorm_name: string;
+  address: string;
+  zone_name: string;
+  distance_meters: number | null;
+  match_reasons: string[];
+}
+
+export interface CheckDuplicatesResponse {
+  similar_dormitories: SimilarDormitory[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -417,6 +430,34 @@ export class AdminService {
               error: (err) => {
                 subscriber.error(err);
               },
+              complete: () => subscriber.complete(),
+            });
+        } catch (err) {
+          subscriber.error(err);
+        }
+      })();
+    });
+  }
+
+  /**
+   * ตรวจสอบหอซ้ำ (เทียบกับหอที่อนุมัติแล้ว)
+   * GET /api/admin/submissions/:dormId/check-duplicates
+   */
+  checkSubmissionDuplicates(
+    dormId: string | number,
+  ): Observable<CheckDuplicatesResponse> {
+    return new Observable((subscriber) => {
+      (async () => {
+        try {
+          const headers = await this.getAuthHeadersAsync();
+          this.http
+            .get<CheckDuplicatesResponse>(
+              `${this.backendUrl}/admin/submissions/${dormId}/check-duplicates`,
+              { headers },
+            )
+            .subscribe({
+              next: (data) => subscriber.next(data),
+              error: (err) => subscriber.error(err),
               complete: () => subscriber.complete(),
             });
         } catch (err) {

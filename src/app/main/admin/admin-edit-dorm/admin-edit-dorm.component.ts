@@ -119,12 +119,35 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
   dormImages: DormImage[] = [];
 
   zones: Zone[] = [];
+  private zoneGuideHints: { keywords: string[]; text: string }[] = [
+    {
+      keywords: ['หน้ามอ'],
+      text: 'โซนหน้ามอ ตั้งแต่หน้ามหาวิทยาลัยถึงบ้านดอนเวียงจันทร์และถนนหน้าป้าย',
+    },
+    {
+      keywords: ['ท่าขอนยาง'],
+      text: 'โซนท่าขอนยาง ครอบคลุมถนนหลักและซอยต่าง ๆ รอบตลาดและมหาวิทยาลัยใหม่',
+    },
+    {
+      keywords: ['ขามเรียง'],
+      text: 'โซนขามเรียง ขยายไปจนถึงบ้านโนนสะแบงและพื้นที่ใกล้เคียง',
+    },
+    {
+      keywords: ['กู่แก้ว'],
+      text: 'โซนกู่แก้ว ตั้งแต่เซเว่นกู่แก้วไปจนถึงศาลาวัดกู่แก้ว',
+    },
+    {
+      keywords: ['ดอนนา'],
+      text: 'โซนดอนนา ต่อเนื่องถึงสามแยกเส้นไปท่าขอนยางและพื้นที่รอบ ๆ',
+    },
+  ];
   amenitiesList: string[] = [];
 
   // Map properties
   map: maptilersdk.Map | null = null;
   marker: maptilersdk.Marker | null = null;
   currentMapStyle: 'satellite' | 'streets' = 'satellite';
+  private readonly defaultMapCenter: [number, number] = [103.2565, 16.2467];
 
   // Toast notification
   showToast = false;
@@ -229,7 +252,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
       .get('electricity_price_type')
       ?.valueChanges.subscribe((val) => {
         const ctrl = this.dormForm.get('electricity_price');
-        if (val === 'ตามอัตราการไฟฟ้า') {
+        if (!val || val === 'ตามอัตราการไฟฟ้า' || val === 'สอบถามหอพัก') {
           ctrl?.disable();
           ctrl?.setValue(null);
         } else {
@@ -239,7 +262,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
 
     this.dormForm.get('water_price_type')?.valueChanges.subscribe((val) => {
       const ctrl = this.dormForm.get('water_price');
-      if (val === 'ตามอัตราการประปา') {
+      if (!val || val === 'ตามอัตราการประปา' || val === 'สอบถามหอพัก') {
         ctrl?.disable();
         ctrl?.setValue(null);
       } else {
@@ -359,7 +382,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
       console.log('⚡ Electricity Type in form:', electricityType);
       console.log('💧 Water Type in form:', waterType);
       
-      if (electricityType === 'ตามอัตราการไฟฟ้า') {
+      if (electricityType === 'ตามอัตราการไฟฟ้า' || electricityType === 'สอบถามหอพัก') {
         this.dormForm.get('electricity_price')?.disable();
         this.dormForm.get('electricity_price')?.setValue(null);
         console.log('⚡ Electricity price disabled');
@@ -368,7 +391,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
         console.log('⚡ Electricity price enabled with value:', dorm.electricity_price);
       }
       
-      if (waterType === 'ตามอัตราการประปา') {
+      if (waterType === 'ตามอัตราการประปา' || waterType === 'สอบถามหอพัก') {
         this.dormForm.get('water_price')?.disable();
         this.dormForm.get('water_price')?.setValue(null);
         console.log('💧 Water price disabled');
@@ -449,7 +472,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
       }
 
       // เพิ่ม marker ใหม่ (ใช้ MapTiler SDK)
-      const newMarker = new maptilersdk.Marker()
+      const newMarker = new maptilersdk.Marker({ color: '#EF4444' })
         .setLngLat([lng, lat])
         .addTo(map);
       (window as any).currentMarker = newMarker;
@@ -630,17 +653,16 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
     if (this.map) {
       this.map.remove();
       this.map = null;
+      this.marker = null;
     }
     
-    const { latitude, longitude } = this.dormForm.getRawValue();
-    console.log('🗺️ Map coordinates:', { latitude, longitude });
-    
-    if (!latitude || !longitude || !this.mapContainer) {
-      console.log('🗺️ Map initialization skipped - missing data:', {
-        latitude: !!latitude,
-        longitude: !!longitude,
-        mapContainer: !!this.mapContainer
-      });
+    const lat = this.getNumericCoordinate('latitude');
+    const lng = this.getNumericCoordinate('longitude');
+    const centerLat = lat ?? this.defaultMapCenter[1];
+    const centerLng = lng ?? this.defaultMapCenter[0];
+
+    if (!this.mapContainer) {
+      console.log('🗺️ Map initialization skipped - missing container');
       return;
     }
 
@@ -658,13 +680,13 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
         this.map = new maptilersdk.Map({
           container: this.mapContainer.nativeElement,
           style: maptilersdk.MapStyle.STREETS,
-          center: [longitude, latitude],
+          center: [centerLng, centerLat],
           zoom: 15,
           geolocateControl: false,
         });
 
-        this.marker = new maptilersdk.Marker({ draggable: true, color: '#4F46E5' })
-          .setLngLat([longitude, latitude])
+        this.marker = new maptilersdk.Marker({ draggable: true, color: '#EF4444' })
+          .setLngLat([centerLng, centerLat])
           .addTo(this.map);
 
         this.marker.on('dragend', () => {
@@ -674,7 +696,8 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
         });
 
         this.map.on('click', (e) => {
-          this.marker!.setLngLat([e.lngLat.lng, e.lngLat.lat]);
+          if (!this.marker) return;
+          this.marker.setLngLat([e.lngLat.lng, e.lngLat.lat]);
           this.dormForm.patchValue({
             latitude: e.lngLat.lat,
             longitude: e.lngLat.lng,
@@ -738,6 +761,15 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
         ? maptilersdk.MapStyle.SATELLITE
         : maptilersdk.MapStyle.STREETS,
     );
+  }
+
+  private getNumericCoordinate(control: 'latitude' | 'longitude'): number | null {
+    const value = this.dormForm.get(control)?.value;
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+    const parsed = typeof value === 'number' ? value : parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : null;
   }
 
   // Helper methods
@@ -829,6 +861,33 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
     const zoneId = this.dormForm.get('zone_id')?.value;
     const zone = this.zones.find(z => z.zone_id === Number(zoneId));
     return zone ? zone.zone_name : 'ไม่ระบุโซน';
+  }
+
+  getSelectedZoneGuide(): string | null {
+    const zoneId = this.dormForm.get('zone_id')?.value;
+    if (!zoneId) return null;
+
+    const zone = this.zones.find((z) => String(z.zone_id) === String(zoneId));
+    if (!zone?.zone_name) {
+      return null;
+    }
+
+    const match = this.zoneGuideHints.find((hint) =>
+      hint.keywords.some((keyword) => zone.zone_name.toLowerCase().includes(keyword)),
+    );
+    return match?.text || null;
+  }
+
+  shouldShowElectricityPriceInput(): boolean {
+    const value = this.dormForm.get('electricity_price_type')?.value;
+    if (!value) return false;
+    return !['ตามอัตราการไฟฟ้า', 'สอบถามหอพัก'].includes(value);
+  }
+
+  shouldShowWaterPriceInput(): boolean {
+    const value = this.dormForm.get('water_price_type')?.value;
+    if (!value) return false;
+    return !['ตามอัตราการประปา', 'สอบถามหอพัก'].includes(value);
   }
 
   getStepTitle(): string {
@@ -1116,15 +1175,15 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
   }
 
   getElectricityPriceTypes(): string[] {
-    return ['ตามอัตราการไฟฟ้า', 'ราคาหน่วยละ (บาท/หน่วย)'];
+    return ['ตามอัตราการไฟฟ้า', 'ราคาหน่วยละ (บาท/หน่วย)', 'สอบถามหอพัก'];
   }
 
   getWaterPriceTypes(): string[] {
-    return [
-      'ตามอัตราการประปา',
-      'ราคาหน่วยละ (บาท/หน่วย)',
-      'เหมาจ่าย (บาท/เดือน)',
-    ];
+    return ['ตามอัตราการประปา', 'ราคาหน่วยละ (บาท/หน่วย)', 'เหมาจ่าย (บาท/เดือน)'];
+  }
+
+  getWaterPriceOptions(): string[] {
+    return ['ตามอัตราการประปา', 'ราคาหน่วยละ (บาท/หน่วย)', 'เหมาจ่าย (บาท/เดือน)', 'สอบถามหอพัก'];
   }
 
   // URL Image Management Methods

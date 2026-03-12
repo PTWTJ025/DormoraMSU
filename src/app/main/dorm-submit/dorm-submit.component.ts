@@ -78,6 +78,28 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
   isSubmittingFullPage = false; // Full-page loading overlay status
   // Data from API
   zones: Zone[] = [];
+  private zoneGuideHints: { keywords: string[]; text: string }[] = [
+    {
+      keywords: ['หน้ามอ'],
+      text: 'โซนหน้ามอ ตั้งแต่หน้ามหาวิทยาลัยถึงบ้านดอนเวียงจันทร์และถนนหน้าป้าย',
+    },
+    {
+      keywords: ['ท่าขอนยาง'],
+      text: 'โซนท่าขอนยาง ครอบคลุมถนนหลักและซอยต่าง ๆ รอบตหมู่บ้าน',
+    },
+    {
+      keywords: ['ขามเรียง'],
+      text: 'โซนขามเรียง ไปจนถึงบ้านโนนสะแบงและพื้นที่ใกล้เคียง',
+    },
+    {
+      keywords: ['กู่แก้ว'],
+      text: 'โซนกู่แก้ว ตั้งแต่เซเว่นกู่แก้วไปจนถึงศาลาวัดกู่แก้ว',
+    },
+    {
+      keywords: ['ดอนนา'],
+      text: 'โซนดอนนา ต่อเนื่องถึงสามแยกเส้นไปท่าขอนยางและพื้นที่รอบ ๆ',
+    },
+  ];
   amenities: string[] = [];
   lastCalculatedDistance: number | null = null; // เก็บค่าระยะทางล่าสุด
   isLoadingData = false;
@@ -104,7 +126,8 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
   popupMapStyle: 'satellite' | 'streets' = 'satellite';
 
   private backendUrl = environment.backendApiUrl;
-maptilersdk: any;
+  private readonly defaultMapCenter: [number, number] = [103.2565, 16.2467];
+  maptilersdk: any;
 
   // Make encodeURIComponent available in template
   encodeURIComponent = encodeURIComponent;
@@ -181,7 +204,7 @@ maptilersdk: any;
     // ฟังการเปลี่ยนแปลงของ water_price_type
     this.dormForm.get('water_price_type')?.valueChanges.subscribe((value) => {
       const waterPriceControl = this.dormForm.get('water_price');
-      if (value === 'ตามอัตราการประปา') {
+      if (value === 'ตามอัตราการประปา' || value === 'สอบถามหอพัก') {
         waterPriceControl?.setValue(null);
         waterPriceControl?.disable();
       } else if (value) {
@@ -198,7 +221,7 @@ maptilersdk: any;
       .get('electricity_price_type')
       ?.valueChanges.subscribe((value) => {
         const electricityPriceControl = this.dormForm.get('electricity_price');
-        if (value === 'ตามอัตราการไฟฟ้า') {
+        if (value === 'ตามอัตราการไฟฟ้า' || value === 'สอบถามหอพัก') {
           electricityPriceControl?.setValue(null);
           electricityPriceControl?.disable();
         } else if (value) {
@@ -871,7 +894,7 @@ maptilersdk: any;
   }
 
   getElectricityPriceTypes(): string[] {
-    return ['ตามอัตราการไฟฟ้า', 'ราคาหน่วยละ (บาท/หน่วย)'];
+    return ['ตามอัตราการไฟฟ้า', 'ราคาหน่วยละ (บาท/หน่วย)', 'สอบถามหอพัก'];
   }
 
   getWaterPriceTypes(): string[] {
@@ -879,6 +902,7 @@ maptilersdk: any;
       'ตามอัตราการประปา',
       'ราคาหน่วยละ (บาท/หน่วย)',
       'เหมาจ่าย (บาท/เดือน)',
+      'สอบถามหอพัก',
     ];
   }
 
@@ -911,6 +935,42 @@ maptilersdk: any;
   getSelectedAmenities(): string[] {
     const amenitiesGroup = this.dormForm.get('amenities')?.value || {};
     return Object.keys(amenitiesGroup).filter((key) => amenitiesGroup[key]);
+  }
+
+  getSelectedZoneGuide(): string | null {
+    const zoneId = this.dormForm.get('zone_id')?.value;
+    if (!zoneId || this.zones.length === 0) {
+      return null;
+    }
+
+    const zone = this.zones.find(
+      (z) => String(z.zone_id) === String(zoneId),
+    );
+    if (!zone?.zone_name) {
+      return null;
+    }
+
+    const nameLower = zone.zone_name.toLowerCase();
+    const match = this.zoneGuideHints.find((hint) =>
+      hint.keywords.some((keyword) => nameLower.includes(keyword)),
+    );
+    return match?.text || null;
+  }
+
+  shouldShowWaterPriceInput(): boolean {
+    const value = this.dormForm.get('water_price_type')?.value;
+    if (!value) {
+      return false;
+    }
+    return !['ตามอัตราการประปา', 'สอบถามหอพัก'].includes(value);
+  }
+
+  shouldShowElectricityPriceInput(): boolean {
+    const value = this.dormForm.get('electricity_price_type')?.value;
+    if (!value) {
+      return false;
+    }
+    return !['ตามอัตราการไฟฟ้า', 'สอบถามหอพัก'].includes(value);
   }
 
   // URL Image Management Methods
@@ -1068,20 +1128,24 @@ maptilersdk: any;
 
     maptilersdk.config.apiKey = environment.mapTilerApiKey;
 
-    // Default center: มหาวิทยาลัยมหาสารคาม
-    const defaultCenter: [number, number] = [103.2565, 16.2467];
+    const formLat = this.getNumericCoordinate('latitude');
+    const formLng = this.getNumericCoordinate('longitude');
+    const startCenter: [number, number] =
+      formLat !== null && formLng !== null
+        ? [formLng, formLat]
+        : this.defaultMapCenter;
 
     this.map = new maptilersdk.Map({
       container: this.mapContainer.nativeElement,
       style: maptilersdk.MapStyle.SATELLITE,
-      center: defaultCenter,
+      center: startCenter,
       zoom: 14,
       geolocateControl: false, // ปิด GeolocateControl ของ MapTiler
     });
 
     // เพิ่ม marker
-    this.marker = new maptilersdk.Marker({ draggable: true, color: '#FFCD22' })
-      .setLngLat(defaultCenter)
+    this.marker = new maptilersdk.Marker({ draggable: true, color: '#EF4444' })
+      .setLngLat(startCenter)
       .addTo(this.map);
 
     // อัพเดทพิกัดเมื่อลาก marker
@@ -1092,7 +1156,8 @@ maptilersdk: any;
 
     // คลิกบนแผนที่เพื่อเลือกตำแหน่ง
     this.map.on('click', (e) => {
-      this.marker!.setLngLat([e.lngLat.lng, e.lngLat.lat]);
+      if (!this.marker) return;
+      this.marker.setLngLat([e.lngLat.lng, e.lngLat.lat]);
       this.updateLocation(e.lngLat.lng, e.lngLat.lat);
     });
   }
@@ -1344,5 +1409,14 @@ maptilersdk: any;
       : (this.maptilersdk.MapStyle || maptilersdk.MapStyle).STREETS;
 
     this.popupMap.setStyle(nextStyle);
+  }
+
+  private getNumericCoordinate(control: 'latitude' | 'longitude'): number | null {
+    const value = this.dormForm.get(control)?.value;
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+    const parsed = typeof value === 'number' ? value : parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : null;
   }
 }

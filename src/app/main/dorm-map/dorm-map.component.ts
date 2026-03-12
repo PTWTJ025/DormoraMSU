@@ -142,7 +142,7 @@ export class DormMapComponent implements OnInit, OnDestroy {
     this.dormitories.forEach((dorm) => {
       if (!dorm.latitude || !dorm.longitude) return;
 
-      const marker = new maptilersdk.Marker({ color: '#FFCD22', scale: 0.9 })
+      const marker = new maptilersdk.Marker({ color: '#EF4444', scale: 0.9 })
         .setLngLat([dorm.longitude, dorm.latitude])
         .addTo(this.map!);
 

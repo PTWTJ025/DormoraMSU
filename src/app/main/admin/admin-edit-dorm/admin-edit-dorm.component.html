@@ -626,6 +626,52 @@
               </div>
             </div>
 
+            <!-- URL Images Display -->
+            <div *ngIf="imageItems.length > 0" class="mb-4">
+              <h4 class="text-sm font-medium text-gray-700 mb-2">รูปภาพจาก URL</h4>
+              <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                <div *ngFor="let urlImage of imageItems; let i = index" class="image-item relative group">
+                  <img
+                    [src]="urlImage.preview || urlImage.url || getNoImagePlaceholder()"
+                    [alt]="'URL รูปภาพที่ ' + (i + 1)"
+                    class="w-full h-24 sm:h-32 object-cover rounded-lg border-2"
+                    [class.border-blue-500]="urlImage.isPrimary"
+                    [class.border-gray-200]="!urlImage.isPrimary"
+                  />
+
+                  <div *ngIf="urlImage.uploadStatus === 'pending'"
+                    class="absolute inset-0 bg-black bg-opacity-40 rounded-lg flex items-center justify-center text-white text-xs">
+                    กำลังตรวจสอบ...
+                  </div>
+
+                  <div *ngIf="urlImage.uploadStatus === 'error'"
+                    class="absolute inset-0 bg-black bg-opacity-40 rounded-lg flex items-center justify-center">
+                    <span class="text-xs text-white text-center px-2">โหลดรูปไม่สำเร็จ (จะแสดง placeholder)</span>
+                  </div>
+
+                  <!-- Primary Badge -->
+                  <div *ngIf="urlImage.isPrimary"
+                    class="absolute top-1 left-1 px-2 py-1 bg-blue-500 text-white text-xs rounded">
+                    รูปหลัก
+                  </div>
+
+                  <!-- Actions -->
+                  <div class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div class="flex gap-1">
+                      <button type="button" *ngIf="!urlImage.isPrimary" (click)="setPrimaryImageItem(i)"
+                        class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-blue-600">
+                        <i class="fas fa-star"></i>
+                      </button>
+                      <button type="button" (click)="removeImageItem(i)"
+                        class="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
 
           <!-- Amenities - Compact Design -->

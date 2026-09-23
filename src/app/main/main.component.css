@@ -1,15 +1,11 @@
-/* Custom styles for dot indicator if needed */
-.bg-yellow-400 {
-  background-color: #FDD836 !important;
+/* Card hover effects */
+.card-hover-effect {
+  transition: all 0.3s ease;
 }
 
-/* Font styles */
-.font-thai {
-  font-family: 'Noto Sans Thai', sans-serif;
-}
-
-.font-english {
-  font-family: 'Inter', sans-serif;
+.card-hover-effect:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
 }
 
 /* Section headers */
@@ -33,6 +29,23 @@
 .price-tag {
   color: #68ACFD;
   font-weight: 700;
+}
+
+.price-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.price-monthly {
+  font-size: 1.125rem;
+  color: #4F5356;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.price-daily {
+  font-size: 0.875rem;
+  color: #6D6D6D;
 }
 
 /* Button styles */
@@ -89,21 +102,4 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #4b94fa;
-}
-
-.price-container {
-  display: flex;
-  flex-direction: column;
-}
-
-.price-monthly {
-  font-size: 1.125rem;
-  color: #4F5356;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.price-daily {
-  font-size: 0.875rem;
-  color: #6D6D6D;
 }

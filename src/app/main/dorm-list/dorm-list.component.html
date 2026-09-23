@@ -280,7 +280,7 @@
     <ng-container *ngFor="let dorm of displayedDorms">
       <div
         class="dorm-card-mobile bg-white shadow hover:shadow-lg transition p-3 sm:p-4 flex flex-col border border-black/10 h-full card-hover-effect rounded-lg">
-        <div class="card-image w-full h-40 sm:h-48 mb-2 sm:mb-3 overflow-hidden rounded-lg cursor-pointer" [routerLink]="['/dorm-detail', dorm.id]">
+        <div class="card-image w-full h-40 sm:h-48 mb-2 sm:mb-3 overflow-hidden rounded-lg cursor-pointer" [routerLink]="['/detail', dorm.id]">
           <img [src]="dorm.image" alt="dorm"
             class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
         </div>
@@ -290,7 +290,7 @@
             [innerHTML]="getSafePriceHtml(dorm.price)"></div>
 
           <div class="card-title font-medium text-base sm:text-lg mb-1 font-thai min-h-[48px] sm:min-h-[56px] line-clamp-2 cursor-pointer"
-            [routerLink]="['/dorm-detail', dorm.id]">
+            [routerLink]="['/detail', dorm.id]">
             {{ dorm.name }}
           </div>
 

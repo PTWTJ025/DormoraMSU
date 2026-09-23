@@ -11,6 +11,15 @@ export interface Zone {
   description?: string;
 }
 
+export const MOCK_ZONES: Zone[] = [
+  { zone_id: 1, zone_name: 'ขามเรียง' },
+  { zone_id: 2, zone_name: 'ท่าขอนยาง' },
+  { zone_id: 3, zone_name: 'หน้า ม.' },
+  { zone_id: 4, zone_name: 'กู่แก้ว' },
+  { zone_id: 5, zone_name: 'ดอนนา' },
+  { zone_id: 6, zone_name: 'ในเมือง' },
+];
+
 export interface Dorm {
   dorm_id: number;
   dorm_name: string;
@@ -18,20 +27,20 @@ export interface Dorm {
   dorm_description?: string;  // Made optional to match DormDetail
   latitude: number | null;
   longitude: number | null;
-  
+
   // เพิ่ม zone_name ที่ backend ส่งมา
   zone_name?: string;
-  
+
   thumbnail_url?: string;
   price_display?: string;
   location_display?: string;
   updated_date?: string;
   rating?: number;
-  
+
   // เพิ่มช่วงราคาใหม่สำหรับการแสดงราคาเป็นช่วง
   min_price?: number;
   max_price?: number;
-  
+
   // UI alias fields (optional for template)
   image?: string;
   price?: string;
@@ -41,7 +50,7 @@ export interface Dorm {
   monthly_price?: number; // เปลี่ยนจาก string เป็น number
   daily_price?: number; // เปลี่ยนจาก string เป็น number
   main_image_url?: string;
-  
+
   // เพิ่ม fields อื่นๆ ที่ backend ส่งมา (ตาม dormitoryController.js)
   bed_type?: string;
   rental_type?: string;
@@ -50,7 +59,7 @@ export interface Dorm {
   water_type?: string;
   water_rate?: string;
   approval_status?: string;
-  
+
   // Contact info
   manager_name?: string;
   primary_phone?: string;
@@ -72,7 +81,7 @@ export interface DormDetail extends Dorm {
   primary_phone?: string;
   manager_line?: string;
   line_id?: string;
-  
+
   // Owner contact information
   owner_name?: string;
   owner_email?: string;
@@ -81,18 +90,18 @@ export interface DormDetail extends Dorm {
   owner_line_id?: string;
   owner_manager_name?: string;
   owner_photo_url?: string;
-  
+
   // Pricing (ใช้ชื่อฟิลด์ตาม API)
   monthly_price?: number;
   daily_price?: number;
   summer_price?: number;
   deposit?: number;
-  
+
   // Utilities (ใช้ชื่อฟิลด์ตาม API)
   electricity_price?: number;
   water_price?: number;
   water_price_type?: 'per_unit' | 'flat_rate';
-  
+
   // Legacy fields (backward compatibility)
   water_bill?: string;
   water_rate?: string;
@@ -100,23 +109,23 @@ export interface DormDetail extends Dorm {
   electric_bill?: string;
   electricity_rate?: string;
   electricity_type?: string;
-  
+
   // Description (ใช้ชื่อฟิลด์ตาม API)
   description?: string;
   dorm_description?: string; // Legacy field
   room_type?: string;
-  
+
   // Status
   status_dorm?: string; // สถานะหอพัก: 'ว่าง' หรือ 'เต็ม'
   statusDorm?: string; // สถานะหอพัก (camelCase)
-  
+
   // Images and amenities
   images: { image_id?: number; dorm_id?: number; image_url: string; image_type?: string; is_primary?: boolean; upload_date?: string }[];
-  amenities: { 
-    dorm_amenity_id?: number; 
+  amenities: {
+    dorm_amenity_id?: number;
     dorm_id?: number;
     amenity_id?: number;
-    name?: string; 
+    name?: string;
     amenity_name?: string; // ชื่อฟิลด์ที่ API ส่งมา
     is_available?: boolean;
   }[];
@@ -147,12 +156,12 @@ export class DormitoryService {
     if (limit !== undefined) {
       params = params.set('limit', limit.toString());
     }
-    
+
     // ใช้ API ที่มีอยู่ แต่เพิ่มการเรียงลำดับตามคะแนนและความนิยม
     return this.http.get<any>(`${this.backendUrl}/dormitories/recommended`, { params }).pipe(
       map(resp => {
         const dorms = Array.isArray(resp) ? resp : (resp.dormitories ?? []);
-        
+
         // เรียงลำดับตามเกณฑ์ที่สมเหตุสมผล:
         // 1. คะแนนรีวิวสูง (rating >= 4.0)
         // 2. มีรูปภาพ (thumbnail_url หรือ main_image_url)
@@ -161,21 +170,21 @@ export class DormitoryService {
           // คำนวณคะแนนความน่าสนใจ
           const scoreA = this.calculateRecommendationScore(a);
           const scoreB = this.calculateRecommendationScore(b);
-          
+
           return scoreB - scoreA; // เรียงจากคะแนนสูงไปต่ำ
         });
       })
     );
   }
-  
+
   /** คำนวณคะแนนความน่าสนใจสำหรับการแนะนำ */
   private calculateRecommendationScore(dorm: any): number {
     let score = 0;
-    
+
     // 1. คะแนนรีวิว (35% ของคะแนนรวม)
     const rating = dorm.avg_rating || dorm.rating || 0;
     score += (rating / 5) * 35;
-    
+
     // 2. ระยะทางจากมหาวิทยาลัย (15% ของคะแนนรวม)
     if (dorm.latitude && dorm.longitude) {
       const distance = this.distanceService.calculateDistance(dorm.latitude, dorm.longitude);
@@ -191,12 +200,12 @@ export class DormitoryService {
       }
       // มากกว่า 5 กม. ไม่ได้คะแนน
     }
-    
+
     // 3. มีรูปภาพ (15% ของคะแนนรวม)
     if (dorm.thumbnail_url || dorm.main_image_url) {
       score += 15;
     }
-    
+
     // 4. ราคาเหมาะสม (20% ของคะแนนรวม)
     const avgPrice = this.calculateAveragePrice(dorm);
     if (avgPrice > 0) {
@@ -210,7 +219,7 @@ export class DormitoryService {
         score += 8;
       }
     }
-    
+
     // 5. ข้อมูลครบถ้วน (15% ของคะแนนรวม)
     let completeness = 0;
     if (dorm.dorm_name && dorm.dorm_name.trim()) completeness += 5;
@@ -218,12 +227,12 @@ export class DormitoryService {
     if (dorm.zone_name && dorm.zone_name.trim()) completeness += 3;
     if (dorm.dorm_description && dorm.dorm_description.trim()) completeness += 2;
     if (dorm.latitude && dorm.longitude) completeness += 2;
-    
+
     score += completeness;
-    
+
     return score;
   }
-  
+
   /** คำนวณราคาเฉลี่ย */
   private calculateAveragePrice(dorm: any): number {
     if (dorm.min_price && dorm.max_price) {
@@ -290,7 +299,7 @@ export class DormitoryService {
       return () => {};
     });
   }
-  
+
   /** Get all amenities from the database */
   getAllAmenities(): Observable<Amenity[]> {
     return this.http.get<{ total: number; amenities: Amenity[] }>(`${this.backendUrl}/dormitories/amenities`).pipe(
@@ -320,7 +329,7 @@ export class DormitoryService {
     offset?: number;
   }): Observable<Dorm[]> {
     let httpParams = new HttpParams();
-    
+
     if (params?.zone_id) {
       httpParams = httpParams.set('zone_id', params.zone_id.toString());
     }
@@ -336,7 +345,7 @@ export class DormitoryService {
     if (params?.offset) {
       httpParams = httpParams.set('offset', params.offset.toString());
     }
-    
+
     return this.http.get<Dorm[]>(`${this.backendUrl}/dormitories`, { params: httpParams });
   }
 
@@ -423,9 +432,10 @@ export class DormitoryService {
   /** Get all zones */
   getAllZones(): Observable<Zone[]> {
     return this.http.get<Zone[]>(`${this.backendUrl}/zones`).pipe(
+      map(zones => (zones && zones.length > 0 ? zones : MOCK_ZONES)),
       catchError(err => {
-        console.error('[DormitoryService] Error fetching zones:', err);
-        return of([]);
+        console.warn('[DormitoryService] Backend unavailable, using mock zones:', err);
+        return of(MOCK_ZONES);
       })
     );
   }
@@ -515,7 +525,7 @@ export class DormitoryService {
     if (limit !== undefined) {
       params = params.set('limit', limit.toString());
     }
-    
+
     return this.http.get<Dorm[]>(`${this.backendUrl}/dormitories/${dormId}/similar`, { params }).pipe(
       catchError(err => {
         console.error(`[DormitoryService] Error fetching similar dormitories for dorm ${dormId}:`, err);
@@ -529,7 +539,7 @@ export class DormitoryService {
     let params = new HttpParams()
       .set('q', query)
       .set('limit', limit.toString());
-    
+
     return this.http.get<any[]>(`${this.backendUrl}/dormitories/search`, { params }).pipe(
       catchError(err => {
         console.error('[DormitoryService] Error searching dormitories:', err);
@@ -678,4 +688,4 @@ export class DormitoryService {
       'washingMachine': 24  // เครื่องซักผ้า
     };
   }
-} 
+}

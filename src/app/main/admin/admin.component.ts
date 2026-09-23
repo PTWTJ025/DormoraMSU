@@ -1010,33 +1010,33 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   getAmenityIcon(amenityName: string): string {
     const iconMap: { [key: string]: string } = {
-      แอร์: 'fas fa-snowflake',
-      พัดลม: 'fas fa-fan',
-      TV: 'fas fa-tv',
-      ตู้เย็น: 'fas fa-box',
-      เตียงนอน: 'fas fa-bed',
-      WIFI: 'fas fa-wifi',
-      ตู้เสื้อผ้า: 'fas fa-tshirt',
-      โต๊ะทำงาน: 'fas fa-desktop',
-      ไมโครเวฟ: 'fas fa-microchip',
-      เครื่องทำน้ำอุ่น: 'fas fa-shower',
-      ซิงค์ล้างจาน: 'fas fa-sink',
-      โต๊ะเครื่องแป้ง: 'fas fa-magic',
-      กล้องวงจรปิด: 'fas fa-video',
-      'รปภ.': 'fas fa-shield-alt',
-      รปภ: 'fas fa-shield-alt',
-      ลิฟต์: 'fas fa-elevator',
-      ที่จอดรถ: 'fas fa-car',
-      ฟิตเนส: 'fas fa-dumbbell',
-      Lobby: 'fas fa-building',
-      ตู้น้ำหยอดเหรียญ: 'fas fa-coins',
-      สระว่ายน้ำ: 'fas fa-swimming-pool',
-      ที่วางพัสดุ: 'fas fa-box-open',
-      อนุญาตให้เลี้ยงสัตว์: 'fas fa-paw',
-      คีย์การ์ด: 'fas fa-key',
-      เครื่องซักผ้า: 'fas fa-tshirt',
+      แอร์: 'snowflake',
+      พัดลม: 'fan',
+      TV: 'tv',
+      ตู้เย็น: 'box',
+      เตียงนอน: 'bed',
+      WIFI: 'wifi',
+      ตู้เสื้อผ้า: 'shirt',
+      โต๊ะทำงาน: 'laptop',
+      ไมโครเวฟ: 'microwave',
+      เครื่องทำน้ำอุ่น: 'flame',
+      ซิงค์ล้างจาน: 'droplet',
+      โต๊ะเครื่องแป้ง: 'sparkles',
+      กล้องวงจรปิด: 'cctv',
+      'รปภ.': 'shield-check',
+      รปภ: 'shield-check',
+      ลิฟต์: 'chevrons-up-down',
+      ที่จอดรถ: 'car',
+      ฟิตเนส: 'dumbbell',
+      Lobby: 'building',
+      ตู้น้ำหยอดเหรียญ: 'droplets',
+      สระว่ายน้ำ: 'waves',
+      ที่วางพัสดุ: 'package',
+      อนุญาตให้เลี้ยงสัตว์: 'paw-print',
+      คีย์การ์ด: 'key-round',
+      เครื่องซักผ้า: 'washing-machine',
     };
-    return iconMap[amenityName] || 'fas fa-check';
+    return iconMap[amenityName] || 'check';
   }
 
   isAmenityAvailable(amenityId: string): boolean {
@@ -1391,17 +1391,17 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
         // ปิด loading และ modal
         this.isDeleting = false;
         this.showDeleteModal = false;
-        
+
         // ลบ ID ออกจาก selectedDorms
         const index = this.selectedDorms.indexOf(String(dormId));
         if (index > -1) {
           this.selectedDorms.splice(index, 1);
         }
-        
+
         // รีเฟรชข้อมูล
         this.loadDormitories();
         this.loadPendingDormitories();
-        
+
         // แสดง popup สำเร็จ
         this.showSuccessPopup('ลบหอพักเรียบร้อยแล้ว', 'delete');
       },

@@ -1,4 +1,4 @@
-<mat-toolbar class="bg-white text-black navbar-shadow font-thai fixed top-0 left-0 right-0 z-50" style="height: 60px;">
+<mat-toolbar class="bg-white text-black navbar-shadow font-thai sticky top-0 left-0 right-0 z-50 h-[60px]">
   <!-- Content container with max-width -->
   <div class="w-full mx-auto sm:px-4 md:px-6 flex items-center justify-between h-full">
 
@@ -30,7 +30,7 @@
       <li>
         <button
           class="text-gray-600 text-sm lg:text-base font-thai font-normal px-2 lg:px-3 py-2 flex items-center bg-transparent border-0 outline-none cursor-pointer hover:text-black transition-colors"
-          routerLink="/dorm-list">
+          routerLink="/listings">
           หอพักทั้งหมด
         </button>
       </li>
@@ -38,7 +38,7 @@
       <li>
         <button
           class="text-gray-600 text-sm lg:text-base font-thai font-normal px-2 lg:px-3 py-2 flex items-center bg-transparent border-0 outline-none cursor-pointer hover:text-black transition-colors"
-          routerLink="/dorm-map">
+          routerLink="/map">
           แผนที่ทั้งหมด
         </button>
       </li>
@@ -54,24 +54,24 @@
         <div class="loader"></div>
       </div>
 
-      <!-- ปุ่มส่งข้อมูลหอพัก -->
+      <!-- ปุ่มลงประกาศหอพัก -->
       <button *ngIf="!isLoading"
         class="text-white text-xs sm:text-sm font-thai font-normal px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg cursor-pointer border-0 outline-none transition-colors duration-200 flex items-center whitespace-nowrap"
         style="background-color: #FFCD22; color: #1F2937;" onmouseover="this.style.backgroundColor='#F59E0B'"
-        onmouseout="this.style.backgroundColor='#FFCD22'" routerLink="/dorm-submit">
+        onmouseout="this.style.backgroundColor='#FFCD22'" (click)="onPostListingClick()">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
           class="w-4 h-4 mr-1.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
         </svg>
-        ส่งข้อมูลหอพัก
+        ลงประกาศหอพัก
       </button>
 
-      <!-- ปุ่มเข้าสู่ระบบแอดมิน -->
+      <!-- ปุ่มเข้าสู่ระบบ -->
       <div class="relative" *ngIf="!isLoading && !isLoggedIn()">
         <button
           class="bg-green-500 hover:bg-green-600 text-white text-xs sm:text-sm font-thai font-normal px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg cursor-pointer border-0 outline-none transition-colors duration-200 flex items-center whitespace-nowrap"
-          routerLink="/admin/login">
-          เข้าสู่ระบบแอดมิน
+          (click)="openLoginModal()">
+          เข้าสู่ระบบ
         </button>
       </div>
 
@@ -150,7 +150,7 @@
     <nav class="space-y-1 py-2">
       <button
         class="w-full text-left px-4 py-3 text-base font-thai text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center"
-        routerLink="/dorm-list" (click)="closeMobileMenu()">
+        routerLink="/listings" (click)="closeMobileMenu()">
         <svg class="w-5 h-5 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -160,7 +160,7 @@
 
       <button
         class="w-full text-left px-4 py-3 text-base font-thai text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center"
-        routerLink="/dorm-map" (click)="closeMobileMenu()">
+        routerLink="/map" (click)="closeMobileMenu()">
         <svg class="w-5 h-5 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
@@ -171,27 +171,27 @@
 
     <!-- ปุ่ม Action -->
     <div class="space-y-2 pt-3 border-t border-gray-200">
-      <!-- ปุ่มส่งข้อมูลหอพัก -->
+      <!-- ปุ่มลงประกาศหอพัก -->
       <button
         class="w-full text-white text-base font-thai font-normal px-4 py-3 rounded-lg cursor-pointer border-0 outline-none transition-colors duration-200 flex items-center justify-center"
-        style="background-color: #FFCD22; color: #1F2937;" routerLink="/dorm-submit" (click)="closeMobileMenu()">
+        style="background-color: #FFCD22; color: #1F2937;" (click)="onPostListingClick(); closeMobileMenu()">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
           class="w-5 h-5 mr-2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
         </svg>
-        ส่งข้อมูลหอพัก
+        ลงประกาศหอพัก
       </button>
 
-      <!-- ปุ่มเข้าสู่ระบบแอดมิน -->
+      <!-- ปุ่มเข้าสู่ระบบ -->
       <div *ngIf="!isLoggedIn()" class="space-y-2">
         <button
           class="w-full bg-green-500 hover:bg-green-600 text-white text-base font-thai font-normal px-4 py-3 rounded-lg cursor-pointer border-0 outline-none transition-colors duration-200 flex items-center justify-center"
-          routerLink="/admin/login" (click)="closeMobileMenu()">
+          (click)="openLoginModal(); closeMobileMenu()">
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
           </svg>
-          เข้าสู่ระบบแอดมิน
+          เข้าสู่ระบบ
         </button>
       </div>
 
@@ -220,8 +220,6 @@
   </div>
 </div>
 
-<!-- Spacer -->
-<div style="height: 60px;"></div>
 
 <style>
   @keyframes slide-down {

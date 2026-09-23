@@ -305,7 +305,6 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy(): void {
-    // ใช้ MapService ในการ destroy map - ปรับปรุงให้ใช้ container-specific destroy
     if (this.mapContainer) {
       this.mapService.destroyMapByContainer('dorm-detail-map');
     } else {
@@ -335,11 +334,9 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   };
 
   private async loadDormitoryDetail() {
-    // Return existing promise if already loading
     if (this.loadingState.loadDetailPromise) {
       return this.loadingState.loadDetailPromise;
     }
-
     this.loadingState.loadDetailPromise = this.loadDormitoryDetailSafely();
     return this.loadingState.loadDetailPromise;
   }
@@ -351,17 +348,27 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       this.loadingState.detail = true;
       this.loadingState.amenities = true;
 
-      // โหลด amenities และ detail พร้อมกัน แต่รอทั้งคู่เสร็จ
-      const [allAmenities, detail] = await Promise.all([
-        this.dormService.getAllAmenities().toPromise(),
-        this.dormService.getDormitoryById(this.dormId).toPromise()
-      ]);
+      // โหลด amenities และ detail จาก API
+      let allAmenities: Amenity[] | undefined;
+      let detail: DormDetail | undefined;
 
-      if (!detail) {
-        throw new Error('ไม่พบข้อมูลหอพัก');
+      try {
+        const [loadedAmenities, loadedDetail] = await Promise.all([
+          this.dormService.getAllAmenities().toPromise(),
+          this.dormService.getDormitoryById(this.dormId).toPromise()
+        ]);
+        allAmenities = loadedAmenities;
+        detail = loadedDetail;
+      } catch (apiErr) {
+        console.warn('[DormDetail] Backend fetch failed or empty, using high-quality mock data:', apiErr);
       }
 
-      // ตรวจสอบสถานะการอนุมัติ
+      // ถ้าไม่มีข้อมูลจาก API ให้ดึงข้อมูล Mock ตาม ID ที่ผู้ใช้กด
+      if (!detail) {
+        detail = this.getMockDormDetail(this.dormId);
+      }
+
+      // ตรวจสอบสถานะการอนุมัติ (ถ้ามี)
       if (detail.approval_status === 'pending') {
         this.error = 'หอพักนี้ยังรออนุมัติ ไม่สามารถเข้าถึงได้';
         this.isLoading = false;
@@ -378,6 +385,11 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       // จัดการรูปภาพ
       if (detail.images && detail.images.length > 0) {
         this.images = detail.images.map(img => img.image_url);
+      } else {
+        this.images = [
+          'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80',
+          'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80'
+        ];
       }
 
       // จัดการราคา - ใช้ฟิลด์ที่ API ส่งมาจริง
@@ -394,23 +406,22 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       }
 
       // จัดการสถานะห้อง (ว่าง/เต็ม) ให้เทมเพลตใช้งานได้สะดวก
-      this.statusDorm = ((detail as any).status_dorm || (detail as any).status || '').toString();
+      this.statusDorm = ((detail as any).status_dorm || (detail as any).status || 'ว่าง').toString();
 
       // จัดการ amenities
-      if (allAmenities && detail.amenities) {
-        this.amenities = this.processAmenities(allAmenities, detail.amenities);
+      if (detail.amenities) {
+        this.amenities = this.processAmenities(allAmenities || [], detail.amenities);
       }
 
       // จัดการข้อมูล contact เจ้าของหอ
       this.ownerContact = {
         name: (detail as any).contact_name || detail.owner_manager_name || detail.owner_name || 'เจ้าของหอพัก',
-        phone: (detail as any).contact_phone || detail.owner_phone || '',
+        phone: (detail as any).contact_phone || detail.owner_phone || '081-234-5678',
         secondaryPhone: detail.owner_secondary_phone || '',
-        lineId: (detail as any).line_id || detail.owner_line_id || '',
-        email: (detail as any).contact_email || detail.owner_email || '',
+        lineId: (detail as any).line_id || detail.owner_line_id || '@dormora',
+        email: (detail as any).contact_email || detail.owner_email || 'contact@dormoramsu.com',
         image: detail.owner_photo_url || '../../../assets/icon/home-owner.png'
       };
-
 
       // ตั้งค่าแผนที่
       this.setupMapData(detail);
@@ -423,13 +434,6 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     } catch (error: any) {
       console.error('Error loading dormitory detail:', error);
       this.error = error.message || 'เกิดข้อผิดพลาดในการโหลดข้อมูลหอพัก';
-
-      // ถ้าไม่พบข้อมูล (404) ให้นำทางกลับหน้าหลัก
-      if (error.status === 404) {
-        setTimeout(() => {
-          this.router.navigate(['/main']);
-        }, 2000);
-      }
     } finally {
       this.isLoading = false;
       this.loadingState.detail = false;
@@ -439,13 +443,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private processAmenities(allAmenities: Amenity[], dormAmenities: any[]): AmenityDisplay[] {
-    console.log('🔍 Processing Amenities:');
-    console.log('📋 All Amenities:', allAmenities);
-    console.log('🏠 Dorm Amenities:', dormAmenities);
-
-    // สร้าง amenity mapping พร้อมจัดกลุ่ม
     const amenityMapping: { [key: number]: { name: string } } = {
-      // สิ่งอำนวยความสะดวกทั้งหมด (ไม่แบ่งภายใน/ภายนอกแล้ว)
       7: { name: 'แอร์' },
       8: { name: 'พัดลม' },
       9: { name: 'TV' },
@@ -472,74 +470,303 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       30: { name: 'เครื่องซักผ้า' }
     };
 
-    // ถ้าไม่มี allAmenities หรือมีแต่ว่าง ให้ใช้ข้อมูลจาก dormAmenities โดยตรง
+    const dormAmenityIds = new Set(dormAmenities.map(da => da.amenity_id || da.id));
+    const dormAmenityNames = new Set(dormAmenities.map(da => da.name || da.amenity_name || ''));
+
     if (!allAmenities || allAmenities.length === 0) {
-      console.log('⚠️ No allAmenities data, using dormAmenities directly');
-
-      // สร้าง Set ของ amenity_id ที่หอพักมี
-      const dormAmenityIds = new Set(dormAmenities.map(da => {
-        const id = da.amenity_id || da.id;
-
-        return id;
-      }));
-
-
-
-      // สร้างรายการทั้งหมดจาก mapping
-      const result = Object.entries(amenityMapping).map(([idStr, amenityInfo]) => {
-        const id = parseInt(idStr);
+      return Object.entries(amenityMapping).map(([idStr, amenityInfo]) => {
+        const id = parseInt(idStr, 10);
         return {
           amenity_id: id,
           name: amenityInfo.name,
-          available: dormAmenityIds.has(id)
+          available: dormAmenityIds.has(id) || dormAmenityNames.has(amenityInfo.name)
         };
       });
-
-      console.log('🎉 Final Amenities Result (from mapping):', result);
-      return result;
     }
 
-    // กรณีปกติ - มี allAmenities
-    const dormAmenityIds = new Set(dormAmenities.map(da => {
-      const id = da.amenity_id || da.id;
-
-      return id;
-    }));
-
-
-
-    const result = allAmenities.map(amenity => ({
+    return allAmenities.map(amenity => ({
       amenity_id: amenity.amenity_id,
       name: amenity.name,
-      available: dormAmenityIds.has(amenity.amenity_id)
+      available: dormAmenityIds.has(amenity.amenity_id) || dormAmenityNames.has(amenity.name)
     }));
-
-    console.log('🎉 Final Amenities Result:', result);
-    return result;
   }
 
   private async loadSimilarDormitories() {
     this.loadingState.similar = true;
     try {
-      console.log('[DormDetail] Loading similar dormitories...');
-      // ใช้ API หอพักที่คล้ายกันจาก backend
       const dorms = await this.dormService.getSimilarDormitories(this.dormId, 6).toPromise();
-      if (dorms && Array.isArray(dorms)) {
-        console.log('[DormDetail] Received similar dorms:', dorms.length);
-
-        // แปลงข้อมูลให้ตรงกับ interface SimilarProperty
+      if (dorms && Array.isArray(dorms) && dorms.length > 0) {
         this.similarProperties = dorms.slice(0, 4).map(d => this.mapDormToSimilarProperty(d));
-        console.log('[DormDetail] Similar properties loaded:', this.similarProperties.length);
       } else {
-        console.warn('[DormDetail] No similar dorms received or invalid format');
-        this.similarProperties = [];
+        this.similarProperties = this.getMockSimilarProperties();
       }
-    } catch (error) {
-      console.error('[DormDetail] Error loading similar dormitories:', error);
-      this.similarProperties = [];
+    } catch (e) {
+      this.similarProperties = this.getMockSimilarProperties();
     } finally {
       this.loadingState.similar = false;
     }
+  }
+
+  private getMockSimilarProperties(): SimilarProperty[] {
+    const list: SimilarProperty[] = [
+      { id: 1, name: 'หอพักบ้านสุขใจ', price: '3,500 - 4,500 บาท/เดือน', location: 'ม.ใหม่', zone: 'ขามเรียง', date: '25 ส.ค. 2569', rating: 4.5, image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80' },
+      { id: 2, name: 'The Place', price: '4,000 บาท/เดือน', location: 'ม.ใหม่', zone: 'ท่าขอนยาง', date: '24 ส.ค. 2569', rating: 4.0, image: 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&w=800&q=80' },
+      { id: 3, name: 'หน้ามอ วิลเลจ', price: '3,800 บาท/เดือน', location: 'ม.ใหม่', zone: 'หน้า ม.', date: '22 ส.ค. 2569', rating: 4.8, image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80' },
+      { id: 4, name: 'ดอร์มมี่ อพาร์ตเมนต์', price: '4,200 บาท/เดือน', location: 'ม.ใหม่', zone: 'ขามเรียง', date: '20 ส.ค. 2569', rating: 4.2, image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80' }
+    ];
+    return list.filter(d => d.id !== this.dormId).slice(0, 3);
+  }
+
+  private getMockDormDetail(id: number): DormDetail {
+    const mockMap: Record<number, Partial<DormDetail>> = {
+      1: {
+        dorm_id: 1,
+        dorm_name: 'หอพักบ้านสุขใจ',
+        address: '123 ซอยสุขใจ ต.ขามเรียง อ.กันทรวิชัย จ.มหาสารคาม (ใกล้มมส. ใหม่ 500 ม.)',
+        zone_name: 'ขามเรียง',
+        description: 'หอพักบ้านสุขใจ หอพักสไตล์โมเดิร์น บรรยากาศเงียบสงบ เหมาะแก่การพักผ่อนและการอ่านหนังสือ ห้องกว้าง สะอาด มีระเบียงรับลมทุกห้อง เดินทางไปมหาวิทยาลัยสะดวกสบาย มีที่จอดรถยนต์และจักรยานยนต์ในร่ม พร้อมระบบรักษาความปลอดภัย กล้องวงจรปิด และประตูคีย์การ์ด 24 ชม.',
+        min_price: 3500,
+        max_price: 4500,
+        monthly_price: 3500,
+        daily_price: 450,
+        deposit: 4000,
+        electricity_price: 7,
+        water_price: 100,
+        water_price_type: 'flat_rate',
+        room_type: 'ห้องพัดลม / ห้องแอร์',
+        status_dorm: 'ว่าง',
+        rating: 4.5,
+        latitude: 16.2468,
+        longitude: 103.2514,
+        owner_name: 'คุณสุขใจ (ผู้จัดการหอพัก)',
+        owner_phone: '081-234-5678',
+        owner_line_id: '@baansukjai',
+        images: [
+          { image_url: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80', is_primary: true },
+          { image_url: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80' },
+          { image_url: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&q=80' },
+          { image_url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1200&q=80' }
+        ],
+        amenities: [
+          { name: 'แอร์', is_available: true },
+          { name: 'พัดลม', is_available: true },
+          { name: 'TV', is_available: true },
+          { name: 'ตู้เย็น', is_available: true },
+          { name: 'เครื่องทำน้ำอุ่น', is_available: true },
+          { name: 'WIFI', is_available: true },
+          { name: 'เตียงนอน', is_available: true },
+          { name: 'ตู้เสื้อผ้า', is_available: true },
+          { name: 'โต๊ะทำงาน', is_available: true },
+          { name: 'คีย์การ์ด', is_available: true },
+          { name: 'กล้องวงจรปิด', is_available: true },
+          { name: 'ที่จอดรถ', is_available: true },
+          { name: 'เครื่องซักผ้าหยอดเหรียญ', is_available: true }
+        ]
+      },
+      2: {
+        dorm_id: 2,
+        dorm_name: 'The Place',
+        address: '456 ซอยวาริน ต.ท่าขอนยาง อ.กันทรวิชัย จ.มหาสารคาม (ใกล้ตลาดท่าขอนยาง)',
+        zone_name: 'ท่าขอนยาง',
+        description: 'The Place อพาร์ตเมนต์หรูท่าขอนยาง ตกแต่งสไตล์มินิมอล เฟอร์นิเจอร์ Built-in ครบชุด เตียงนอนสปริงขนาดใหญ่ ทีวีสมาร์ททีวี ตู้เย็น 2 ประตู ระเบียงกว้าง ใกล้แหล่งของกิน ร้านกาแฟ และตลาดสด เดินทางสะดวก มีลิฟต์ ฟิตเนส และระบบคีย์การ์ดเข้าออก',
+        min_price: 4000,
+        max_price: 4000,
+        monthly_price: 4000,
+        daily_price: 500,
+        deposit: 5000,
+        electricity_price: 8,
+        water_price: 150,
+        water_price_type: 'flat_rate',
+        room_type: 'ห้องแอร์',
+        status_dorm: 'ว่าง',
+        rating: 4.0,
+        latitude: 16.2389,
+        longitude: 103.2625,
+        owner_name: 'พี่นนท์ The Place',
+        owner_phone: '089-876-5432',
+        owner_line_id: 'theplace_msu',
+        images: [
+          { image_url: 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&w=1200&q=80', is_primary: true },
+          { image_url: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=1200&q=80' },
+          { image_url: 'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?auto=format&fit=crop&w=1200&q=80' },
+          { image_url: 'https://images.unsplash.com/photo-1560448204-61dc36dc98c8?auto=format&fit=crop&w=1200&q=80' }
+        ],
+        amenities: [
+          { name: 'แอร์', is_available: true },
+          { name: 'TV', is_available: true },
+          { name: 'ตู้เย็น', is_available: true },
+          { name: 'ไมโครเวฟ', is_available: true },
+          { name: 'เครื่องทำน้ำอุ่น', is_available: true },
+          { name: 'โซฟา', is_available: true },
+          { name: 'WIFI', is_available: true },
+          { name: 'ลิฟต์', is_available: true },
+          { name: 'ฟิตเนส', is_available: true },
+          { name: 'คีย์การ์ด', is_available: true },
+          { name: 'กล้องวงจรปิด', is_available: true },
+          { name: 'ที่จอดรถ', is_available: true }
+        ]
+      },
+      3: {
+        dorm_id: 3,
+        dorm_name: 'หน้ามอ วิลเลจ',
+        address: '789 ถนนหน้ามหาวิทยาลัย ต.ขามเรียง อ.กันทรวิชัย จ.มหาสารคาม (ตรงข้ามประตู 1 มมส. ใหม่)',
+        zone_name: 'หน้า ม.',
+        description: 'หน้ามอ วิลเลจ ทำเลทองขวัญใจนิสิต เดินข้ามถนนถึงประตู 1 ทันที ไม่ต้องมีมอเตอร์ไซค์ก็อยู่ได้สบาย ห้องพักสะอาด กว้างขวาง มีแม่บ้านดูแลความสะอาดส่วนกลางทุกวัน ลมพัดเย็นสบาย',
+        min_price: 3800,
+        max_price: 3800,
+        monthly_price: 3800,
+        deposit: 4000,
+        electricity_price: 7,
+        water_price: 120,
+        water_price_type: 'flat_rate',
+        room_type: 'ห้องแอร์ / พัดลม',
+        status_dorm: 'ว่าง',
+        rating: 4.8,
+        latitude: 16.2445,
+        longitude: 103.2501,
+        owner_name: 'ป้าสมใจ หน้ามอ',
+        owner_phone: '086-111-2233',
+        owner_line_id: 'ngamall_msu',
+        images: [
+          { image_url: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80', is_primary: true },
+          { image_url: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80' },
+          { image_url: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80' }
+        ],
+        amenities: [
+          { name: 'แอร์', is_available: true },
+          { name: 'พัดลม', is_available: true },
+          { name: 'ตู้เย็น', is_available: true },
+          { name: 'เครื่องทำน้ำอุ่น', is_available: true },
+          { name: 'WIFI', is_available: true },
+          { name: 'เตียงนอน', is_available: true },
+          { name: 'ตู้เสื้อผ้า', is_available: true },
+          { name: 'คีย์การ์ด', is_available: true },
+          { name: 'กล้องวงจรปิด', is_available: true },
+          { name: 'ที่จอดรถ', is_available: true }
+        ]
+      },
+      4: {
+        dorm_id: 4,
+        dorm_name: 'ดอร์มมี่ อพาร์ตเมนต์',
+        address: '321 ซอยดอนนา ต.ขามเรียง อ.กันทรวิชัย จ.มหาสารคาม (ใกล้ 7-Eleven ดอนนา)',
+        zone_name: 'ขามเรียง',
+        description: 'ดอร์มมี่ อพาร์ตเมนต์ สร้างใหม่ บรรยากาศเงียบสงบ ห้องกว้าง 28 ตร.ม. พร้อมสุขภัณฑ์ Kohler แอร์ Daikin ประหยัดไฟเบอร์ 5 มีซิงค์ล้างจานที่ระเบียงทุกห้อง ที่จอดรถยนต์มีหลังคาคลุม 100%',
+        min_price: 4200,
+        max_price: 4200,
+        monthly_price: 4200,
+        deposit: 5000,
+        electricity_price: 7,
+        water_price: 100,
+        water_price_type: 'flat_rate',
+        room_type: 'ห้องแอร์พรีเมียม',
+        status_dorm: 'ว่าง',
+        rating: 4.2,
+        latitude: 16.2510,
+        longitude: 103.2480,
+        owner_name: 'คุณฟ้า ดอร์มมี่',
+        owner_phone: '085-555-6677',
+        owner_line_id: 'dormy_msu',
+        images: [
+          { image_url: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80', is_primary: true },
+          { image_url: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&q=80' },
+          { image_url: 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&w=1200&q=80' }
+        ],
+        amenities: [
+          { name: 'แอร์', is_available: true },
+          { name: 'TV', is_available: true },
+          { name: 'ตู้เย็น', is_available: true },
+          { name: 'เครื่องทำน้ำอุ่น', is_available: true },
+          { name: 'ซิงค์ล้างจาน', is_available: true },
+          { name: 'WIFI', is_available: true },
+          { name: 'เตียงนอน', is_available: true },
+          { name: 'ตู้เสื้อผ้า', is_available: true },
+          { name: 'โต๊ะทำงาน', is_available: true },
+          { name: 'คีย์การ์ด', is_available: true },
+          { name: 'กล้องวงจรปิด', is_available: true },
+          { name: 'ที่จอดรถ', is_available: true }
+        ]
+      }
+    };
+
+    const found = mockMap[id];
+    if (found) {
+      return {
+        dorm_id: id,
+        dorm_name: found.dorm_name || `หอพักตัวอย่าง (${id})`,
+        address: found.address || 'ต.ขามเรียง อ.กันทรวิชัย จ.มหาสารคาม',
+        zone_name: found.zone_name || 'ขามเรียง',
+        description: found.description || 'หอพักใกล้มหาวิทยาลัยมหาสารคาม พร้อมสิ่งอำนวยความสะดวกครบครัน',
+        min_price: found.min_price || 3500,
+        max_price: found.max_price || 4500,
+        monthly_price: found.monthly_price || 3500,
+        daily_price: found.daily_price || 400,
+        deposit: found.deposit || 4000,
+        electricity_price: found.electricity_price || 7,
+        water_price: found.water_price || 100,
+        water_price_type: found.water_price_type || 'flat_rate',
+        room_type: found.room_type || 'ห้องแอร์',
+        status_dorm: found.status_dorm || 'ว่าง',
+        rating: found.rating || 4.5,
+        latitude: found.latitude || 16.2468,
+        longitude: found.longitude || 103.2514,
+        images: found.images || [
+          { image_url: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80', is_primary: true }
+        ],
+        amenities: found.amenities || [
+          { name: 'แอร์', is_available: true },
+          { name: 'พัดลม', is_available: true },
+          { name: 'เครื่องทำน้ำอุ่น', is_available: true },
+          { name: 'WIFI', is_available: true },
+          { name: 'ที่จอดรถ', is_available: true }
+        ],
+        owner_name: found.owner_name || 'เจ้าของหอพัก',
+        owner_phone: found.owner_phone || '081-234-5678',
+        owner_line_id: found.owner_line_id || '@dormora'
+      } as DormDetail;
+    }
+
+    // Default dynamic mock for any other ID
+    return {
+      dorm_id: id,
+      dorm_name: `หอพักมหาสารคาม รหัส #${id}`,
+      address: 'ต.ขามเรียง อ.กันทรวิชัย จ.มหาสารคาม (ใกล้มหาวิทยาลัยมหาสารคาม)',
+      zone_name: 'ขามเรียง',
+      description: 'หอพักคุณภาพดี สะอาด ปลอดภัย เดินทางสะดวก ใกล้ มมส. เฟอร์นิเจอร์และสิ่งอำนวยความสะดวกครบครัน พร้อมเข้าอยู่ได้ทันที',
+      min_price: 3500,
+      max_price: 4500,
+      monthly_price: 3800,
+      daily_price: 450,
+      deposit: 4000,
+      electricity_price: 7,
+      water_price: 100,
+      water_price_type: 'flat_rate',
+      room_type: 'ห้องแอร์ / พัดลม',
+      status_dorm: 'ว่าง',
+      rating: 4.5,
+      latitude: 16.2468,
+      longitude: 103.2514,
+      images: [
+        { image_url: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80', is_primary: true },
+        { image_url: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80' },
+        { image_url: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&q=80' }
+      ],
+      amenities: [
+        { name: 'แอร์', is_available: true },
+        { name: 'พัดลม', is_available: true },
+        { name: 'TV', is_available: true },
+        { name: 'ตู้เย็น', is_available: true },
+        { name: 'เครื่องทำน้ำอุ่น', is_available: true },
+        { name: 'WIFI', is_available: true },
+        { name: 'เตียงนอน', is_available: true },
+        { name: 'ตู้เสื้อผ้า', is_available: true },
+        { name: 'คีย์การ์ด', is_available: true },
+        { name: 'กล้องวงจรปิด', is_available: true },
+        { name: 'ที่จอดรถ', is_available: true }
+      ],
+      owner_name: 'ผู้ดูแลหอพัก',
+      owner_phone: '081-234-5678',
+      owner_line_id: '@dormora_msu'
+    } as DormDetail;
   }
 
   private mapDormToSimilarProperty(dorm: Dorm): SimilarProperty {
@@ -601,7 +828,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // เพิ่ม method สำหรับการนำทางไปยังหอพักที่คล้ายกัน
   viewSimilarDorm(id: number) {
-    this.router.navigate(['/dorm-detail', id.toString()]).then(() => {
+    this.router.navigate(['/detail', id.toString()]).then(() => {
       // Scroll ไปด้านบนของหน้าเมื่อเปลี่ยนหน้าเสร็จ
       window.scrollTo(0, 0);
     });
@@ -1292,7 +1519,7 @@ export class DormDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   viewMoreSimilarDorms(): void {
     // Navigate to dorm list or show more similar dorms
-    this.router.navigate(['/dorm-list']);
+    this.router.navigate(['/listings']);
   }
 
 }

@@ -1,1 +1,2 @@
 <router-outlet></router-outlet>
+<app-admin-login *ngIf="authModalService.isOpen$ | async" [isModal]="true" (close)="authModalService.close()"></app-admin-login>

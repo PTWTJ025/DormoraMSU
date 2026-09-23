@@ -148,10 +148,3 @@ input:focus, select:focus, textarea:focus {
     padding-bottom: 5rem;
   }
 }
-
-/* Grid transitions */
-.transition-all {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 200ms;
-}

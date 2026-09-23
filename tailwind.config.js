@@ -15,12 +15,12 @@ module.exports = {
     'fill-yellow-400','fill-slate-300','w-[18px]','h-[18px]',
     'font-thai','object-cover','flex','items-center'
   ],
-  
+
   theme: {
     extend: {
       fontFamily: {
-        'thai': ['Noto Sans Thai', 'sans-serif'],
-        'english': ['Inter', 'sans-serif'],
+        'thai': ['Arimo', 'Anuphan', 'sans-serif'],
+        'english': ['Arimo', 'Anuphan', 'sans-serif'],
       },
       spacing: {
         '0.45': '0.45rem',
@@ -30,4 +30,3 @@ module.exports = {
   plugins: [],
 }
 
- 

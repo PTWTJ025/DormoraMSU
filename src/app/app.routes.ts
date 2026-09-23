@@ -22,22 +22,23 @@ export const routes: Routes = [
   },
 
   // Dorm list route - accessible to everyone
-  { path: 'dorm-list', component: DormListComponent },
+  { path: 'listings', component: DormListComponent },
 
   // Dorm detail route - accessible to everyone
   {
-    path: 'dorm-detail/:id',
+    path: 'detail/:id',
     component: DormDetailComponent,
   },
 
   // Dorm compare route - accessible to everyone
-  { path: 'dorm-compare', component: DormCompareComponent },
+  { path: 'compare', component: DormCompareComponent },
 
   // Dorm map route - accessible to everyone
-  { path: 'dorm-map', component: DormMapComponent },
+  { path: 'map', component: DormMapComponent },
 
   // Dorm submission route - public form for submitting dorm data
-  { path: 'dorm-submit', component: DormSubmitComponent },
+  { path: 'post-listing', component: DormSubmitComponent },
+  { path: 'dorm-submit', redirectTo: '/post-listing', pathMatch: 'full' },
 
   // Admin routes - เฉพาะแอดมินเท่านั้น
   {
@@ -49,7 +50,7 @@ export const routes: Routes = [
 
   // Admin edit dormitory route
   {
-    path: 'admin/edit-dorm/:dormId',
+    path: 'admin/edit/:dormId',
     component: AdminEditDormComponent,
     canActivate: [AuthRedirectGuard],
     data: { userType: 'admin' },
@@ -59,6 +60,18 @@ export const routes: Routes = [
   {
     path: 'admin/login',
     component: AdminLoginComponent,
+    canActivate: [AuthRedirectGuard],
+  },
+  // Public Login / Signin routes
+  {
+    path: 'login',
+    component: AdminLoginComponent,
+    canActivate: [AuthRedirectGuard],
+  },
+  {
+    path: 'signin',
+    component: AdminLoginComponent,
+    canActivate: [AuthRedirectGuard],
   },
 
   // Wildcard route - redirect to main

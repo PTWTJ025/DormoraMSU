@@ -3,112 +3,86 @@
   .container {
     padding: 0.75rem;
   }
-  
+
   .form-container {
     padding: 1rem;
   }
-  
+
   .step-title {
     font-size: 1.125rem;
     line-height: 1.4;
   }
-  
+
   .grid-responsive {
     grid-template-columns: 1fr;
   }
-  
+
   /* Mobile form fields */
   input, select, textarea {
     font-size: 16px; /* Prevents zoom on iOS */
     padding: 0.75rem 0.875rem;
   }
-  
+
   /* Mobile buttons */
   button {
     min-height: 44px; /* Touch-friendly */
     font-size: 0.875rem;
   }
-  
-  /* Mobile spacing */
-  .space-y-4 > * + * {
-    margin-top: 1rem;
-  }
-  
-  /* Mobile text adjustments */
-  .text-xs {
-    font-size: 0.75rem;
-  }
-  
-  .text-sm {
-    font-size: 0.875rem;
-  }
-  
-  .text-lg {
-    font-size: 1.125rem;
-  }
-  
-  .text-xl {
-    font-size: 1.25rem;
-  }
-  
-  .text-2xl {
-    font-size: 1.5rem;
-  }
-  
+
   /* Mobile modal adjustments */
   .modal-content {
     max-height: 90vh;
     overflow-y: auto;
   }
-  
+
   /* Mobile map adjustments */
   .map-container {
     height: 250px !important;
   }
-  
+
   /* Mobile image grid */
   .image-preview-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
   }
-  
+
   .image-preview-grid img {
     height: 120px !important;
   }
-  
+
   /* Mobile amenities grid */
   .amenities-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
   }
-  
+
   .amenity-item {
     padding: 0.75rem;
     font-size: 0.813rem;
   }
-  
+
   /* Mobile navigation */
   .step-nav {
     padding: 1rem 0.75rem;
     gap: 0.75rem;
   }
-  
+
   /* Mobile preview card */
   .preview-card {
     padding: 1rem;
   }
-  
+
   /* Mobile loading overlay */
   .loading-overlay {
     padding: 1rem;
   }
-  
+
   /* Mobile form validation */
   .error-message {
     font-size: 0.75rem;
     line-height: 1.3;
   }
-  
+
   /* Mobile success modal */
   .success-modal {
     margin: 1rem;
@@ -120,15 +94,15 @@
   .container {
     padding: 1.25rem;
   }
-  
+
   .grid-responsive {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .image-preview-grid {
     grid-template-columns: repeat(3, 1fr);
   }
-  
+
   .amenities-grid {
     grid-template-columns: repeat(4, 1fr);
   }
@@ -138,11 +112,11 @@
   .grid-responsive {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .image-preview-grid {
     grid-template-columns: repeat(4, 1fr);
   }
-  
+
   .amenities-grid {
     grid-template-columns: repeat(4, 1fr);
   }
@@ -152,11 +126,11 @@
   .grid-responsive {
     grid-template-columns: repeat(3, 1fr);
   }
-  
+
   .image-preview-grid {
     grid-template-columns: repeat(5, 1fr);
   }
-  
+
   .amenities-grid {
     grid-template-columns: repeat(4, 1fr);
   }
@@ -168,11 +142,11 @@
     min-height: 44px;
     min-width: 44px;
   }
-  
+
   .amenity-item:hover {
     background-color: transparent;
   }
-  
+
   .amenity-item:active {
     background-color: #fef3c7;
   }
@@ -183,11 +157,11 @@
   .map-container {
     height: 200px !important;
   }
-  
+
   .image-preview-grid img {
     height: 100px !important;
   }
-  
+
   .modal-content {
     max-height: 80vh;
   }
@@ -198,30 +172,30 @@
   .container {
     padding: 0.5rem;
   }
-  
+
   .form-container {
     padding: 0.75rem;
   }
-  
+
   .step-title {
     font-size: 1rem;
   }
-  
+
   button {
     font-size: 0.813rem;
     padding: 0.625rem 0.875rem;
   }
-  
+
   .amenity-item {
     padding: 0.5rem;
     font-size: 0.75rem;
   }
-  
+
   .image-preview-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
   }
-  
+
   .image-preview-grid img {
     height: 100px !important;
   }
@@ -361,35 +335,6 @@
   margin-top: 2rem;
 }
 
-/* Mobile Optimizations */
-@media (max-width: 640px) {
-  .mobile-stack {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  
-  .mobile-full-width {
-    width: 100%;
-  }
-  
-  .mobile-text-center {
-    text-align: center;
-  }
-}
-
-/* Accessibility */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
 /* Focus States */
 input:focus,
 select:focus,
@@ -413,3 +358,25 @@ textarea:focus {
   font-size: 0.875rem;
   margin-top: 0.25rem;
 }
+
+/* Active Step Breathing Ring Animation - Subtle & Compact */
+@keyframes stepPulseRing {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(254, 243, 199, 0.8);
+  }
+  50% {
+    box-shadow: 0 0 0 4.5px rgba(253, 230, 138, 0.65);
+  }
+}
+
+.step-active-pulse {
+  animation: stepPulseRing 1.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step-active-pulse {
+    animation: none;
+    box-shadow: 0 0 0 3px rgba(254, 243, 199, 0.8);
+  }
+}
+

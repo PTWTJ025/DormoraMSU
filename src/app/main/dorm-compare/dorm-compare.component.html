@@ -66,7 +66,7 @@
         [class.toggle-active]="showOnlyDifferences"
         (click)="toggleShowOnlyDifferences()"
       >
-        <i class="fas fa-filter mr-1"></i>
+        <i data-lucide="filter" class="w-3.5 h-3.5 mr-1 inline-block"></i>
         แสดงเฉพาะข้อมูลที่ต่างกัน
       </button>
       <button
@@ -75,7 +75,7 @@
         [class.toggle-active]="highlightDifferences"
         (click)="toggleHighlightDifferences()"
       >
-        <i class="fas fa-highlighter mr-1"></i>
+        <i data-lucide="highlighter" class="w-3.5 h-3.5 mr-1 inline-block"></i>
         ไฮไลท์ความแตกต่าง
       </button>
     </div>
@@ -699,9 +699,8 @@
               >
                 <div class="flex items-center justify-center sm:justify-start">
                   <i
-                    class="fas {{
-                      getAmenityIcon(amenity)
-                    }} mr-1 sm:mr-2 text-gray-500 text-sm sm:text-base hidden sm:inline w-4 h-4 flex-shrink-0 relative bottom-[5px]"
+                    [attr.data-lucide]="getAmenityIcon(amenity)"
+                    class="mr-1 sm:mr-2 text-gray-500 w-4 h-4 hidden sm:inline-block flex-shrink-0"
                   ></i>
                   <span class="truncate text-center sm:text-left"
                     >&nbsp;{{ amenity }}</span
@@ -749,9 +748,8 @@
               >
                 <div class="flex items-center justify-center sm:justify-start">
                   <i
-                    class="fas {{
-                      getAmenityIcon(amenity)
-                    }} mr-1 sm:mr-2 text-gray-500 text-sm sm:text-base hidden sm:inline w-4 h-4 flex-shrink-0 relative bottom-[5px]"
+                    [attr.data-lucide]="getAmenityIcon(amenity)"
+                    class="mr-1 sm:mr-2 text-gray-500 w-4 h-4 hidden sm:inline-block flex-shrink-0"
                   ></i>
                   <span class="truncate text-center sm:text-left"
                     >&nbsp;{{ amenity }}</span

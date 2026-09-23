@@ -1,66 +1,52 @@
 <footer class="w-full bg-white border-t border-gray-200">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-12">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+  <!-- Top Brand & Social Section -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-10">
+    <div class="flex flex-col md:flex-row justify-between items-center md:items-start gap-6">
 
-      <div class="text-center md:text-left flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-center md:justify-start gap-3 mb-4">
-            <img src="/assets/images/logo.png" alt="Dormora MSU" class="h-12 md:h-16 w-auto drop-shadow-sm" />
-            <h2 class="text-2xl font-bold">
-              <span class="font-normal text-gray-700">Dormora</span>
-              <span class="font-bold ml-1" style="color: #FFCD22;">MSU</span>
-            </h2>
-          </div>
-          <p class="text-sm text-gray-600 max-w-sm mx-auto md:mx-0 leading-relaxed mb-6">
-            แพลตฟอร์มค้นหาหอพักสำหรับนักศึกษามหาวิทยาลัยมหาสารคาม
-          </p>
-        </div>
+      <!-- Left: Logo & Tagline -->
+      <div class="text-center md:text-left flex flex-col items-center md:items-start">
+        <a routerLink="/main" class="flex items-center justify-center md:justify-start gap-2.5 mb-2 group cursor-pointer">
+          <img src="/assets/images/logo.png" alt="Dormora MSU Logo" class="h-9 md:h-10 w-auto object-contain" />
+          <h2 class="text-xl md:text-2xl font-bold font-thai tracking-tight">
+            <span class="font-normal text-gray-700">Dormora</span>
+            <span class="font-bold ml-1" style="color: #FFCD22;">MSU</span>
+          </h2>
+        </a>
+        <p class="text-xs sm:text-sm text-gray-500 max-w-md leading-relaxed font-thai">
+          แพลตฟอร์มค้นหาหอพัก อพาร์ตเมนต์ บ้านเช่า คอนโด และขายประกันหอพักสำหรับนักศึกษามหาวิทยาลัยมหาสารคาม
+        </p>
       </div>
 
-      <div class="flex flex-col justify-end items-center">
-        <div
-          class="inline-flex items-center gap-5 px-5 py-3 bg-white border-b-2 border-[#FFCD22] shadow-sm mt-8 md:mt-0">
-          <div class="flex items-center gap-2">
-            <span class="relative flex h-3 w-3">
-              <span
-                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-            </span>
-            <span class="text-sm text-gray-600 font-medium whitespace-nowrap">
-              กำลังออนไลน์ <span class="font-semibold text-gray-900">{{ onlineCount }}</span>
-            </span>
-          </div>
-          <div class="w-px h-4 bg-gray-200"></div>
-          <div class="text-sm text-gray-600 font-medium whitespace-nowrap">
-            ผู้เข้าชมทั้งหมด <span class="font-semibold text-gray-900">{{ stats.visitor_count }}</span>
-          </div>
-          <div class="w-px h-4 bg-gray-200"></div>
-          <div class="text-sm text-gray-600 font-medium whitespace-nowrap">
-            หอพักทั้งหมด <span class="font-semibold" style="color: #FFCD22;">{{ dormCount }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="space-y-3 text-center md:text-right flex flex-col justify-start">
-        <h3 class="text-base font-semibold text-gray-900">ติดตามเรา</h3>
-        <div class="flex gap-4 justify-center md:justify-end">
-          <button (click)="openFacebookPopup()"
-            class="w-11 h-11 bg-[#1877F2] hover:bg-[#1666d6] rounded-2xl flex items-center justify-center text-white transition-colors shadow-sm">
-            <svg fill="currentColor" viewBox="0 0 24 24" class="w-6 h-6">
+      <!-- Right: Follow Us Social Media -->
+      <div class="text-center md:text-right flex flex-col items-center md:items-end gap-2">
+        <span class="text-xs font-semibold text-gray-700 font-thai">ติดตามเรา</span>
+        <div class="flex gap-2.5 justify-center md:justify-end">
+          <button
+            type="button"
+            (click)="openFacebookPopup()"
+            class="w-9 h-9 bg-[#1877F2] hover:bg-[#166fe5] rounded-lg flex items-center justify-center text-white transition-all shadow-xs cursor-pointer active:scale-95"
+            aria-label="Facebook">
+            <svg fill="currentColor" viewBox="0 0 24 24" class="w-4 h-4">
               <path
                 d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
             </svg>
           </button>
-          <button (click)="openLinePopup()"
-            class="w-11 h-11 bg-[#00C300] hover:bg-[#00a800] rounded-2xl flex items-center justify-center text-white transition-colors shadow-sm">
-            <svg fill="currentColor" viewBox="0 0 24 24" class="w-6 h-6">
+          <button
+            type="button"
+            (click)="openLinePopup()"
+            class="w-9 h-9 bg-[#06C755] hover:bg-[#05b34c] rounded-lg flex items-center justify-center text-white transition-all shadow-xs cursor-pointer active:scale-95"
+            aria-label="Line">
+            <svg fill="currentColor" viewBox="0 0 24 24" class="w-4 h-4">
               <path
                 d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .63.285.63.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314" />
             </svg>
           </button>
-          <button (click)="openYoutubePopup()"
-            class="w-11 h-11 bg-[#FF0000] hover:bg-[#e60000] rounded-2xl flex items-center justify-center text-white transition-colors shadow-sm">
-            <svg fill="currentColor" viewBox="0 0 24 24" class="w-6 h-6">
+          <button
+            type="button"
+            (click)="openYoutubePopup()"
+            class="w-9 h-9 bg-[#FF0000] hover:bg-[#e60000] rounded-lg flex items-center justify-center text-white transition-all shadow-xs cursor-pointer active:scale-95"
+            aria-label="Youtube">
+            <svg fill="currentColor" viewBox="0 0 24 24" class="w-4 h-4">
               <path
                 d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
             </svg>
@@ -71,34 +57,142 @@
     </div>
   </div>
 
-  <div class="w-full bg-gray-50 border-t border-gray-200 py-4">
-    <div class="max-w-6xl mx-auto px-4 text-center">
-      <p class="text-[10px] md:text-xs text-gray-500 italic">
-        © 2025 Dormora MSU - หอพักใกล้ มมส. ค้นหาง่าย สบายใจ
-      </p>
+  <!-- SEO / Footer Links Directory Section -->
+  <div class="w-full border-t border-gray-100 bg-gray-50/60">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-10">
+
+      <!-- SEO Description Block -->
+      <div class="mb-8 space-y-1.5">
+        <h3 class="text-xs sm:text-sm font-bold text-gray-800 font-thai">
+          DormoraMSU — แพลตฟอร์มค้นหาหอพักและขายประกันหอ มมส ครบจบในที่เดียว
+        </h3>
+        <p class="text-[11px] sm:text-xs text-gray-500 leading-relaxed font-thai">
+          ศูนย์รวมประกาศหอพัก อพาร์ตเมนต์ คอนโด บ้านเช่า และพื้นที่ส่งต่อสัญญา/ขายประกันหอพักรอบมหาวิทยาลัยมหาสารคาม (ทั้ง มมส. ใหม่ ขามเรียง ท่าขอนยาง และ ม.เก่า) ช่วยให้นิสิตเปลี่ยนมือห้องพักได้รวดเร็ว ปลอดภัย และสะดวกสบายที่สุด
+        </p>
+      </div>
+
+      <!-- SEO Links Directory (4 Columns) -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 sm:gap-x-8 lg:gap-x-12 gap-y-6 sm:gap-y-8">
+
+        <!-- Column 1: ค้นหาตามทำเล -->
+        <div>
+          <h4 class="text-xs font-bold text-gray-800 mb-2.5 font-thai">ค้นหาหอพัก มมส.</h4>
+          <ul class="space-y-1.5 text-[11px] sm:text-xs font-thai">
+            <li><a routerLink="/listings" class="text-gray-500 hover:text-gray-900 transition-colors">หอพักโซนขามเรียง</a></li>
+            <li><a routerLink="/listings" class="text-gray-500 hover:text-gray-900 transition-colors">หอพักโซนท่าขอนยาง</a></li>
+            <li><a routerLink="/listings" class="text-gray-500 hover:text-gray-900 transition-colors">หอพักโซนหน้า ม.</a></li>
+            <li><a routerLink="/listings" class="text-gray-500 hover:text-gray-900 transition-colors">หอพักโซนในเมือง</a></li>
+            <li><a routerLink="/map" class="text-gray-500 hover:text-gray-900 transition-colors">แผนที่หอพักใกล้ มมส.</a></li>
+          </ul>
+        </div>
+
+        <!-- Column 2: ประเภทที่พัก -->
+        <div>
+          <h4 class="text-xs font-bold text-gray-800 mb-2.5 font-thai">ประเภทที่พัก</h4>
+          <ul class="space-y-1.5 text-[11px] sm:text-xs font-thai">
+            <li><a routerLink="/listings" class="text-gray-500 hover:text-gray-900 transition-colors">หอพักรวม มมส.</a></li>
+            <li><a routerLink="/listings" class="text-gray-500 hover:text-gray-900 transition-colors">หอพักหญิงล้วน มมส.</a></li>
+            <li><a routerLink="/listings" class="text-gray-500 hover:text-gray-900 transition-colors">หอพักชายล้วน มมส.</a></li>
+            <li><a routerLink="/listings" class="text-gray-500 hover:text-gray-900 transition-colors">อพาร์ตเมนต์ มหาสารคาม</a></li>
+            <li><a routerLink="/listings" class="text-gray-500 hover:text-gray-900 transition-colors">คอนโด & บ้านเช่า มมส.</a></li>
+          </ul>
+        </div>
+
+        <!-- Column 3: ขายประกันหอพัก -->
+        <div>
+          <h4 class="text-xs font-bold text-gray-800 mb-2.5 font-thai">ขายประกันหอ มมส</h4>
+          <ul class="space-y-1.5 text-[11px] sm:text-xs font-thai">
+            <li><a routerLink="/listings" class="text-gray-500 hover:text-gray-900 transition-colors">ขายประกันหอ มมส.</a></li>
+            <li><a routerLink="/listings" class="text-gray-500 hover:text-gray-900 transition-colors">ขายสัญญาหอพัก</a></li>
+            <li><a routerLink="/listings" class="text-gray-500 hover:text-gray-900 transition-colors">ขายดาวน์หอพัก</a></li>
+            <li><a routerLink="/listings" class="text-gray-500 hover:text-gray-900 transition-colors">หอพักพร้อมอยู่ มมส.</a></li>
+            <li><a routerLink="/post-listing" class="text-gray-500 hover:text-gray-900 transition-colors">ลงประกาศส่งต่อสัญญา</a></li>
+          </ul>
+        </div>
+
+        <!-- Column 4: บริการเจ้าของที่พัก -->
+        <div>
+          <h4 class="text-xs font-bold text-gray-800 mb-2.5 font-thai">บริการสำหรับเจ้าของหอ</h4>
+          <ul class="space-y-1.5 text-[11px] sm:text-xs font-thai">
+            <li><a routerLink="/post-listing" class="text-gray-500 hover:text-gray-900 transition-colors">ลงประกาศที่พักฟรี</a></li>
+            <li><a routerLink="/post-listing" class="text-gray-500 hover:text-gray-900 transition-colors">โปรโมทหอพัก มมส.</a></li>
+            <li><a routerLink="/post-listing" class="text-gray-500 hover:text-gray-900 transition-colors">หาคนเช่าหอพัก</a></li>
+            <li><a routerLink="/compare" class="text-gray-500 hover:text-gray-900 transition-colors">เปรียบเทียบที่พัก</a></li>
+            <li><a routerLink="/listings" class="text-gray-500 hover:text-gray-900 transition-colors">รายการหอพักทั้งหมด</a></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Bar: Live Stats, Links & Copyright -->
+  <div class="w-full bg-gray-100/90 border-t border-gray-200 py-4 font-thai">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 space-y-3.5">
+
+      <!-- Live Statistics Strip -->
+      <div class="flex flex-wrap items-center justify-center sm:justify-between gap-y-2 gap-x-4 text-[11px] sm:text-xs text-gray-600 py-2 px-3.5 sm:px-4 shadow-xs">
+        <!-- Online indicator -->
+        <div class="inline-flex items-center gap-2">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span class="text-gray-600">ออนไลน์ขณะนี้: <strong class="text-gray-900 font-english font-bold">{{ onlineCount }}</strong> คน</span>
+        </div>
+
+        <!-- Visitor counts -->
+        <div class="inline-flex items-center flex-wrap justify-center gap-x-3.5 gap-y-1 text-gray-500">
+          <span>เข้าชมวันนี้: <strong class="text-gray-800 font-english font-semibold">{{ todayVisitors }}</strong></span>
+          <span class="text-gray-300 hidden sm:inline">|</span>
+          <span>ผู้เข้าชมทั้งหมด: <strong class="text-gray-800 font-english font-semibold">{{ totalVisitors }}</strong></span>
+          <span class="text-gray-300 hidden sm:inline">|</span>
+          <span>ที่พักในระบบ: <strong class="text-amber-600 font-english font-semibold">{{ dormCount }}</strong> แห่ง</span>
+        </div>
+      </div>
+
+      <!-- Links & Copyright Row -->
+      <div class="flex flex-col md:flex-row justify-between items-center gap-2.5 pt-1">
+        <!-- Navigation Links -->
+        <nav class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[11px] sm:text-xs text-gray-500 font-thai">
+          <a routerLink="/main" class="hover:text-gray-900 transition-colors">หน้าแรก</a>
+          <a routerLink="/listings" class="hover:text-gray-900 transition-colors">หอพักทั้งหมด</a>
+          <a routerLink="/map" class="hover:text-gray-900 transition-colors">แผนที่</a>
+          <a routerLink="/compare" class="hover:text-gray-900 transition-colors">เปรียบเทียบ</a>
+          <a routerLink="/post-listing" class="hover:text-gray-900 transition-colors">ลงประกาศ</a>
+        </nav>
+
+        <!-- Copyright -->
+        <p class="text-[10px] sm:text-[11px] text-gray-400 font-thai text-center md:text-right">
+          © 2026 Dormora MSU — แพลตฟอร์มค้นหาหอพักและขายประกันหอพัก มมส
+        </p>
+      </div>
+
     </div>
   </div>
 </footer>
 
+<!-- Social Media Popups -->
 <ng-container *ngFor="let popup of [
   { show: showFacebookPopup, img: 'https://cataas.com/cat/says/FACEBOOK?fontColor=white&fontSize=50' },
   { show: showLinePopup, img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRwVAEXmQoZuIyVqRkdXrgcV2gUCAhzvKB93w&s' },
   { show: showYoutubePopup, img: 'https://cataas.com/cat/funny' }
 ]">
-  <div *ngIf="popup.show" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+  <div *ngIf="popup.show" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
     (click)="closeAllPopups()">
     <div
-      class="relative bg-white rounded-3xl shadow-2xl overflow-hidden max-w-sm w-full animate-in zoom-in duration-300"
+      class="relative bg-white rounded-2xl shadow-2xl overflow-hidden max-w-sm w-full animate-in zoom-in duration-300 mx-auto"
       (click)="$event.stopPropagation()">
       <button (click)="closeAllPopups()"
-        class="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-gray-800 shadow-lg transition">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        class="absolute top-3.5 right-3.5 z-10 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-gray-800 shadow-md transition cursor-pointer"
+        aria-label="Close">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
-      <div class="p-2">
-        <img [src]="popup.img" alt="Funny Cat" class="w-full h-auto rounded-2xl block object-cover aspect-square" />
-        <p class="text-center py-4 font-bold text-gray-700">กำลังปรับปรุงจ้าาา น้อนแมวขออภัย! 🐾</p>
+      <div class="p-3">
+        <img [src]="popup.img" alt="Funny Cat" class="w-full h-auto rounded-xl block object-cover aspect-square" />
+        <p class="text-center py-3 font-bold text-gray-700 font-thai text-sm">กำลังปรับปรุงจ้าาา น้อนแมวขออภัย! 🐾</p>
       </div>
     </div>
   </div>

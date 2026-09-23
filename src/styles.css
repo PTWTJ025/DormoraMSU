@@ -1,5 +1,5 @@
 /* 1. @import ทั้งหมดต้องอยู่บนสุด */
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Noto+Sans+Thai:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anuphan:wght@100..900&family=Arimo:ital,wght@0,400..700;1,400..700&display=swap');
 @import './styles/nearby-places.css';
 
 /* 2. ตามด้วย Tailwind Directives */
@@ -15,16 +15,17 @@ body {
 
 body {
   margin: 0;
-  font-family: 'Noto Sans Thai', 'Inter', sans-serif;
+  /* ให้ Arimo นำหน้าเพื่อเรนเดอร์ ตัวเลขอารบิก + ภาษาอังกฤษ ส่วนภาษาไทยจะ Fallback ไปใช้ Anuphan อัตโนมัติ */
+  font-family: 'Arimo', 'Anuphan', sans-serif;
 }
 
 /* Font Family Definitions */
 .font-thai {
-  font-family: 'Noto Sans Thai', sans-serif;
+  font-family: 'Arimo', 'Anuphan', sans-serif;
 }
 
 .font-english {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Arimo', 'Anuphan', sans-serif;
 }
 
 /* Material Icons Configuration */
@@ -104,4 +105,45 @@ input:focus:valid {
   .maplibregl-popup, .mapboxgl-popup {
     max-width: calc(100vw - 32px) !important;
   }
+}
+
+/* ════════════════════════════════════════════
+   Scroll Reveal Animation (Vanilla JS + CSS)
+   ════════════════════════════════════════════ */
+.reveal {
+  opacity: 0;
+  transform: translateY(35px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* ════════════════════════════════════════════
+   Scrollbar Hide Utility
+   ════════════════════════════════════════════ */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari, Opera */
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }

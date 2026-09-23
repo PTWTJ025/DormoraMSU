@@ -33,27 +33,36 @@ export class AuthRedirectGuard implements CanActivate {
       first(),
       map((user) => {
         const destPath = route.routeConfig?.path || '';
-        const isAdminPage = destPath === 'admin';
-        const isAdminLoginPage = destPath === 'admin/login';
+        const isAdminLoginPage = destPath === 'admin/login' || destPath.startsWith('admin/login') || destPath === 'login' || destPath === 'signin';
+        const isAdminPage =
+          route.data?.['userType'] === 'admin' ||
+          (destPath.startsWith('admin') && !isAdminLoginPage);
 
         // ===== ADMIN LOGIC =====
         const adminProfile = localStorage.getItem('adminProfile');
-        if (adminProfile) {
+        let isAdmin = false;
+
+        if (user && user.memberType === 'admin') {
+          isAdmin = true;
+        } else if (adminProfile) {
           try {
             const profile = JSON.parse(adminProfile);
             if (profile.memberType === 'admin') {
-              // ถ้าเป็น admin login page ให้ redirect ไป admin
-              if (isAdminLoginPage) {
-                return this.router.createUrlTree(['/admin']);
-              }
-
-              // อนุญาตทุก admin route (admin, admin/edit-dorm/:id เป็นต้น)
-              return true;
+              isAdmin = true;
             }
           } catch (error) {
             localStorage.removeItem('adminProfile');
             localStorage.removeItem('firebaseToken');
           }
+        }
+
+        if (isAdmin) {
+          // ถ้าเป็น admin login page ให้ redirect ไป admin dashboard
+          if (isAdminLoginPage) {
+            return this.router.createUrlTree(['/admin']);
+          }
+          // อนุญาตทุก admin route (admin, admin/edit/:id เป็นต้น)
+          return true;
         }
 
         // ===== NO ADMIN LOGIC =====
@@ -62,16 +71,19 @@ export class AuthRedirectGuard implements CanActivate {
           return this.router.createUrlTree(['/admin/login']);
         }
 
-        // ถ้าเป็น admin login page ให้อนุญาต
-        if (isAdminLoginPage) {
-          return true;
-        }
-
-        // สำหรับหน้าอื่นๆ ให้อนุญาต (หน้าสาธารณะ)
+        // ถ้าเป็น admin login page หรือหน้าสาธารณะ ให้อนุญาต
         return true;
       }),
       catchError((error) => {
-        // In case of error, allow access (default behavior)
+        const destPath = route.routeConfig?.path || '';
+        const isAdminLoginPage = destPath === 'admin/login' || destPath.startsWith('admin/login') || destPath === 'login' || destPath === 'signin';
+        const isAdminPage =
+          route.data?.['userType'] === 'admin' ||
+          (destPath.startsWith('admin') && !isAdminLoginPage);
+
+        if (isAdminPage) {
+          return of(this.router.createUrlTree(['/admin/login']));
+        }
         return of(true);
       }),
     );

@@ -205,7 +205,7 @@ export class AuthService {
   // *** Core Authentication Methods ***
 
   /**
-   * เข้าสู่ระบบแอดมินด้วย Email/Password
+   * เข้าสู่ระบบด้วย Email/Password
    */
   async signInAdmin(email: string, password: string): Promise<AdminProfile> {
     try {

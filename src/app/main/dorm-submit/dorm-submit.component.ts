@@ -21,8 +21,13 @@ import { environment } from '../../../environments/environment';
 import { SupabaseService } from '../../services/supabase.service';
 import { GsapAnimationService } from '../../services/gsap-animation.service';
 import { DistanceService } from '../../services/distance.service';
+import { MOCK_ZONES } from '../../services/dormitory.service';
 import * as maptilersdk from '@maptiler/sdk';
+// @ts-ignore
 import '@maptiler/sdk/dist/maptiler-sdk.css';
+
+import { NavbarComponent } from '../navbar/navbar.component';
+import { AboutComponent } from '../about/about.component';
 
 interface ImageItem {
   type: 'file' | 'url';
@@ -42,7 +47,7 @@ interface Zone {
 @Component({
   selector: 'app-dorm-submit',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, NavbarComponent, AboutComponent],
   templateUrl: './dorm-submit.component.html',
   styleUrls: ['./dorm-submit.component.css'],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -76,8 +81,8 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
   showDetailsModal = false;
   isUploadingImages = false; // สถานะการอัปโหลดรูป
   isSubmittingFullPage = false; // Full-page loading overlay status
-  // Data from API
-  zones: Zone[] = [];
+  // Data from API (with MOCK_ZONES as initial fallback)
+  zones: Zone[] = [...MOCK_ZONES];
   private zoneGuideHints: { keywords: string[]; text: string }[] = [
     {
       keywords: ['หน้ามอ'],
@@ -119,7 +124,7 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
   map: maptilersdk.Map | null = null;
   marker: maptilersdk.Marker | null = null;
   currentMapStyle: 'satellite' | 'streets' = 'satellite';
-  
+
   // Popup map properties
   popupMap: maptilersdk.Map | null = null;
   popupMarker: maptilersdk.Marker | null = null;
@@ -166,14 +171,17 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
         zone_id: ['', Validators.required], // เปลี่ยนจาก zone_name เป็น zone_id
         description: [''], // คำอธิบาย/กฎระเบียบ (ไม่บังคับ)
 
-        // ข้อมูลติดต่อ (ไม่บังคับทั้งหมด)
-        contact_name: [''],
+        // ข้อมูลติดต่อ (บังคับชื่อ, เบอร์โทร, LINE ID เพื่อประสานงานและอัปเดตห้องพัก)
+        contact_name: ['', [Validators.required, Validators.minLength(2)]],
         contact_phone: [
           '',
-          [Validators.pattern(/^[0-9]{3}-?[0-9]{3}-?[0-9]{4}$|^[0-9]{10}$/)],
+          [
+            Validators.required,
+            Validators.pattern(/^[0-9]{3}-?[0-9]{3}-?[0-9]{4}$|^[0-9]{10}$/),
+          ],
         ], // รองรับ 090-962-8055 หรือ 0909628055
         contact_email: ['', [Validators.email]],
-        line_id: [''],
+        line_id: ['', [Validators.required, Validators.minLength(2)]],
 
         // ประเภทห้อง (dropdown + อื่นๆ)
         room_type: ['', Validators.required],
@@ -261,11 +269,16 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
     this.isLoadingData = true;
     this.http.get<Zone[]>(`${this.backendUrl}/zones`).subscribe({
       next: (zones) => {
-        this.zones = zones;
+        if (zones && zones.length > 0) {
+          this.zones = zones;
+        } else {
+          this.zones = [...MOCK_ZONES];
+        }
         this.isLoadingData = false;
       },
       error: (error) => {
-        console.error('Error loading zones:', error);
+        console.warn('Backend zones API unavailable, using mock zones:', error);
+        this.zones = [...MOCK_ZONES];
         this.isLoadingData = false;
       },
     });
@@ -787,13 +800,10 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
         if (controls['zone_id']?.invalid) invalid.push('zone_id');
         break;
       case 2:
-        // Step 2: ไม่บังคับ แต่ถ้ากรอกต้องถูกต้อง
-        if (
-          controls['contact_phone']?.value &&
-          controls['contact_phone']?.invalid
-        ) {
-          invalid.push('contact_phone');
-        }
+        // Step 2: บังคับชื่อผู้ติดต่อ, เบอร์โทรศัพท์, LINE ID
+        if (controls['contact_name']?.invalid) invalid.push('contact_name');
+        if (controls['contact_phone']?.invalid) invalid.push('contact_phone');
+        if (controls['line_id']?.invalid) invalid.push('line_id');
         if (
           controls['contact_email']?.value &&
           controls['contact_email']?.invalid
@@ -885,9 +895,8 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
       ];
     } else {
       return [
-        'ห้องพัดลม',
         'ห้องแอร์',
-        'ห้องสตูดิโอ',
+        'ห้องพัดลม',
         'อื่นๆ',
       ];
     }
@@ -1290,7 +1299,7 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
 
   toggleDetailsModal(): void {
     this.showDetailsModal = !this.showDetailsModal;
-    
+
     if (this.showDetailsModal) {
       // Initialize popup map when modal opens
       setTimeout(() => {
@@ -1370,7 +1379,7 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
 
     const lat = this.dormForm.get('latitude')?.value;
     const lng = this.dormForm.get('longitude')?.value;
-    
+
     if (!lat || !lng) return;
 
     // Configure MapTiler
@@ -1403,9 +1412,9 @@ export class DormSubmitComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!this.popupMap) return;
 
     this.popupMapStyle = this.popupMapStyle === 'satellite' ? 'streets' : 'satellite';
-    
-    const nextStyle = this.popupMapStyle === 'satellite' 
-      ? (this.maptilersdk.MapStyle || maptilersdk.MapStyle).SATELLITE 
+
+    const nextStyle = this.popupMapStyle === 'satellite'
+      ? (this.maptilersdk.MapStyle || maptilersdk.MapStyle).SATELLITE
       : (this.maptilersdk.MapStyle || maptilersdk.MapStyle).STREETS;
 
     this.popupMap.setStyle(nextStyle);

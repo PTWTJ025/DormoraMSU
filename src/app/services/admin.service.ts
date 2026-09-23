@@ -168,7 +168,7 @@ export class AdminService {
   constructor(private http: HttpClient) {}
 
   /**
-   * เข้าสู่ระบบแอดมิน
+   * เข้าสู่ระบบ
    */
   adminLogin(firebaseToken: string): Observable<AdminProfile> {
     const headers = new HttpHeaders()

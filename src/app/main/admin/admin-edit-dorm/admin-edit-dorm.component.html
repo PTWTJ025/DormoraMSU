@@ -337,12 +337,6 @@
                   {{ type }}
                 </option>
               </select>
-              <!-- Tooltip for Studio -->
-              <div *ngIf="dormForm.get('room_type')?.value === 'ห้องสตูดิโอ'"
-                class="absolute -top-8 left-0 bg-gray-800 text-white text-xs rounded px-2 py-1 z-10 whitespace-nowrap">
-                ห้องที่มีพื้นที่ใช้สอยรวมกัน (นอน ทำงาน รับประทาน)
-                <div class="absolute -bottom-1 left-4 w-2 h-2 bg-gray-800 transform rotate-45"></div>
-              </div>
             </div>
             <div *ngIf="
                 dormForm.get('room_type')?.invalid &&
@@ -360,7 +354,7 @@
             <input type="text" formControlName="room_type_other"
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
               [placeholder]="
-                isHouse() ? 'เช่น 4 ห้องนอน 3 ห้องน้ำ' : 'เช่น ห้องสตูดิโอ'
+                isHouse() ? 'เช่น 4 ห้องนอน 3 ห้องน้ำ' : 'เช่น ห้อง 1 ห้องนอน 1 ห้องนั่งเล่น, ห้องเตียงคู่'
               " />
             <div *ngIf="
                 !dormForm.get('room_type_other')?.value &&
@@ -511,7 +505,7 @@
             <div class="flex flex-col sm:flex-row gap-3">
               <button type="button" (click)="openCamera()" [disabled]="imageItems.length >= maxImages || isUploadingImages"
                 class="flex-1 flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                <i class="fas fa-camera w-6 h-6 mr-2 text-gray-400"></i>
+                <i data-lucide="camera" class="w-5 h-5 mr-2 text-gray-400"></i>
                 <span class="text-sm font-medium text-gray-700">
                   {{ isUploadingImages ? "กำลังอัปโหลด..." : "กล้อง" }}
                 </span>
@@ -519,7 +513,7 @@
 
               <button type="button" (click)="openGallery()" [disabled]="imageItems.length >= maxImages || isUploadingImages"
                 class="flex-1 flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                <i class="fas fa-images w-6 h-6 mr-2 text-gray-400"></i>
+                <i data-lucide="image" class="w-5 h-5 mr-2 text-gray-400"></i>
                 <span class="text-sm font-medium text-gray-700">
                   {{
                   isUploadingImages ? "กำลังอัปโหลด..." : "เลือกจากเครื่อง"
@@ -611,14 +605,16 @@
                     <div class="flex gap-1">
                       <!-- Set Primary -->
                       <button type="button" *ngIf="!image.isPrimary" (click)="setPrimaryImage(i)"
-                        class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-blue-600">
-                        <i class="fas fa-star"></i>
+                        class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-blue-600 cursor-pointer"
+                        title="ตั้งเป็นรูปหลัก">
+                        <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
                       </button>
 
                       <!-- Delete -->
                       <button type="button" (click)="removeImage(i)"
-                        class="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">
-                        <i class="fas fa-trash"></i>
+                        class="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 cursor-pointer"
+                        title="ลบรูป">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                       </button>
                     </div>
                   </div>
@@ -659,12 +655,14 @@
                   <div class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <div class="flex gap-1">
                       <button type="button" *ngIf="!urlImage.isPrimary" (click)="setPrimaryImageItem(i)"
-                        class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-blue-600">
-                        <i class="fas fa-star"></i>
+                        class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-blue-600 cursor-pointer"
+                        title="ตั้งเป็นรูปหลัก">
+                        <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
                       </button>
                       <button type="button" (click)="removeImageItem(i)"
-                        class="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">
-                        <i class="fas fa-trash"></i>
+                        class="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 cursor-pointer"
+                        title="ลบรูป">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                       </button>
                     </div>
                   </div>
@@ -878,7 +876,7 @@
     class="success-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
     (click)="closeSuccessModal()">
     <div #successModalContent
-      class="success-modal-content bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-sm w-full text-center"
+      class="success-modal-content bg-white rounded-xl shadow-2xl p-6 sm:p-8 max-w-sm w-full text-center"
       (click)="$event.stopPropagation()">
       <!-- Success Icon -->
       <div class="mb-4">

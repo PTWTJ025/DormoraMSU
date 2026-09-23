@@ -20,6 +20,7 @@ import { SupabaseService } from '../../../services/supabase.service';
 import { DistanceService } from '../../../services/distance.service';
 import { environment } from '../../../../environments/environment';
 import * as maptilersdk from '@maptiler/sdk';
+// @ts-ignore
 import '@maptiler/sdk/dist/maptiler-sdk.css';
 
 interface Zone {
@@ -61,9 +62,9 @@ interface ImageItem {
 export class AdminEditDormComponent implements OnInit, OnDestroy {
   @Input() dormId: string | null = null;
   @Output() editSuccess = new EventEmitter<void>();
-  
+
   public dormIdNum: number = 0;
-  
+
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild('cameraInput') cameraInput!: ElementRef<HTMLInputElement>;
   @ViewChild('imageGrid') imageGrid!: ElementRef<HTMLDivElement>;
@@ -173,11 +174,11 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
   ngOnInit() {
     // Load dotlottie script
     this.loadDotLottieScript();
-    
+
     if (!this.dormId) {
       return;
     }
-    
+
     this.dormIdNum = Number(this.dormId);
     if (!this.dormIdNum) {
       return;
@@ -228,7 +229,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
       room_type_other: [''],
 
       monthly_price: [''],
-      daily_price: [''], 
+      daily_price: [''],
       summer_price: [''],
       deposit: [''],
 
@@ -316,7 +317,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
       if (!data) throw new Error('Data not found');
 
       const dorm = data.dormitory;
-      
+
       // แก้ไขการโหลดรูปภาพตาม Flow ใหม่
       // จาก GET /api/admin/dormitories/:dormId → field images
       this.existingImages = dorm.images || [];
@@ -352,20 +353,20 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
       console.log('🔍 Full dorm object:', dorm);
       console.log('🔍 Dorm amenities type:', typeof dorm.amenities);
       console.log('🔍 Dorm amenities value:', dorm.amenities);
-      
+
       if (dorm.amenities && Array.isArray(dorm.amenities)) {
         const patchObj: any = {};
-        
+
         // ข้อมูลจาก API เป็น array ธรรมดา
         console.log('🔍 Amenities from API (array):', dorm.amenities);
-        
+
         dorm.amenities.forEach((a: any) => {
           console.log('🔍 Processing amenity:', a);
           if (amenitiesGroup.contains(a.amenity_name)) {
             patchObj[a.amenity_name] = true; // ถ้ามีในฐานข้อมูล = เลือก (true)
           }
         });
-        
+
         console.log('🔍 Amenity patch object:', patchObj);
         amenitiesGroup.patchValue(patchObj);
       }
@@ -373,7 +374,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
       // Enable/disable price fields based on type
       const electricityType = this.dormForm.get('electricity_price_type')?.value;
       const waterType = this.dormForm.get('water_price_type')?.value;
-      
+
       console.log('🔍 Raw data from API:', dorm);
       console.log('⚡ Electricity Type from API:', (dorm as any).electricity_price_type);
       console.log('💧 Water Type from API:', (dorm as any).water_price_type);
@@ -381,7 +382,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
       console.log('💧 Water Price from API:', dorm.water_price);
       console.log('⚡ Electricity Type in form:', electricityType);
       console.log('💧 Water Type in form:', waterType);
-      
+
       if (electricityType === 'ตามอัตราการไฟฟ้า' || electricityType === 'สอบถามหอพัก') {
         this.dormForm.get('electricity_price')?.disable();
         this.dormForm.get('electricity_price')?.setValue(null);
@@ -390,7 +391,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
         this.dormForm.get('electricity_price')?.enable();
         console.log('⚡ Electricity price enabled with value:', dorm.electricity_price);
       }
-      
+
       if (waterType === 'ตามอัตราการประปา' || waterType === 'สอบถามหอพัก') {
         this.dormForm.get('water_price')?.disable();
         this.dormForm.get('water_price')?.setValue(null);
@@ -404,7 +405,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
       this.setupLocationSync();
 
       this.isLoading = false;
-      
+
       console.log('🏠 Form data after patching:', this.dormForm.value);
       console.log('⚡ Electricity Type:', this.dormForm.get('electricity_price_type')?.value);
       console.log('⚡ Electricity Price:', this.dormForm.get('electricity_price')?.value);
@@ -412,7 +413,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
       console.log('💧 Water Price:', this.dormForm.get('water_price')?.value);
       console.log('🏠 Available room types:', this.getRoomTypes());
       console.log('🏠 Existing images:', this.existingImages);
-      
+
       // คำนวณระยะทางตามถนนจากพิกัดปัจจุบัน
       const initialLat = Number(this.dormForm.get('latitude')?.value);
       const initialLng = Number(this.dormForm.get('longitude')?.value);
@@ -448,8 +449,8 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
 
   // 🗺️ เมื่อผู้ใช้คลิกเปลี่ยนตำแหน่งในแผนที่ → อัปเดตฟอร์ม
   onMapLocationChange(newLat: number, newLng: number) {
-    console.log('📍 Map location changed:', newLat, newLng);
-    
+    console.log('Map location changed:', newLat, newLng);
+
     // อัปเดตค่าในฟอร์มทันที
     this.dormForm.patchValue({
       latitude: newLat,
@@ -465,7 +466,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
     // ตรวจสอบว่ามีแผนที่อยู่ในหน้านี้หรือไม่
     if (typeof window !== 'undefined' && (window as any).mapInstance) {
       const map = (window as any).mapInstance;
-      
+
       // ล้าง marker เก่า
       if ((window as any).currentMarker) {
         map.removeMarker((window as any).currentMarker);
@@ -555,31 +556,31 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
 
   async uploadImageToDraft(file: File, imageIndex: number) {
     this.isUploadingImages = true;
-    
+
     // Set status to pending
     if (this.images[imageIndex]) {
       this.images[imageIndex].uploadStatus = 'pending';
     }
-    
+
     try {
       console.log('📤 Uploading image to Supabase draft folder:', file.name);
-      
+
       // อัปโหลดไปที่ Supabase draft folder โดยตรง
       const { url, error } = await this.supabaseService.uploadImage(file, 'dorm-drafts/');
-      
+
       if (error) {
         console.error('❌ Supabase upload error:', error);
         throw new Error('Failed to upload image to Supabase');
       }
-      
+
       console.log('✅ Image uploaded to Supabase:', url);
-      
+
       // Update the image with the uploaded URL (draft URL)
       if (this.images[imageIndex]) {
         this.images[imageIndex].url = url;
         this.images[imageIndex].uploadStatus = 'success';
       }
-      
+
     } catch (error) {
       console.error('❌ Error uploading image to draft:', error);
       if (this.images[imageIndex]) {
@@ -648,14 +649,14 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
   // Map methods
   initMap() {
     console.log('🗺️ Initializing map...');
-    
+
     // Clean up existing map
     if (this.map) {
       this.map.remove();
       this.map = null;
       this.marker = null;
     }
-    
+
     const lat = this.getNumericCoordinate('latitude');
     const lng = this.getNumericCoordinate('longitude');
     const centerLat = lat ?? this.defaultMapCenter[1];
@@ -673,9 +674,9 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
           console.log('🗺️ Map container not ready');
           return;
         }
-        
+
         console.log('🗺️ Creating map with container:', this.mapContainer.nativeElement);
-        
+
         maptilersdk.config.apiKey = environment.mapTilerApiKey;
         this.map = new maptilersdk.Map({
           container: this.mapContainer.nativeElement,
@@ -704,7 +705,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
           });
           this.refreshRoadDistance(e.lngLat.lat, e.lngLat.lng);
         });
-        
+
         console.log('🗺️ Map initialized successfully');
       } catch (error) {
         console.error('🗺️ Map initialization error:', error);
@@ -848,7 +849,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
     const monthly = Number(this.dormForm.get('monthly_price')?.value) || 0;
     const term = Number(this.dormForm.get('term_price')?.value) || 0;
     const summer = Number(this.dormForm.get('summer_price')?.value) || 0;
-    
+
     const prices = [monthly, term, summer].filter(p => p > 0);
     return prices.length > 0 ? Math.min(...prices) : 0;
   }
@@ -1014,7 +1015,7 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
       this.adminService.updateDormitory(this.dormIdNum, payload).subscribe({
         next: (response) => {
           console.log('✅ Update response:', response);
-          
+
           if (currentStatus === 'rejected') {
             this.dormForm.patchValue({ approval_status: 'pending' });
             this.showToastNotification('บันทึกสำเร็จ สถานะเปลี่ยนเป็นรอการอนุมัติ', 'success');
@@ -1054,10 +1055,10 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
 
       this.isSubmitting = false;
       console.log('🎉 All images processed successfully');
-      
+
       // แสดง success modal หลังจัดการรูปภาพเรียบร้อย
       this.showSuccessSimple();
-      
+
     } catch (error) {
       console.error('❌ Error managing images:', error);
       this.showToastNotification('เกิดข้อผิดพลาดในการจัดการรูปภาพ', 'error');
@@ -1165,9 +1166,8 @@ export class AdminEditDormComponent implements OnInit, OnDestroy {
 
   getRoomTypes(): string[] {
     return [
-      'ห้องพัดลม',
       'ห้องแอร์',
-      'ห้องสตูดิโอ',
+      'ห้องพัดลม',
       'อื่นๆ',
     ];
   }

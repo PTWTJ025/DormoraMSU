@@ -3,12 +3,93 @@
 </ng-container>
 
 <div
-  class="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 pb-8 sm:pb-12 font-thai font-english"
+  class="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 pt-4 sm:pt-6 pb-4 sm:pb-6 font-thai font-english"
 >
-  <!-- Slider section -->
+  <!-- Banner Slider Section (Using Swiper) -->
   <div
-    class="relative overflow-hidden h-[180px] xs:h-[220px] sm:h-[280px] md:h-[360px] lg:h-[450px] mb-5 sm:mb-7 md:mb-9"
+    class="relative overflow-hidden h-[180px] xs:h-[220px] sm:h-[280px] md:h-[360px] lg:h-[450px] mb-5 sm:mb-7 md:mb-9 rounded-lg reveal"
   >
+    <!-- Swiper Container -->
+    <swiper-container
+      #swiperContainer
+      init="false"
+      class="w-full h-full rounded-lg overflow-hidden block"
+      style="--swiper-pagination-color: #FFCD22; --swiper-pagination-bullet-inactive-color: #ffffff; --swiper-pagination-bullet-inactive-opacity: 0.7; --swiper-pagination-bottom: 12px;"
+    >
+      <swiper-slide
+        *ngFor="let img of sliderImages"
+        class="w-full h-full relative cursor-pointer overflow-hidden rounded-lg"
+        (click)="viewSlideDetail(img)"
+      >
+        <img
+          [src]="img.src"
+          [alt]="img.alt"
+          class="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-500"
+        />
+        <!-- Gradient overlay -->
+        <div
+          class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent"
+        ></div>
+
+        <!-- Text overlay - anchored to slide container -->
+        <div
+          class="absolute inset-0 flex flex-col justify-end p-3 sm:p-4 md:p-6"
+        >
+          <div class="flex items-end justify-between gap-3">
+            <!-- Left: Dorm info -->
+            <div class="flex-1 min-w-0">
+              <h3
+                class="text-white text-base sm:text-lg md:text-xl lg:text-2xl font-bold font-thai drop-shadow-lg mb-1 truncate"
+              >
+                {{ img.title || "หอพัก" }}
+              </h3>
+              <p
+                class="text-white/90 text-xs sm:text-sm md:text-base font-thai drop-shadow-md line-clamp-1"
+              >
+                {{ img.subtitle }}
+              </p>
+            </div>
+
+            <!-- Right: Price text -->
+            <div *ngIf="img.priceText" class="flex-shrink-0">
+              <div
+                class="text-white text-base sm:text-lg md:text-xl lg:text-2xl font-bold font-english drop-shadow-lg"
+              >
+                {{ img.priceText }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </swiper-slide>
+    </swiper-container>
+
+    <!-- Navigation Arrow Buttons (ซ้าย - ขวา) -->
+    <button
+      type="button"
+      (click)="prevSlide()"
+      class="absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 bg-white hover:bg-white/90 text-gray-700 rounded-full flex items-center justify-center shadow-md transition-all active:scale-95 cursor-pointer"
+      aria-label="Previous Slide"
+    >
+      <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" viewBox="0 0 256 512" fill="currentColor">
+        <path d="M9.4 278.6c-12.5-12.5-12.5-32.8 0-45.3l160-160c12.5-12.5 32.8-12.5 45.3 0s12.5 32.8 0 45.3L77.3 256l137.3 137.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0l-160-160z"></path>
+      </svg>
+    </button>
+
+    <button
+      type="button"
+      (click)="nextSlide()"
+      class="absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 bg-white hover:bg-white/90 text-gray-700 rounded-full flex items-center justify-center shadow-md transition-all active:scale-95 cursor-pointer"
+      aria-label="Next Slide"
+    >
+      <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" viewBox="0 0 256 512" fill="currentColor">
+        <path d="M246.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L178.7 256 41.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"></path>
+      </svg>
+    </button>
+
+    <!-- =========================================================================
+         [CUSTOM SLIDER (ORIGINAL BACKUP)] - เก็บโค้ดเดิมไว้ตามที่ต้องการ
+         ========================================================================= -->
+    <!--
     <div class="relative h-full overflow-hidden rounded-lg">
       <div
         class="flex h-full transition-transform duration-500"
@@ -24,31 +105,17 @@
             [alt]="img.alt"
             class="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-300"
           />
-          <!-- Gradient overlay -->
-          <div
-            class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent"
-          ></div>
-
-          <!-- Text overlay - anchored to slide container -->
-          <div
-            class="absolute inset-0 flex flex-col justify-end p-3 sm:p-4 md:p-6"
-          >
+          <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent"></div>
+          <div class="absolute inset-0 flex flex-col justify-end p-3 sm:p-4 md:p-6">
             <div class="flex items-end justify-between gap-3">
-              <!-- Left: Dorm info -->
               <div class="flex-1 min-w-0">
-                <h3
-                  class="text-white text-base sm:text-lg md:text-xl lg:text-2xl font-bold font-thai drop-shadow-lg mb-1 truncate"
-                >
+                <h3 class="text-white text-base sm:text-lg md:text-xl lg:text-2xl font-bold font-thai drop-shadow-lg mb-1 truncate">
                   {{ img.title || "หอพัก" }}
                 </h3>
-                <p
-                  class="text-white/90 text-xs sm:text-sm md:text-base font-thai drop-shadow-md line-clamp-1"
-                >
+                <p class="text-white/90 text-xs sm:text-sm md:text-base font-thai drop-shadow-md line-clamp-1">
                   {{ img.subtitle }}
                 </p>
               </div>
-
-              <!-- Right: Price text (no background) -->
               <div *ngIf="img.priceText" class="flex-shrink-0">
                 <div class="text-white text-base sm:text-lg md:text-xl lg:text-2xl font-bold font-english drop-shadow-lg">
                   {{ img.priceText }}
@@ -59,10 +126,7 @@
         </div>
       </div>
     </div>
-    <!-- Navigation dots -->
-    <div
-      class="absolute bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2 z-10"
-    >
+    <div class="absolute bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2 z-10">
       <button
         *ngFor="let img of sliderImages; let i = index"
         class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-white/70 border border-gray-300 transition-all duration-200"
@@ -74,10 +138,71 @@
         (click)="goToSlide(i)"
       ></button>
     </div>
+    -->
   </div>
 
+  <!-- Quick Shortcuts Section (ค้นหาที่พักตามโซนและประเภท) -->
+  <section class="mb-6 sm:mb-8 reveal">
+    <div class="flex items-center justify-between mb-3 sm:mb-4">
+      <div>
+        <h2 class="text-base sm:text-lg md:text-xl font-medium font-thai section-title text-black">
+          ค้นหาที่พักตามโซนและประเภท
+        </h2>
+      </div>
+
+      <!-- Navigation Arrow Buttons -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <button
+          (click)="scrollCategories('left')"
+          class="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center text-gray-500 hover:text-black transition-all shadow-sm active:scale-95 cursor-pointer"
+          aria-label="Previous categories"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 sm:w-4 sm:h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+          </svg>
+        </button>
+        <button
+          (click)="scrollCategories('right')"
+          class="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center text-gray-500 hover:text-black transition-all shadow-sm active:scale-95 cursor-pointer"
+          aria-label="Next categories"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 sm:w-4 sm:h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Categories Scrollable Container -->
+    <div
+      #categoryScroll
+      class="flex items-start gap-3.5 sm:gap-5 md:gap-7 overflow-x-auto scrollbar-hide scroll-smooth py-2 px-1 -mx-1"
+      style="-webkit-overflow-scrolling: touch;"
+    >
+      <div
+        *ngFor="let item of categoryItems"
+        (click)="selectCategory(item)"
+        class="flex flex-col items-center flex-shrink-0 cursor-pointer group/item w-[72px] sm:w-[84px] md:w-[92px] text-center"
+      >
+        <div
+          class="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full border shadow-sm flex items-center justify-center transition-all duration-300 group-hover/item:scale-110 group-hover/item:shadow-md"
+          [ngClass]="item.bgClass"
+        >
+          <span class="material-symbols-rounded text-2xl sm:text-3xl select-none transition-transform duration-300">
+            {{ item.icon }}
+          </span>
+        </div>
+        <span
+          class="text-[11px] sm:text-xs text-gray-700 font-thai text-center mt-1.5 sm:mt-2 group-hover/item:text-black font-medium transition-colors line-clamp-1 break-words w-full"
+        >
+          {{ item.name }}
+        </span>
+      </div>
+    </div>
+  </section>
+
   <!-- Recommended Section -->
-  <section class="mb-6 sm:mb-8 fade-in">
+  <section class="mb-6 sm:mb-8 reveal">
     <div class="flex items-center justify-between mb-3 sm:mb-4">
       <div>
         <h2
@@ -146,7 +271,7 @@
         >
           <div
             class="w-full h-28 sm:h-36 md:h-40 mb-2 overflow-hidden rounded-lg cursor-pointer"
-            [routerLink]="['/dorm-detail', dorm.id]"
+            [routerLink]="['/detail', dorm.id]"
           >
             <img
               [src]="dorm.image"
@@ -158,21 +283,22 @@
           <div class="flex-1 flex flex-col">
             <!-- Price -->
             <div
-              class="text-[#6D6D6D] font-bold text-xs sm:text-sm flex items-start price-container h-[32px] sm:h-[38px] font-english mb-1"
+              class="text-[#6D6D6D] font-bold text-xs sm:text-sm flex items-start price-container font-english mb-1"
               [innerHTML]="getSafePriceHtml(dorm.price)"
             ></div>
 
             <!-- Dorm Name -->
             <div
-              class="font-medium text-sm sm:text-base mb-0.5 sm:mb-1 font-thai min-h-[40px] sm:min-h-[48px] line-clamp-2 cursor-pointer"
-              [routerLink]="['/dorm-detail', dorm.id]"
+              class="font-medium text-sm sm:text-base mb-0.5 sm:mb-1 font-thai line-clamp-1 cursor-pointer"
+              [routerLink]="['/detail', dorm.id]"
+              [title]="dorm.name"
             >
               {{ dorm.name }}
             </div>
 
             <!-- Zone -->
             <div
-              class="text-gray-500 text-[11px] sm:text-xs mb-0.5 sm:mb-1 font-thai min-h-[16px] sm:min-h-[18px] line-clamp-1"
+              class="text-gray-500 text-[11px] sm:text-xs mb-0.5 sm:mb-1 font-thai line-clamp-1"
             >
               โซน{{ dorm.zone }}
             </div>
@@ -184,7 +310,6 @@
               อัพเดทล่าสุด: {{ dorm.date }}
             </div>
 
-
           </div>
         </div>
       </ng-container>
@@ -192,7 +317,7 @@
   </section>
 
   <!-- Latest Section -->
-  <section class="mb-6 sm:mb-8 fade-in">
+  <section class="mb-6 sm:mb-8 reveal">
     <div class="flex items-center justify-between mb-3 sm:mb-4">
       <h2
         class="text-base sm:text-lg md:text-xl font-medium font-thai section-title"
@@ -257,7 +382,7 @@
         >
           <div
             class="w-full h-28 sm:h-36 md:h-40 mb-2 overflow-hidden rounded-lg cursor-pointer"
-            [routerLink]="['/dorm-detail', dorm.id]"
+            [routerLink]="['/detail', dorm.id]"
           >
             <img
               [src]="dorm.image"
@@ -269,21 +394,22 @@
           <div class="flex-1 flex flex-col">
             <!-- Price -->
             <div
-              class="text-[#6D6D6D] font-bold text-xs sm:text-sm flex items-start price-container h-[32px] sm:h-[38px] font-english mb-1"
+              class="text-[#6D6D6D] font-bold text-xs sm:text-sm flex items-start price-container font-english mb-1"
               [innerHTML]="getSafePriceHtml(dorm.price)"
             ></div>
 
             <!-- Dorm Name -->
             <div
-              class="font-medium text-sm sm:text-base mb-0.5 sm:mb-1 font-thai min-h-[40px] sm:min-h-[48px] line-clamp-2 cursor-pointer"
-              [routerLink]="['/dorm-detail', dorm.id]"
+              class="font-medium text-sm sm:text-base mb-0.5 sm:mb-1 font-thai line-clamp-1 cursor-pointer"
+              [routerLink]="['/detail', dorm.id]"
+              [title]="dorm.name"
             >
               {{ dorm.name }}
             </div>
 
             <!-- Zone -->
             <div
-              class="text-gray-500 text-[11px] sm:text-xs mb-0.5 sm:mb-1 font-thai min-h-[16px] sm:min-h-[18px] line-clamp-1"
+              class="text-gray-500 text-[11px] sm:text-xs mb-0.5 sm:mb-1 font-thai line-clamp-1"
             >
               โซน{{ dorm.zone }}
             </div>
@@ -295,16 +421,89 @@
               อัพเดทล่าสุด: {{ dorm.date }}
             </div>
 
-            
           </div>
         </div>
       </ng-container>
     </div>
   </section>
 
+  <!-- Contract Transfer Section (ขายประกันหอ) -->
+  <section class="mb-2 sm:mb-4 reveal">
+    <div class="flex items-center justify-between mb-3 sm:mb-4">
+      <div>
+        <h2 class="text-base sm:text-lg md:text-xl font-medium font-thai section-title">
+          ขายประกันหอพัก มมส
+        </h2>
+
+      </div>
+      <button class="view-all-btn text-xs sm:text-sm font-medium font-thai text-gray-600 flex items-center gap-0.5 sm:gap-1 hover:text-gray-800 transition-colors">
+        ดูทั้งหมด
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3 sm:w-3.5 sm:h-3.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Contract Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3 md:gap-4">
+      <ng-container *ngFor="let contract of displayedContracts">
+        <div class="bg-white shadow hover:shadow-lg transition-shadow p-2.5 sm:p-3 flex flex-col border border-black/10 h-full card-hover-effect rounded-lg relative overflow-hidden">
+
+          <!-- Badge -->
+          <div class="absolute top-2 right-2 bg-amber-500 text-white text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-thai z-10 font-medium">
+            ด่วน!
+          </div>
+
+          <!-- Image -->
+          <div
+            class="w-full h-28 sm:h-36 md:h-40 mb-2 overflow-hidden rounded-lg cursor-pointer"
+            [routerLink]="['/detail', contract.id]"
+          >
+            <img [src]="contract.image" alt="room" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+          </div>
+
+          <div class="flex-1 flex flex-col">
+            <!-- Transfer Price -->
+            <div class="text-orange-500 font-bold text-sm sm:text-base flex items-end gap-1 font-english mb-0.5">
+              <span>ขายดาวน์ {{ contract.transferPrice }}</span> <span class="text-xs font-thai font-normal text-orange-500">บาท</span>
+            </div>
+
+            <!-- Normal Rent -->
+            <div class="text-gray-500 text-[10px] sm:text-xs font-thai mb-1">
+              (ค่าเช่าต่อเดือน {{ contract.monthlyRent }} บาท)
+            </div>
+
+            <!-- Dorm Name -->
+            <div
+              class="font-medium text-sm sm:text-base mb-1 font-thai line-clamp-1 cursor-pointer"
+              [routerLink]="['/detail', contract.id]"
+              [title]="contract.dormName"
+            >
+              {{ contract.dormName }}
+            </div>
+
+            <!-- Zone & Room Type -->
+            <div class="text-gray-500 text-[11px] sm:text-xs mb-2 font-thai flex gap-2">
+              <span>โซน{{ contract.zone }}</span>
+            </div>
+
+            <!-- Owner Profile -->
+            <div class="flex items-center gap-2 mt-auto border-t pt-2 border-gray-100">
+              <img [src]="contract.ownerAvatar" class="w-5 h-5 sm:w-6 sm:h-6 rounded-full object-cover" />
+              <span class="text-[10px] sm:text-xs text-gray-600 font-thai">{{ contract.ownerName }}</span>
+              <span class="text-[9px] sm:text-[10px] text-gray-400 font-thai ml-auto">{{ contract.date }}</span>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </section>
+
+
+
   <!-- Compare Popup -->
   <app-compare-popup></app-compare-popup>
 </div>
 
 <!-- Footer -->
-<app-about></app-about>
+<app-about class="block"></app-about>

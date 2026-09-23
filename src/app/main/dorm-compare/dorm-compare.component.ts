@@ -22,7 +22,7 @@ interface CompareDormData extends CompareDormItem {
   reviewCount: number;
   amenities: string[];
   ownerName: string;
-  ownerPhone: string; 
+  ownerPhone: string;
   ownerLineId?: string;
   distance: string;
   electricityCost: string;
@@ -290,7 +290,7 @@ export class DormCompareComponent implements OnInit, OnDestroy {
 
   private formatUtilityCost(type?: string, rate?: number | string): string {
     if (!type && !rate) return 'ไม่ระบุ';
-    
+
     // ถ้ามี rate แต่ไม่มี type ให้แสดง rate กับหน่วย
     if (!type && rate) {
       return `${rate} บาท/หน่วย`;
@@ -351,13 +351,13 @@ export class DormCompareComponent implements OnInit, OnDestroy {
   // เพิ่ม method สำหรับคำนวณราคาเฉลี่ย
   private getAveragePrice(dorm: CompareDormData): number {
     const prices: number[] = [];
-    
+
     if (dorm.dailyPrice) prices.push(dorm.dailyPrice);
     if (dorm.monthlyPrice) prices.push(dorm.monthlyPrice);
     if (dorm.termPrice) prices.push(dorm.termPrice);
-    
+
     if (prices.length === 0) return 0;
-    
+
     // แปลงราคารายวัน/รายเทอมเป็นราคารายเดือนเพื่อเปรียบเทียบ
     const monthlyPrices = prices.map(price => {
       // ถ้าเป็นราคารายวัน ให้คูณ 30 เพื่อประมาณเป็นราคารายเดือน
@@ -366,7 +366,7 @@ export class DormCompareComponent implements OnInit, OnDestroy {
       if (price > 50000) return price / 4; // ราคารายเทอม
       return price; // ราคารายเดือน
     });
-    
+
     return monthlyPrices.reduce((sum, price) => sum + price, 0) / monthlyPrices.length;
   }
 
@@ -384,7 +384,7 @@ export class DormCompareComponent implements OnInit, OnDestroy {
   }
 
   viewDormDetail(dormId: number): void {
-    this.router.navigate(['/dorm-detail', dormId]);
+    this.router.navigate(['/detail', dormId]);
   }
 
   removeFromCompare(dormId: number): void {
@@ -416,33 +416,33 @@ export class DormCompareComponent implements OnInit, OnDestroy {
 
   getAmenityIcon(amenity: string): string {
     const iconMap: { [key: string]: string } = {
-      แอร์: 'fa-snowflake',
-      พัดลม: 'fa-fan',
-      TV: 'fa-tv',
-      เครื่องทำน้ำอุ่น: 'fa-hot-tub',
-      ตู้เย็น: 'fa-igloo',
-      ตู้เสื้อผ้า: 'fa-tshirt',
-      เตียงนอน: 'fa-bed',
-      โต๊ะทำงาน: 'fa-desktop',
-      โต๊ะเครื่องแป้ง: 'fa-solid fa-wand-magic-sparkles',
-      โซฟา: 'fa-couch',
-      ซิงค์ล้างจาน: 'fa-sink',
-      ไมโครเวฟ: 'fa-microphone',
-      อนุญาตให้เลี้ยงสัตว์: 'fa-paw',
-      เครื่องซักผ้าหยอดเหรียญ: 'fa-tshirt',
-      คีย์การ์ด: 'fa-key',
-      กล้องวงจรปิด: 'fa-video',
-      ลิฟต์: 'fa-elevator',
-      WIFI: 'fa-wifi',
-      'รปภ.': 'fa-shield-alt',
-      รปภ: 'fa-shield-alt',
-      ฟิตเนส: 'fa-dumbbell',
-      ตู้กดน้ำหยอดเหรียญ: 'fa-tint',
-      สระว่ายน้ำ: 'fa-swimming-pool',
-      ที่จอดรถ: 'fa-car',
-      Lobby: 'fa-building',
+      แอร์: 'snowflake',
+      พัดลม: 'fan',
+      TV: 'tv',
+      เครื่องทำน้ำอุ่น: 'flame',
+      ตู้เย็น: 'box',
+      ตู้เสื้อผ้า: 'shirt',
+      เตียงนอน: 'bed',
+      โต๊ะทำงาน: 'laptop',
+      โต๊ะเครื่องแป้ง: 'sparkles',
+      โซฟา: 'armchair',
+      ซิงค์ล้างจาน: 'droplet',
+      ไมโครเวฟ: 'microwave',
+      อนุญาตให้เลี้ยงสัตว์: 'paw-print',
+      เครื่องซักผ้าหยอดเหรียญ: 'washing-machine',
+      คีย์การ์ด: 'key-round',
+      กล้องวงจรปิด: 'cctv',
+      ลิฟต์: 'chevrons-up-down',
+      WIFI: 'wifi',
+      'รปภ.': 'shield-check',
+      รปภ: 'shield-check',
+      ฟิตเนส: 'dumbbell',
+      ตู้กดน้ำหยอดเหรียญ: 'droplets',
+      สระว่ายน้ำ: 'waves',
+      ที่จอดรถ: 'car',
+      Lobby: 'building',
     };
-    return iconMap[amenity] || 'fa-list';
+    return iconMap[amenity] || 'check';
   }
 
   hasAmenity(dorm: CompareDormData, amenity: string): boolean {

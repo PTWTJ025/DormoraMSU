@@ -1,315 +1,368 @@
-<div class="min-h-screen flex items-center justify-center bg-white p-4">
-  <!-- Single Column Container -->
-  <div class="w-full max-w-md">
-    <!-- Logo Section -->
-    <div class="mb-8">
-      <div class="flex items-center mb-6">
-        <img 
-          src="assets/images/logo.png" 
-          alt="Dormora MSU Logo"
-          class="w-16 h-16 object-contain"
-          loading="eager" />
-        <div class="ml-3">
-          <div class="text-xl font-bold leading-tight">
-            <span class="text-gray-700">Dormora</span><span style="color: #FFCD22;">MSU</span>
-          </div>
-          <div class="text-[10px] text-slate-500 tracking-wide">
-            Admin Dashboard
-          </div>
-        </div>
-      </div>
-      <div>
-        <p class="text-slate-600 text-sm">เข้าสู่ระบบเพื่อจัดการข้อมูลหอพัก</p>
-      </div>
-    </div>
+<!-- Background Main Page Preview (when visited directly via URL /login or /admin/login) -->
+<div *ngIf="!isModal" class="pointer-events-none select-none filter blur-[1px] opacity-90 transition-all">
+  <app-main></app-main>
+</div>
 
-    <!-- Login Form Card -->
-    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 p-8">
-      <form [formGroup]="form" (ngSubmit)="onSubmit()">
-        <!-- Error Message -->
-        <div
-          *ngIf="errorMessage"
-          class="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm flex items-start"
-        >
-          <svg
-            class="w-5 h-5 mr-2 flex-shrink-0 mt-0.5"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-              clip-rule="evenodd"
-            />
-          </svg>
-          <span>{{ errorMessage }}</span>
-        </div>
+<!-- Centered Popup Modal Overlay (Translucent dark blur backdrop) -->
+<div class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto font-thai font-english animate-fadeIn" (click)="onClose()">
 
-        <!-- Email Field -->
-        <div class="mb-5">
-          <label class="block text-sm font-medium text-slate-700 mb-2">
-            อีเมล
-          </label>
-          <input
-            type="email"
-            formControlName="email"
-            placeholder="admin@dormora.msu.ac.th"
-            autocomplete="email"
-            class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[rgb(38,181,255)] focus:border-[rgb(38,181,255)] transition-all duration-200"
-            [class.border-red-500]="email?.invalid && email?.touched"
-          />
-          <p
-            *ngIf="email?.invalid && email?.touched"
-            class="mt-2 text-sm text-red-600"
-          >
-            <span *ngIf="email?.errors?.['required']">กรุณากรอกอีเมล</span>
-            <span *ngIf="email?.errors?.['email']">รูปแบบอีเมลไม่ถูกต้อง</span>
-          </p>
-        </div>
+  <!-- Popup Modal Card (100% Solid Opaque White) -->
+  <div class="relative w-full max-w-md bg-white rounded-lg border border-gray-200 shadow-2xl overflow-hidden my-auto animate-scaleUp" style="background-color: #ffffff !important;" (click)="$event.stopPropagation()">
 
-        <!-- Password Field -->
-        <div class="mb-5">
-          <label class="block text-sm font-medium text-slate-700 mb-2">
-            รหัสผ่าน
-          </label>
-          <div class="relative">
-            <input
-              [type]="showPassword ? 'text' : 'password'"
-              formControlName="password"
-              placeholder="At least 6 characters"
-              autocomplete="current-password"
-              class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[rgb(38,181,255)] focus:border-[rgb(38,181,255)] transition-all duration-200 pr-12"
-              [class.border-red-500]="password?.invalid && password?.touched"
-            />
-            <button
-              type="button"
-              (click)="showPassword = !showPassword"
-              class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-[rgb(38,181,255)] transition-colors"
-            >
-              <svg
-                *ngIf="!showPassword"
-                class="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                />
-              </svg>
-              <svg
-                *ngIf="showPassword"
-                class="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
-                />
-              </svg>
-            </button>
-              </div>
-          <p
-            *ngIf="password?.invalid && password?.touched"
-            class="mt-2 text-sm text-red-600"
-          >
-            <span *ngIf="password?.errors?.['required']"
-              >กรุณากรอกรหัสผ่าน</span
-            >
-            <span *ngIf="password?.errors?.['minlength']"
-              >รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร</span
-            >
-          </p>
-            </div>
-
-        <!-- Remember Me -->
-        <div class="flex items-center justify-between mb-6">
-          <label class="inline-flex items-center cursor-pointer group">
-            <input
-              type="checkbox"
-              formControlName="remember"
-              class="w-4 h-4 rounded border-slate-300 bg-white text-[rgb(38,181,255)] focus:ring-[rgb(38,181,255)] focus:ring-2 cursor-pointer transition-all"
-            />
-            <span
-              class="ml-2 text-sm text-slate-600 group-hover:text-slate-700 transition-colors"
-              >จดจำฉันไว้ในระบบ</span
-            >
-          </label>
-          </div>
-
-        <!-- Login Button -->
-        <button
-          type="submit"
-          [disabled]="isSubmitting"
-          class="w-full text-white font-semibold py-3.5 rounded-xl shadow-lg focus:outline-none focus:ring-4 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center"
-          style="background-color: #FFCD22; color: #1F2937;"
-          onmouseover="this.style.backgroundColor='#F59E0B'"
-          onmouseout="this.style.backgroundColor='#FFCD22'"
-        >
-          <svg
-            *ngIf="isSubmitting"
-            class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              class="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              stroke-width="4"
-            ></circle>
-            <path
-              class="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-          <span *ngIf="!isSubmitting">Sign In</span>
-          <span *ngIf="isSubmitting">Signing in...</span>
-        </button>
-
-        <!-- Contact Admin Link -->
-        <div class="mt-6 text-center">
-          <button
-            type="button"
-            (click)="showContactModal()"
-            class="text-sm text-slate-600 hover:text-[rgb(38,181,255)] transition-colors"
-          >
-            มีปัญหาในการเข้าใช้งาน?
-            <span class="underline underline-offset-4 font-medium"
-              >ติดต่อผู้ดูแลระบบ</span
-            >
-              </button>
-            </div>
-      </form>
-    </div>
-
-    <!-- Footer -->
-    <div class="text-center mt-8 text-sm text-slate-500">
-      <p>© 2025 ALL RIGHTS RESERVED</p>
-    </div>
-            </div>
-          </div>
-
-<!-- Contact Modal -->
-<div
-  *ngIf="showModal"
-  class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn"
->
-  <div
-    class="bg-white border border-slate-200 rounded-2xl p-8 w-full max-w-md shadow-2xl transform animate-slideUp"
-  >
     <!-- Modal Header -->
-    <div class="flex items-center justify-between mb-6">
-      <h3 class="text-xl font-bold text-slate-900">ติดต่อผู้ดูแลระบบ</h3>
+    <div class="flex items-center justify-between px-5 pt-4 pb-3 border-b border-gray-100 bg-white">
+      <a routerLink="/" (click)="onClose()" class="flex items-center gap-2">
+        <img src="assets/images/logo.png" alt="Dormora MSU" class="w-7 h-7 object-contain" />
+        <span class="font-bold text-base tracking-tight text-gray-900">
+          Dormora<span class="text-[#E5A800]">MSU</span>
+        </span>
+      </a>
+
+      <!-- Close (X) Button -->
       <button
         type="button"
-        (click)="closeContactModal()"
-        class="text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg p-2 transition-all"
+        (click)="onClose()"
+        class="w-8 h-8 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 flex items-center justify-center transition-colors cursor-pointer"
+        aria-label="Close"
       >
-        <svg
-          class="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M6 18L18 6M6 6l12 12"
-          />
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
     </div>
 
-    <!-- Admin Profile -->
-    <div class="text-center">
-      <div class="relative inline-block mb-4">
-        <img
-          src="https://s359.kapook.com/rq/320/auto/10/pagebuilder/6bf6c28f-2de1-4698-a98a-6089083ccb51.jpg"
-          alt="Admin Profile"
-          class="w-24 h-24 rounded-full object-cover mx-auto border-4 border-[rgb(38,181,255)]/30 shadow-lg"
-        />
-        <div
-          class="absolute bottom-0 right-0 w-6 h-6 bg-green-500 border-4 border-white rounded-full"
-        ></div>
-          </div>
-
-      <h4 class="text-2xl font-bold text-slate-900 mb-1">ภูตะวัน ชลสาคร</h4>
-      <p class="text-slate-600 mb-6">ผู้ดูแลระบบ Dormora MSU</p>
-
-      <!-- Contact Buttons -->
-      <div class="flex flex-col gap-3">
-        <a
-          href="https://facebook.com"
-          target="_blank"
-          class="text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center justify-center"
-          style="background-color: #FFCD22; color: #1F2937;"
-          onmouseover="this.style.backgroundColor='#F59E0B'"
-          onmouseout="this.style.backgroundColor='#FFCD22'"
-        >
-          <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-            <path
-              d="M22 12.073C22 6.477 17.523 2 11.927 2S1.853 6.477 1.853 12.073c0 4.957 3.62 9.074 8.36 9.88v-6.988H7.87v-2.892h2.343V9.845c0-2.317 1.379-3.594 3.49-3.594.101 0 .203.003.304.008l1.988.103v2.304h-1.366c-1.074 0-1.386.676-1.386 1.368v1.664h2.61l-.418 2.892h-2.192v6.988c4.74-.806 8.36-4.924 8.36-9.88z"
-            />
-          </svg>
-          ติดต่อผ่าน Facebook
-        </a>
-
+    <!-- Segmented Tab Switcher -->
+    <div class="px-5 pt-4 bg-white">
+      <div class="grid grid-cols-2 p-1 bg-gray-100 rounded-md text-xs font-semibold">
         <button
           type="button"
-          (click)="closeContactModal()"
-          class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-6 py-3 rounded-xl transition-all duration-200"
+          (click)="setTab('login')"
+          [class.bg-white]="activeTab === 'login'"
+          [class.text-gray-900]="activeTab === 'login'"
+          [class.shadow-xs]="activeTab === 'login'"
+          [class.text-gray-500]="activeTab !== 'login'"
+          class="py-2 rounded transition-all cursor-pointer text-center"
         >
-          ปิด
-          </button>
+          เข้าสู่ระบบ
+        </button>
+        <button
+          type="button"
+          (click)="setTab('register')"
+          [class.bg-white]="activeTab === 'register'"
+          [class.text-gray-900]="activeTab === 'register'"
+          [class.shadow-xs]="activeTab === 'register'"
+          [class.text-gray-500]="activeTab !== 'register'"
+          class="py-2 rounded transition-all cursor-pointer text-center"
+        >
+          สมัครสมาชิก
+        </button>
       </div>
     </div>
+
+    <!-- Modal Body -->
+    <div class="p-5 sm:p-6 bg-white">
+
+      <!-- ================= TAB 1: LOGIN ================= -->
+      <div *ngIf="activeTab === 'login'" class="animate-fadeIn">
+        <div class="mb-4">
+          <h2 class="text-lg font-bold text-gray-900 tracking-tight">เข้าสู่ระบบเพื่อดำเนินการต่อ</h2>
+          <p class="text-xs text-gray-500 mt-0.5">ลงประกาศโปรโมทหอพัก หรือขายสัญญาประกันหอพัก</p>
+        </div>
+
+        <!-- Error Alert -->
+        <div *ngIf="errorMessage" class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-xs flex items-start gap-2">
+          <svg class="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <!-- Form -->
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-3.5">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">
+              เบอร์โทรศัพท์ / อีเมล / ชื่อผู้ใช้
+            </label>
+            <input
+              type="text"
+              formControlName="identifier"
+              placeholder="กรอกเบอร์โทร, อีเมล หรือชื่อผู้ใช้"
+              autocomplete="username"
+              class="w-full h-10 px-3 rounded-md border border-gray-300 bg-white text-gray-900 placeholder:text-gray-400 text-xs sm:text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors"
+              [class.border-red-400]="identifier?.invalid && identifier?.touched"
+            />
+            <p *ngIf="identifier?.invalid && identifier?.touched" class="mt-1 text-xs text-red-600">
+              กรุณากรอกข้อมูลเข้าสู่ระบบ
+            </p>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-xs font-medium text-gray-700">รหัสผ่าน</label>
+              <button type="button" (click)="openContactModal()" class="text-xs text-gray-500 hover:text-gray-900">
+                ลืมรหัสผ่าน?
+              </button>
+            </div>
+            <div class="relative">
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                formControlName="password"
+                placeholder="กรอกรหัสผ่าน"
+                autocomplete="current-password"
+                class="w-full h-10 pl-3 pr-10 rounded-md border border-gray-300 bg-white text-gray-900 placeholder:text-gray-400 text-xs sm:text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors font-english"
+                [class.border-red-400]="password?.invalid && password?.touched"
+              />
+              <button
+                type="button"
+                (click)="showPassword = !showPassword"
+                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-700 transition-colors"
+              >
+                <svg *ngIf="!showPassword" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <svg *ngIf="showPassword" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                </svg>
+              </button>
+            </div>
+            <p *ngIf="password?.invalid && password?.touched" class="mt-1 text-xs text-red-600">
+              รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร
+            </p>
+          </div>
+
+          <div class="flex items-center pt-0.5">
+            <label class="inline-flex items-center cursor-pointer select-none text-xs text-gray-600">
+              <input
+                type="checkbox"
+                formControlName="remember"
+                class="w-3.5 h-3.5 rounded border-gray-300 text-gray-900 focus:ring-gray-900 cursor-pointer"
+              />
+              <span class="ml-2">จดจำฉันไว้ในระบบ</span>
+            </label>
+          </div>
+
+          <button
+            type="submit"
+            [disabled]="isSubmitting"
+            class="w-full h-10 bg-[#FFCD22] hover:bg-[#F5BF00] active:bg-[#E5B000] text-gray-900 font-bold rounded-md transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm"
+          >
+            <svg *ngIf="isSubmitting" class="animate-spin h-4 w-4 text-gray-900" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>{{ isSubmitting ? "กำลังเข้าสู่ระบบ..." : "ดำเนินการต่อ" }}</span>
+          </button>
+        </form>
+
+        <!-- Divider -->
+        <div class="relative my-4 text-center">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-gray-200"></div>
+          </div>
+          <span class="relative bg-white px-2.5 text-[11px] text-gray-400">หรือเข้าสู่ระบบด้วย</span>
+        </div>
+
+
+
+        <!-- Social Logins -->
+        <div class="space-y-2">
+          <button
+            type="button"
+            (click)="loginWithLine()"
+            class="w-full h-9 px-3 bg-[#06C755] hover:bg-[#05b34c] text-white rounded-md transition-colors flex items-center justify-center gap-2.5 cursor-pointer text-xs font-medium shadow-xs"
+          >
+            <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 5.82 2 10.53c0 4.21 3.55 7.73 8.35 8.41.32.07.77.22.88.5.1.26.07.65.03 1.01l-.16.98c-.05.3-.23 1.18 1.03.65 1.27-.54 6.84-4.03 9.34-6.89C22.85 13.62 22 12.12 22 10.53 22 5.82 17.52 2 12 2zm-4.32 11.23h-1.2v-4.9h1.2v4.9zm2.74 0h-1.2V8.33h1.2v4.9zm4.24 0h-1.2l-2.02-2.73v2.73h-1.2V8.33h1.2l2.02 2.73V8.33h1.2v4.9zm3.84-3.79h-2.34v1.16h2.34v1.1h-2.34v1.53h-1.2V8.33h3.54v1.11z"/>
+            </svg>
+            <span>เข้าสู่ระบบด้วย LINE</span>
+          </button>
+
+          <button
+            type="button"
+            (click)="loginWithGoogle()"
+            class="w-full h-9 px-3 border border-gray-300 bg-white hover:bg-gray-50 rounded-md transition-colors flex items-center justify-center gap-2.5 cursor-pointer text-xs font-medium text-gray-700"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 48 48">
+              <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
+              <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path>
+              <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path>
+              <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
+            </svg>
+            <span>เข้าสู่ระบบด้วย Google</span>
+          </button>
+
+          <button
+            type="button"
+            (click)="loginWithFacebook()"
+            class="w-full h-9 px-3 border border-gray-300 bg-white hover:bg-gray-50 rounded-md transition-colors flex items-center justify-center gap-2.5 cursor-pointer text-xs font-medium text-gray-700"
+          >
+            <svg class="w-4 h-4 text-[#1877F2] shrink-0" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+            </svg>
+            <span>เข้าสู่ระบบด้วย Facebook</span>
+          </button>
+        </div>
+
+        <div class="mt-5 pt-3 border-t border-gray-100 text-center text-xs text-gray-600">
+          ยังไม่มีบัญชีสมาชิก?
+          <button
+            type="button"
+            (click)="setTab('register')"
+            class="ml-1 text-gray-900 font-semibold underline underline-offset-2 hover:text-black cursor-pointer"
+          >
+            สมัครสมาชิกฟรี
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= TAB 2: REGISTER ================= -->
+      <div *ngIf="activeTab === 'register'" class="animate-fadeIn">
+        <div class="mb-4">
+          <h2 class="text-lg font-bold text-gray-900 tracking-tight">สมัครสมาชิก Dormora MSU</h2>
+          <p class="text-xs text-gray-500 mt-0.5">สำหรับเจ้าของหอพักและผู้ต้องการลงประกาศ</p>
+        </div>
+
+        <!-- Social Sign-up Buttons -->
+        <div class="space-y-2 mb-3.5">
+          <button
+            type="button"
+            (click)="loginWithLine()"
+            class="w-full h-9 px-3 bg-[#06C755] hover:bg-[#05b34c] text-white rounded-md transition-colors flex items-center justify-center gap-2.5 cursor-pointer text-xs font-medium shadow-xs"
+          >
+            <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 5.82 2 10.53c0 4.21 3.55 7.73 8.35 8.41.32.07.77.22.88.5.1.26.07.65.03 1.01l-.16.98c-.05.3-.23 1.18 1.03.65 1.27-.54 6.84-4.03 9.34-6.89C22.85 13.62 22 12.12 22 10.53 22 5.82 17.52 2 12 2zm-4.32 11.23h-1.2v-4.9h1.2v4.9zm2.74 0h-1.2V8.33h1.2v4.9zm4.24 0h-1.2l-2.02-2.73v2.73h-1.2V8.33h1.2l2.02 2.73V8.33h1.2v4.9zm3.84-3.79h-2.34v1.16h2.34v1.1h-2.34v1.53h-1.2V8.33h3.54v1.11z"/>
+            </svg>
+            <span>สมัครสมาชิกทันทีด้วย LINE</span>
+          </button>
+
+          <button
+            type="button"
+            (click)="loginWithGoogle()"
+            class="w-full h-9 px-3 border border-gray-300 bg-white hover:bg-gray-50 rounded-md transition-colors flex items-center justify-center gap-2.5 cursor-pointer text-xs font-medium text-gray-700"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 48 48">
+              <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
+              <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path>
+              <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path>
+              <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
+            </svg>
+            <span>สมัครสมาชิกด้วย Google</span>
+          </button>
+        </div>
+
+        <!-- Divider -->
+        <div class="relative my-3.5 text-center">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-gray-200"></div>
+          </div>
+          <span class="relative bg-white px-2.5 text-[11px] text-gray-400">หรือกรอกข้อมูลสมัครสมาชิก</span>
+        </div>
+
+        <!-- Success Alert -->
+        <div *ngIf="registerSuccessMessage" class="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-md text-xs flex items-start gap-2">
+          <svg class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span>{{ registerSuccessMessage }}</span>
+        </div>
+
+        <!-- Register Form -->
+        <form [formGroup]="registerForm" (ngSubmit)="onRegisterSubmit()" class="space-y-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">ชื่อ-นามสกุล / ผู้ดูแลหอพัก</label>
+            <input
+              type="text"
+              formControlName="fullName"
+              placeholder="เช่น คุณสมชาย ชลสาคร"
+              class="w-full h-10 px-3 rounded-md border border-gray-300 bg-white text-xs sm:text-sm focus:outline-none focus:border-gray-900"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">เบอร์โทรศัพท์ติดต่อ</label>
+            <input
+              type="tel"
+              formControlName="phoneNumber"
+              placeholder="08XXXXXXXX"
+              class="w-full h-10 px-3 rounded-md border border-gray-300 bg-white text-xs sm:text-sm focus:outline-none focus:border-gray-900"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">อีเมล</label>
+            <input
+              type="email"
+              formControlName="email"
+              placeholder="owner@example.com"
+              class="w-full h-10 px-3 rounded-md border border-gray-300 bg-white text-xs sm:text-sm focus:outline-none focus:border-gray-900"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">ตั้งรหัสผ่าน</label>
+            <input
+              type="password"
+              formControlName="password"
+              placeholder="อย่างน้อย 6 ตัวอักษร"
+              class="w-full h-10 px-3 rounded-md border border-gray-300 bg-white text-xs sm:text-sm focus:outline-none focus:border-gray-900"
+            />
+          </div>
+
+          <button
+            type="submit"
+            [disabled]="isSubmitting"
+            class="w-full h-10 bg-[#FFCD22] hover:bg-[#F5BF00] text-gray-900 font-bold rounded-md transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 text-xs sm:text-sm mt-2"
+          >
+            <span>{{ isSubmitting ? "กำลังสมัครสมาชิก..." : "ยืนยันการสมัครสมาชิก" }}</span>
+          </button>
+        </form>
+
+        <div class="mt-4 pt-3 border-t border-gray-100 text-center text-xs text-gray-600">
+          มีบัญชีอยู่แล้ว?
+          <button
+            type="button"
+            (click)="setTab('login')"
+            class="ml-1 text-gray-900 font-semibold underline underline-offset-2 hover:text-black cursor-pointer"
+          >
+            เข้าสู่ระบบ
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="px-5 py-3 bg-gray-50 border-t border-gray-100 text-center text-[11px] text-gray-400">
+      การเข้าสู่ระบบถือว่าคุณยอมรับ
+      <span class="text-gray-600 font-medium">ข้อกำหนดการใช้งาน</span> และ
+      <span class="text-gray-600 font-medium">นโยบายความเป็นส่วนตัว</span>
+    </div>
+
   </div>
 </div>
 
-<style>
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
-  @keyframes slideUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .animate-fadeIn {
-    animation: fadeIn 0.2s ease-out;
-  }
-
-  .animate-slideUp {
-    animation: slideUp 0.3s ease-out;
-  }
-</style>
+<!-- Support Info Modal -->
+<div *ngIf="showContactModal" class="fixed inset-0 z-60 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn font-thai" (click)="closeContactModal()">
+  <div class="bg-white rounded-lg p-6 w-full max-w-sm border border-gray-200 shadow-2xl" (click)="$event.stopPropagation()">
+    <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
+      <h3 class="text-sm font-bold text-gray-900">ติดต่อช่วยเหลือ & ลืมรหัสผ่าน</h3>
+      <button type="button" (click)="closeContactModal()" class="text-gray-400 hover:text-gray-700 p-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <div class="text-xs text-gray-600 space-y-2.5">
+      <p>หากคุณลืมรหัสผ่าน หรือต้องการความช่วยเหลือในการลงประกาศ สามารถติดต่อผู้ดูแลระบบได้ที่:</p>
+      <div class="p-3 bg-gray-50 rounded border border-gray-200 space-y-1 text-gray-800 font-medium">
+        <div>LINE Official: <span class="font-bold text-gray-900">&#64;dormoramsu</span></div>
+        <div>อีเมล: <span class="font-bold text-gray-900">support&#64;dormoramsu.com</span></div>
+        <div>เวลาทำการ: จันทร์ - ศุกร์ 09:00 - 18:00 น.</div>
+      </div>
+      <button type="button" (click)="closeContactModal()" class="w-full h-8 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded transition-colors mt-2">
+        ปิด
+      </button>
+    </div>
+  </div>
+</div>

@@ -2,7 +2,7 @@ import { Component, Directive, ElementRef, EventEmitter, HostListener, Input, Ou
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NavbarComponent } from '../navbar/navbar.component';
-import { DormitoryService, Dorm as APIDorm, Zone } from '../../services/dormitory.service';
+import { DormitoryService, Dorm as APIDorm, Zone, MOCK_ZONES } from '../../services/dormitory.service';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ComparePopupComponent } from '../shared/compare-popup/compare-popup.component';
@@ -54,7 +54,7 @@ export class DormListComponent implements OnInit {
 
   // API filtering state
   isFiltering = false;
-  
+
   // Current filter state
   currentFilters = {
     zoneIds: [] as number[],
@@ -71,8 +71,8 @@ export class DormListComponent implements OnInit {
   // Amenities array - จะถูกโหลดจาก API
   amenities: { id: number; name: string; available: boolean; checked: boolean }[] = [];
 
-  // Zone options
-  zones: Zone[] = [];
+  // Zone options (with MOCK_ZONES default)
+  zones: Zone[] = [...MOCK_ZONES];
 
   // All dorms and filtered dorms
   dorms: UIDorm[] = [];
@@ -109,12 +109,12 @@ export class DormListComponent implements OnInit {
       if (params['type'] === 'recommended') {
         this.isRecommendedPage = true;
       }
-      
+
       // Check if this is latest page
       if (params['type'] === 'latest') {
         this.isLatestPage = true;
       }
-      
+
       if (params['type'] === 'similar' && params['from'] === 'dorm-detail') {
         // เก็บพารามิเตอร์สำหรับการค้นหาหอพักที่คล้ายกัน
         this.similarSearchParams = {
@@ -125,24 +125,24 @@ export class DormListComponent implements OnInit {
           maxPrice: parseInt(params['maxPrice']) || null,
           amenities: params['amenities'] ? params['amenities'].split(',') : []
         };
-        
+
         // ตั้งค่าโซนที่เลือกตามข้อมูลที่ส่งมา
         if (this.similarSearchParams.zone) {
           this.selectedZone = this.similarSearchParams.zone;
         }
-        
+
         // ตั้งค่าช่วงราคาตามข้อมูลที่ส่งมา
         if (this.similarSearchParams.minPrice && this.similarSearchParams.maxPrice) {
           // ขยายช่วงราคา ±20% เพื่อหาหอพักในราคาใกล้เคียง
           const priceRange = this.similarSearchParams.maxPrice - this.similarSearchParams.minPrice;
           const buffer = Math.max(priceRange * 0.2, 1000); // อย่างน้อย 1000 บาท
-          
+
           this.minPrice = Math.max(0, this.similarSearchParams.minPrice - buffer);
           this.maxPrice = this.similarSearchParams.maxPrice + buffer;
         }
-        
+
       }
-      
+
       this.loadDormitories();
     });
   }
@@ -184,7 +184,7 @@ export class DormListComponent implements OnInit {
 
   loadDormitories() {
     this.isLoading = true;
-    
+
     if (this.isLatestPage) {
       // ถ้าเป็นหน้า latest ให้โหลดแค่หอพักล่าสุด
       this.pendingLoads = 1;
@@ -221,13 +221,13 @@ export class DormListComponent implements OnInit {
       this.dormitoryService.getLatest().subscribe({
         next: (latest: APIDorm[]) => {
           this.latestDorms = latest.map(d => this.mapDormToUi(d));
-          
+
           // รวม latest เข้ากับ dorms และกำจัดข้อมูลซ้ำโดยใช้ dorm_id
           const allDorms = [...this.dorms, ...this.latestDorms];
-          const uniqueDorms = allDorms.filter((dorm, index, self) => 
+          const uniqueDorms = allDorms.filter((dorm, index, self) =>
             index === self.findIndex(d => d.id === dorm.id)
           );
-          
+
           this.dorms = uniqueDorms;
           this.applyFilters();
           this.updateDisplayedDorms();
@@ -358,11 +358,11 @@ export class DormListComponent implements OnInit {
   getStars(rating: number | undefined): { filled: boolean }[] {
     const stars: { filled: boolean }[] = [];
     const actualRating = rating || 0;
-    
+
     for (let i = 1; i <= 5; i++) {
       stars.push({ filled: i <= actualRating });
     }
-    
+
     return stars;
   }
 
@@ -400,23 +400,23 @@ export class DormListComponent implements OnInit {
 
   getDormPrice(dorm: UIDorm): number {
     if (!dorm.price) return 0;
-    
+
     // หาราคารายเดือนจาก price string
     // รูปแบบ: "5,000 บาท/เดือน" หรือ "5,000 - 10,000 บาท/เดือน"
     const monthlyMatch = dorm.price.match(/([\d,]+)(\s*-\s*([\d,]+))?\s*บาท\/เดือน/);
-    
+
     if (monthlyMatch) {
       const minPrice = parseInt(monthlyMatch[1].replace(/,/g, '')) || 0;
-      
+
       // ถ้ามีช่วงราคา ให้ใช้ราคาเฉลี่ย (สมเหตุสมผลกว่าการใช้ราคาต่ำสุด)
       if (monthlyMatch[3]) {
         const maxPrice = parseInt(monthlyMatch[3].replace(/,/g, '')) || 0;
         return Math.round((minPrice + maxPrice) / 2);
       }
-      
+
       return minPrice;
     }
-    
+
     // ถ้าไม่เจอราคารายเดือน ให้ลองหาตัวเลขแรก
     const fallbackMatch = dorm.price.match(/([\d,]+)/);
     return fallbackMatch ? parseInt(fallbackMatch[1].replace(/,/g, '')) : 0;
@@ -442,7 +442,7 @@ export class DormListComponent implements OnInit {
 
   applyFilters(closePopup: boolean = true) {
     this.isFiltering = true;
-    
+
     // ถ้าเป็นการค้นหาหอพักที่คล้ายกัน ให้ใช้ similar search
     if (this.similarSearchParams) {
       this.applySimilarFilters();
@@ -481,14 +481,14 @@ export class DormListComponent implements OnInit {
     this.dormitoryService.getRecommended(1000).subscribe({
       next: (dorms: APIDorm[]) => {
         this.dorms = dorms.map(d => this.mapDormToUi(d));
-        
+
         // กรองตามโซนที่เลือก (ถ้ามี)
         if (this.selectedZone && this.selectedZone !== '') {
           this.filteredDorms = this.dorms.filter(dorm => dorm.zone === this.selectedZone);
         } else {
           this.filteredDorms = [...this.dorms];
         }
-        
+
         // เรียงลำดับตามที่เลือก
         if (this.sortOrder === 'asc') {
           this.filteredDorms.sort((a, b) => this.getDormPrice(a) - this.getDormPrice(b));
@@ -499,7 +499,7 @@ export class DormListComponent implements OnInit {
         } else if (this.sortOrder === 'rating-asc') {
           this.filteredDorms.sort((a, b) => (a.rating || 0) - (b.rating || 0));
         }
-        
+
         this.updateDisplayedDorms();
         this.isFiltering = false;
       },
@@ -532,7 +532,7 @@ export class DormListComponent implements OnInit {
     this.filteredDorms = scoredDorms
       .filter(dorm => dorm.similarityScore > 0)
       .map(({ similarityScore, ...dorm }) => dorm); // เอา similarityScore ออก
-    
+
     this.updateDisplayedDorms();
   }
 
@@ -560,7 +560,7 @@ export class DormListComponent implements OnInit {
     }
 
     // 4. สิ่งอำนวยความสะดวกที่คล้ายกัน (+25 คะแนน)
-    // Note: ในปัจจุบันเราไม่มีข้อมูล amenities ใน UIDorm 
+    // Note: ในปัจจุบันเราไม่มีข้อมูล amenities ใน UIDorm
     // ถ้าต้องการใช้ต้องเพิ่มข้อมูลนี้ในอนาคต
 
     return score;
@@ -570,18 +570,18 @@ export class DormListComponent implements OnInit {
   calculateNameSimilarity(name1: string, name2: string): number {
     const str1 = name1.toLowerCase();
     const str2 = name2.toLowerCase();
-    
+
     // ถ้ามีคำเดียวกัน
     const words1 = str1.split(/\s+/);
     const words2 = str2.split(/\s+/);
-    
+
     let commonWords = 0;
     for (const word1 of words1) {
       if (word1.length > 2 && words2.some(word2 => word2.includes(word1) || word1.includes(word2))) {
         commonWords++;
       }
     }
-    
+
     return commonWords / Math.max(words1.length, words2.length);
   }
 
@@ -589,16 +589,16 @@ export class DormListComponent implements OnInit {
   calculatePriceSimilarity(dormPrice: number, minPrice: number, maxPrice: number): number {
     const midPrice = (minPrice + maxPrice) / 2;
     const priceRange = maxPrice - minPrice;
-    
+
     // ถ้าราคาอยู่ในช่วง ให้คะแนนเต็ม
     if (dormPrice >= minPrice && dormPrice <= maxPrice) {
       return 1;
     }
-    
+
     // คำนวณระยะห่างจากช่วงราคา
     const distance = Math.min(Math.abs(dormPrice - minPrice), Math.abs(dormPrice - maxPrice));
     const maxDistance = priceRange; // ระยะห่างสูงสุดที่ยังให้คะแนน
-    
+
     return Math.max(0, 1 - (distance / maxDistance));
   }
 
@@ -652,22 +652,22 @@ export class DormListComponent implements OnInit {
       rating2: false,
       rating1: false
     };
-    
+
     // Reset amenities
     this.amenities.forEach(amenity => {
       amenity.checked = false;
     });
-    
+
     // Reset filter prices
     this.filterMinPrice = null;
     this.filterMaxPrice = null;
-    
+
     // Reset zone selection
     this.selectedZone = '';
-    
+
     // Reset sort order
     this.sortOrder = '';
-    
+
     // Reset current filters
     this.currentFilters = {
       zoneIds: [],
@@ -680,7 +680,7 @@ export class DormListComponent implements OnInit {
       amenityIds: [],
       amenityMatch: 'any'
     };
-    
+
     // ส่ง false เพื่อไม่ปิด popup
     this.applyFilters(false);
   }
@@ -695,7 +695,7 @@ export class DormListComponent implements OnInit {
   onSearchInput(event: any) {
     const query = event.target.value.trim();
     this.searchQuery = query;
-    
+
     // กรองหอพักแบบ real-time ตามชื่อที่พิมพ์
     this.applySearchFilter();
   }
@@ -708,7 +708,7 @@ export class DormListComponent implements OnInit {
 
     // ใช้ API search เพื่อค้นหาหอพักที่ตรงกับคำค้นหา
     this.isFiltering = true;
-    
+
     this.dormitoryService.searchDormitories(this.searchQuery.trim(), 50).subscribe({
       next: (results) => {
         if (results.length > 0) {
@@ -738,7 +738,7 @@ export class DormListComponent implements OnInit {
     }
 
     // กรองหอพักที่มีชื่อตรงกับคำค้นหา
-    let filteredDorms = this.dorms.filter(dorm => 
+    let filteredDorms = this.dorms.filter(dorm =>
       dorm.name.toLowerCase().includes(this.searchQuery.toLowerCase())
     );
 
@@ -748,7 +748,7 @@ export class DormListComponent implements OnInit {
     }
 
     this.filteredDorms = filteredDorms;
-    
+
     // เรียงลำดับตามที่เลือก
     if (this.sortOrder === 'asc') {
       this.filteredDorms.sort((a, b) => this.getDormPrice(a) - this.getDormPrice(b));
@@ -759,7 +759,7 @@ export class DormListComponent implements OnInit {
     } else if (this.sortOrder === 'rating-asc') {
       this.filteredDorms.sort((a, b) => (a.rating || 0) - (b.rating || 0));
     }
-    
+
     this.updateDisplayedDorms();
   }
 
@@ -773,14 +773,14 @@ export class DormListComponent implements OnInit {
   /** Load dormitories by IDs from search results */
   private loadDormitoriesByIds(dormIds: number[]) {
     // โหลดข้อมูลหอพักทีละตัว (หรือใช้ batch API ถ้ามี)
-    const loadPromises = dormIds.map(id => 
+    const loadPromises = dormIds.map(id =>
       this.dormitoryService.getDormitoryById(id).toPromise()
     );
 
     Promise.all(loadPromises).then((dorms: (APIDorm | undefined)[]) => {
       // กรองหอพักที่โหลดสำเร็จ
       const validDorms = dorms.filter((dorm): dorm is APIDorm => dorm !== null && dorm !== undefined);
-      
+
       this.dorms = validDorms.map(d => this.mapDormToUi(d));
       this.filteredDorms = [...this.dorms];
       this.updateDisplayedDorms();
@@ -801,7 +801,7 @@ export class DormListComponent implements OnInit {
   applyRatingFilter() {
     // TODO: Backend ยังไม่รองรับการกรองตามดาว
     console.warn('Rating filter is not yet supported by backend API');
-    
+
     // Reset rating filters
     this.filters.rating5 = false;
     this.filters.rating4 = false;
@@ -819,18 +819,18 @@ export class DormListComponent implements OnInit {
         return;
       }
     }
-    
+
     // ตรวจสอบว่าราคาเป็นจำนวนบวก
     if (this.filterMinPrice !== null && this.filterMinPrice < 0) {
       alert('ราคาต้องเป็นจำนวนบวก');
       return;
     }
-    
+
     if (this.filterMaxPrice !== null && this.filterMaxPrice < 0) {
       alert('ราคาต้องเป็นจำนวนบวก');
       return;
     }
-    
+
     // ไม่ต้องทำอะไร - จะถูกเรียกเมื่อกด "ตกลง" ใน applyFilters()
   }
 
@@ -842,7 +842,7 @@ export class DormListComponent implements OnInit {
   /** Apply unified filter using the new API */
   private applyUnifiedFilter() {
     this.isFiltering = true;
-    
+
     // เตรียมพารามิเตอร์สำหรับ unified filter - ดึงทั้งหมดโดยไม่จำกัดจำนวน
     const filterParams: any = {
       limit: 1000
@@ -867,16 +867,16 @@ export class DormListComponent implements OnInit {
     if (this.currentFilters.term) {
       filterParams.term = true;
     }
-    
+
     // ไม่ส่ง stars ไป API เพราะ backend อาจกรองไม่ถูกต้องกับทศนิยม
     // เราจะกรองเองที่ client-side แทน
-    
+
     // ส่งชื่อ amenities แทน IDs (ตามที่ backend ต้องการ)
     if (this.currentFilters.amenityIds.length > 0) {
       const selectedAmenityNames = this.amenities
         .filter(a => this.currentFilters.amenityIds.includes(a.id))
         .map(a => a.name);
-      
+
       if (selectedAmenityNames.length > 0) {
         filterParams.amenities = selectedAmenityNames.join(',');
       }
@@ -894,16 +894,16 @@ export class DormListComponent implements OnInit {
           console.error('Invalid response format:', response);
           dormitories = [];
         }
-        
+
         this.dorms = dormitories.map(d => this.mapDormToUi(d));
-        
+
         // กรองตามโซนที่เลือก (ถ้ามี)
         if (this.selectedZone && this.selectedZone !== '') {
           this.filteredDorms = this.dorms.filter(dorm => dorm.zone === this.selectedZone);
         } else {
           this.filteredDorms = [...this.dorms];
         }
-        
+
         // กรองตามดาวที่เลือก (Client-side) - ใช้ Math.floor เพื่อจับคู่ทศนิยม
         if (this.currentFilters.stars.length > 0) {
           this.filteredDorms = this.filteredDorms.filter(dorm => {
@@ -911,7 +911,7 @@ export class DormListComponent implements OnInit {
             return this.currentFilters.stars.includes(dormStarLevel);
           });
         }
-        
+
         // กรองตามประเภทการเช่าให้ตรวจสอบว่ามีราคาจริงๆ
         if (this.currentFilters.daily || this.currentFilters.monthly || this.currentFilters.term) {
           this.filteredDorms = this.filteredDorms.filter(dorm => {
@@ -919,17 +919,17 @@ export class DormListComponent implements OnInit {
             if (this.currentFilters.daily && !this.currentFilters.monthly && !this.currentFilters.term) {
               return dorm.price.includes('บาท/วัน');
             }
-            
+
             // ถ้าเลือกเฉพาะรายเดือน ต้องมีราคารายเดือน
             if (this.currentFilters.monthly && !this.currentFilters.daily && !this.currentFilters.term) {
               return dorm.price.includes('บาท/เดือน');
             }
-            
+
             // ถ้าเลือกเฉพาะรายเทอม ต้องมีราคารายเทอม
             if (this.currentFilters.term && !this.currentFilters.daily && !this.currentFilters.monthly) {
               return dorm.price.includes('บาท/เทอม');
             }
-            
+
             // ถ้าเลือกหลายประเภท ให้แสดงหอพักที่มีราคาตรงกับอย่างน้อย 1 ประเภทที่เลือก
             const hasDaily = dorm.price.includes('บาท/วัน');
             const hasMonthly = dorm.price.includes('บาท/เดือน');
@@ -939,7 +939,7 @@ export class DormListComponent implements OnInit {
               (this.currentFilters.term && hasTerm);
           });
         }
-        
+
         // เรียงลำดับตามที่เลือก
         if (this.sortOrder === 'asc') {
           this.filteredDorms.sort((a, b) => this.getDormPrice(a) - this.getDormPrice(b));
@@ -950,7 +950,7 @@ export class DormListComponent implements OnInit {
         } else if (this.sortOrder === 'rating-asc') {
           this.filteredDorms.sort((a, b) => (a.rating || 0) - (b.rating || 0));
         }
-        
+
         this.updateDisplayedDorms();
         this.isFiltering = false;
       },
@@ -968,10 +968,10 @@ export class DormListComponent implements OnInit {
     this.minPrice = null;
     this.maxPrice = null;
     this.sortOrder = '';
-    
+
     // รีเซ็ตฟิลเตอร์ทั้งหมด
     this.clearFilters();
-    
+
     // โหลดข้อมูลใหม่
     this.loadDormitories();
   }
@@ -988,7 +988,7 @@ export class DormListComponent implements OnInit {
     const currentLength = this.displayedDorms.length;
     const nextBatch = this.filteredDorms.slice(currentLength, currentLength + this.ITEMS_PER_PAGE);
     this.displayedDorms = [...this.displayedDorms, ...nextBatch];
-    
+
     // Hide button if all dorms are displayed
     this.showLoadMoreButton = this.displayedDorms.length < this.filteredDorms.length;
   }
@@ -996,17 +996,17 @@ export class DormListComponent implements OnInit {
   // Format date to Thai format
   formatThaiDate(dateString: string): string {
     if (!dateString) return '';
-    
+
     const date = new Date(dateString);
     const thaiMonths = [
       'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
       'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
     ];
-    
+
     const day = date.getDate();
     const month = thaiMonths[date.getMonth()];
     const year = date.getFullYear() + 543; // Convert to Buddhist Era
-    
+
     return `อัพเดทล่าสุด: ${day} ${month} ${year}`;
   }
 }

@@ -131,7 +131,7 @@ export class ComparePopupComponent implements OnInit, OnDestroy {
   }
 
   goToComparePage(): void {
-    this.router.navigate(['/dorm-compare']);
+    this.router.navigate(['/compare']);
   }
 
   canCompare(): boolean {

@@ -14,6 +14,7 @@ import { AuthService, AdminProfile } from '../../services/auth.service';
 import { Subscription } from 'rxjs';
 import { filter, distinctUntilChanged } from 'rxjs/operators';
 import { NavigationEnd } from '@angular/router';
+import { AuthModalService } from '../../services/auth-modal.service';
 
 @Component({
   selector: 'app-navbar',
@@ -35,8 +36,21 @@ export class NavbarComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private authService: AuthService,
+    private authModalService: AuthModalService,
     private cdr: ChangeDetectorRef
   ) {}
+
+  openLoginModal() {
+    this.authModalService.open('login');
+  }
+
+  onPostListingClick() {
+    if (this.isLoggedIn()) {
+      this.router.navigate(['/post-listing']);
+    } else {
+      this.authModalService.open('login');
+    }
+  }
 
   ngOnInit() {
     this.authSubscription = this.authService.currentUser$

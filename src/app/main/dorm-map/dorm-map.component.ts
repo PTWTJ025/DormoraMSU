@@ -245,7 +245,7 @@ export class DormMapComponent implements OnInit, OnDestroy {
         : '';
 
     return `
-      <div style="font-family:'Noto Sans Thai','Inter',sans-serif; width:260px; background:#ffffff;">
+      <div style="font-family:'Arimo','Anuphan',sans-serif; width:260px; background:#ffffff;">
         ${
           imageUrl
             ? `<img src="${imageUrl}" alt="${dormDetail.dorm_name || ''}"
@@ -269,7 +269,7 @@ export class DormMapComponent implements OnInit, OnDestroy {
             <a href="${navUrl}" target="_blank" rel="noopener"
                style="display:flex; align-items:center; justify-content:center; gap:6px; padding:8px 10px; border-radius:999px; background:#2563eb; text-decoration:none; color:#ffffff; font-size:12px; font-weight:600;">
               <span>Google Maps</span>
-              
+
             </a>
           </div>`
               : `
@@ -291,7 +291,7 @@ export class DormMapComponent implements OnInit, OnDestroy {
         : '';
 
     return `
-      <div style="font-family:'Noto Sans Thai','Inter',sans-serif; width:260px; background:#ffffff;">
+      <div style="font-family:'Arimo','Anuphan',sans-serif; width:260px; background:#ffffff;">
         <div style="padding:12px 14px 14px;">
           <div style="font-size:16px; font-weight:700; color:#111827; margin-bottom:4px;">
             ${priceDisplay}
